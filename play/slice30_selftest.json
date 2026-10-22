@@ -1,0 +1,67 @@
+{
+ "A_restart": {
+  "hasTurbine": true,
+  "maxW": 480,
+  "needsT3": true,
+  "startDead": true,
+  "refuseSeized": true,
+  "repaired": true,
+  "kitUsed": true,
+  "refuseNoChip": true,
+  "chipIn": true,
+  "refuseStub": true,
+  "exportT3": true,
+  "refuseFuel": true,
+  "fueled": true,
+  "started": true,
+  "startMsg": "Turbine spinning \u2014 480 W. Repair / sleeve the outdoor pylons to feed the base station junction.",
+  "ok": true
+ },
+ "B_pylons": {
+  "count": 7,
+  "cfgCount": 7,
+  "someFailedAtSpawn": true,
+  "t1Short": true,
+  "feedWhileShort": true,
+  "allT3": true,
+  "feedLive": true,
+  "feedW": 480,
+  "ok": true
+ },
+ "C_home": {
+  "hasJunc": true,
+  "boost": 480,
+  "avail": 520,
+  "boosted": true,
+  "pumpPowered": true,
+  "juncOut": 240,
+  "ok": true
+ },
+ "D_overheat": {
+  "tripped": true,
+  "feedAfter": true,
+  "restarted": true,
+  "ok": true
+ },
+ "E_save": {
+  "schema": true,
+  "proto": true,
+  "hasTurbSt": true,
+  "hasPylSt": true,
+  "turbBack": true,
+  "pylBack": true,
+  "ok": true
+ },
+ "F_regression": {
+  "version29": true,
+  "s29": true,
+  "s28": true,
+  "s27": true,
+  "ark3": true,
+  "drill": true,
+  "refinery": true,
+  "saveSchema": true,
+  "ok": true
+ },
+ "SUCCESS": true
+}

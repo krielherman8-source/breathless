@@ -1,0 +1,85 @@
+{
+  "A_craft": {
+    "locked": true,
+    "tableStill": true,
+    "ratioBetter": true,
+    "watts": 100,
+    "refUnlocked": true,
+    "crushUnlocked": true,
+    "craftMsg": "Crafted Ore refinery.",
+    "crafted": true,
+    "inv": 1,
+    "crushMsg": "Crafted Refinery crusher tier.",
+    "crushCrafted": true,
+    "tableCraft": "Crafted Ore briquettes (x3).",
+    "tableBricks": 3,
+    "placed": true,
+    "placeReason": null,
+    "demandW": 100,
+    "ok": true
+  },
+  "B_unpowered": {
+    "powered": false,
+    "busy": false,
+    "out": 0,
+    "made": 0,
+    "ok": true
+  },
+  "C_run": {
+    "bat": true,
+    "gen": true,
+    "powered": true,
+    "made": 4,
+    "outHop": 4,
+    "tCycle": 6,
+    "cycleSec": 5,
+    "ok": true
+  },
+  "D_belt": {
+    "unloader": true,
+    "loader": true,
+    "fed": 4,
+    "inHop": 4,
+    "made": 4,
+    "loaderHop": 4,
+    "outLeft": 0,
+    "toLoader": true,
+    "ok": true
+  },
+  "E_crusher": {
+    "fitted": true,
+    "visible": true,
+    "flag": true,
+    "cycleFast": 2.75,
+    "expect": 2.75,
+    "cycleMatch": true,
+    "tFast": 2.8,
+    "ok": true
+  },
+  "F_power": {
+    "drawW": 100,
+    "cableT2": 200,
+    "cableT1": 80,
+    "needsT2alone": true,
+    "fitsT2": true,
+    "hasChipBay": true,
+    "chipped": true,
+    "priority": 5,
+    "ok": true
+  },
+  "G_regression": {
+    "version27": true,
+    "refineryW": true,
+    "betterRatio": true,
+    "tableFallback": true,
+    "drillW": true,
+    "s27": true,
+    "s26": true,
+    "mineLab": true,
+    "ark3Die": true,
+    "drillClass": true,
+    "refineryClass": true,
+    "ok": true
+  },
+  "SUCCESS": true
+}

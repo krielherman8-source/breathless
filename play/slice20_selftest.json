@@ -1,0 +1,57 @@
+{
+ "A_approach": {
+  "hasWaypoint": true,
+  "hasHatch": true,
+  "outdoorExpanded": true,
+  "distFromArk1": 14.09,
+  "farEnough": true,
+  "ark2X": -6,
+  "ark2ZOff": 26,
+  "westOfArk1": true
+ },
+ "B_interior": {
+  "plugsCleared": true,
+  "hatchOpen": true,
+  "zone": "ark2",
+  "isArk2": true,
+  "volIsRobotLab": true,
+  "distinctFromGrow": true,
+  "breathable": true,
+  "o2": 0.289,
+  "co2": 0.033,
+  "directive": true
+ },
+ "C_gate": {
+  "needsOmni": true,
+  "plugCount": 3,
+  "allWereSoil": true,
+  "canOpenWhenClear": true,
+  "refusesWithoutDig": true,
+  "omniRequiredNote": true
+ },
+ "D_rewards": {
+  "recipe": true,
+  "recipeWasLocked": true,
+  "loreRead": true,
+  "housingLogged": true,
+  "scrapCrate": true,
+  "scrapGained": true,
+  "hasTorsoRecipe": true
+ },
+ "E_lucid": {
+  "enteredOnce": true,
+  "zoneNow": "ark2",
+  "waypointExists": true
+ },
+ "F_regression": {
+  "ark1Hatch": true,
+  "growLab": true,
+  "robotLab": true,
+  "omniPickup": true,
+  "digPockets": true,
+  "ventRoomsOff": true,
+  "introBeats": true,
+  "outdoorBigger": true,
+  "recipesStill": true
+ }
+}

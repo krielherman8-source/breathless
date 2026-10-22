@@ -1,0 +1,208 @@
+{
+ "A_trap": {
+  "feral": "Feral survivor",
+  "legacyCollared": true,
+  "noCollarFeral": true,
+  "sprungAt": 1.55,
+  "state": "trapped",
+  "occupant": true,
+  "phase0": "thrash",
+  "phase1": "calm",
+  "calmAt": 6.4,
+  "wakeRefused": true,
+  "fleeGain": 2.84,
+  "flees": true,
+  "hostileLunge": true,
+  "ok": true
+ },
+ "B_fit": {
+  "earlyClawed": true,
+  "heldS": 2.2,
+  "collared": true,
+  "itemUsed": true,
+  "trapFreed": true,
+  "fitTimeOk": true,
+  "label": "Sedated survivor (collared)",
+  "wakes": true,
+  "flinch": true,
+  "escaped": true,
+  "t2Calm": true,
+  "ok": true
+ },
+ "C_charge": {
+  "life": 1800,
+  "lifeMin": 30,
+  "drain60": 60,
+  "drainOk": true,
+  "sedatedHolds": true,
+  "lowNote": true,
+  "ledLow": true,
+  "critNote": true,
+  "critSlow": true,
+  "dockPlaced": true,
+  "dockLive": true,
+  "walkedToDock": true,
+  "dockRate": 15,
+  "dockRateOk": true,
+  "dockDrawW": 60,
+  "fullMin": 2,
+  "leftFull": true,
+  "hand10s": 60,
+  "handOk": true,
+  "ok": true
+ },
+ "D_relapse": {
+  "hostile": {
+   "at": 3,
+   "state": "feral",
+   "mood": "hostile",
+   "dead": true,
+   "relapses": 1,
+   "said": true,
+   "rewake": false
+  },
+  "flee": {
+   "at": 3,
+   "state": "feral",
+   "mood": "flee",
+   "dead": true,
+   "relapses": 1,
+   "said": true,
+   "rewake": false
+  },
+  "far": {
+   "at": 3,
+   "state": "feral",
+   "mood": "flee",
+   "dead": true,
+   "relapses": 1,
+   "said": true,
+   "rewake": false
+  },
+  "ok": true
+ },
+ "E_breath": {
+  "o2Use": 0.9,
+  "perSec": 0.9,
+  "co2PerSec": 0.9,
+  "player": 1,
+  "plant": 1.9,
+  "work": 1.215,
+  "tend": 0.99,
+  "rateOk": true,
+  "feralOffBooks": true,
+  "one": {
+   "minO2": 28.333,
+   "o2": 28.333,
+   "over": false,
+   "plants": 1
+  },
+  "twoNoPlanter": {
+   "minO2": 20.481,
+   "o2": 33.043,
+   "over": false,
+   "plants": 1
+  },
+  "twoPlanter": {
+   "minO2": 28.335,
+   "o2": 32.246,
+   "over": false,
+   "plants": 2
+  },
+  "budget": {
+   "onePlant": 1.9,
+   "youPlusOne": 1.9,
+   "youPlusTwo": 2.8,
+   "twoPlants": 3.8
+  },
+  "planterMatters": true,
+  "ok": true
+ },
+ "F_crash": {
+  "zone": "surface",
+  "obj": "shelter",
+  "label": "FIND SHELTER",
+  "distPod": 1.921,
+  "outerOpen": 1,
+  "salvage0": 4,
+  "suitDrop10": 11.76,
+  "suitRateOk": true,
+  "bottleS": 85,
+  "salvaged": 4,
+  "lockerEmpty": true,
+  "logRead": true,
+  "distAirlock": 6.639,
+  "ok": true
+ },
+ "G_shelter": {
+  "walkedIn": true,
+  "doneEarly": false,
+  "done": true,
+  "secs": 1,
+  "outerSealed": true,
+  "line": true,
+  "cycledIn": true,
+  "normalSuitAfter": true,
+  "ok": true
+ },
+ "H_intake": {
+  "exists": true,
+  "wall": true,
+  "consumer": true,
+  "unpowered": true,
+  "backedUp": true,
+  "rig": {
+   "ok": true,
+   "pipes": 20,
+   "cables": 14
+  },
+  "powered": true,
+  "demandW": 4,
+  "tankGain": 20,
+  "header": 10,
+  "delivered": true,
+  "ok": true
+ },
+ "I_save": {
+  "proto": "3.1",
+  "schema": true,
+  "size": 3250,
+  "crewBack": true,
+  "feralBack": true,
+  "traps": 1,
+  "docks": 1,
+  "planters": 1,
+  "objDone": true,
+  "warn": "",
+  "mig": {
+   "n": 2,
+   "crewTag": "CREW-1",
+   "crewCollar": 1800,
+   "crewState": "awake",
+   "worldState": "feral",
+   "worldMood": "hostile",
+   "worldLabel": "Feral survivor",
+   "warn": 0
+  },
+  "migOk": true,
+  "ok": true
+ },
+ "J_regression": {
+  "title": true,
+  "ver": true,
+  "noImpHelp": true,
+  "noImpStart": true,
+  "recipes": true,
+  "s24": true,
+  "s25": true,
+  "s26": true,
+  "s27": true,
+  "s28": true,
+  "s29": true,
+  "s30": true,
+  "s31": true,
+  "s32": true,
+  "ok": true
+ },
+ "SUCCESS": true
+}

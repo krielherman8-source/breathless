@@ -1,0 +1,61 @@
+{
+ "fresh": {
+  "savebox": "none",
+  "ver": "PROTOTYPE 2.8 · SAVE STATE"
+ },
+ "play": {
+  "gen": true,
+  "genAt": "5,0,4",
+  "gens": 1,
+  "inv": "{\"cable\":13,\"liquid_pipe\":8}",
+  "scrap": 31,
+  "tier": 2
+ },
+ "afterF5": {
+  "toast": "Saved.",
+  "has": true,
+  "size": 1063,
+  "url": "http://localhost:8765/index.html"
+ },
+ "reload": {
+  "savebox": "flex",
+  "info": "Saved just now · 0 min in · 4 machines · 23 pipe · 0 cable · T2 table · 10 blueprints · 31 scrap",
+  "gens": 1,
+  "genFuel": [
+   555
+  ],
+  "genAt": [
+   "5,0,4"
+  ],
+  "inv": "{\"cable\":13,\"liquid_pipe\":8}",
+  "scrap": 31,
+  "battery": true,
+  "tier": 2,
+  "pos": [
+   -1.5,
+   2.2
+  ],
+  "warn": []
+ },
+ "cont": {
+  "start": "none",
+  "intro": false
+ },
+ "corrupt": {
+  "savebox": "none",
+  "note": "Save data was unreadable — starting fresh (a copy is kept).",
+  "kept": true,
+  "gens": 0
+ },
+ "beforeNew": {
+  "savebox": "flex",
+  "scrap": 77
+ },
+ "afterNew": {
+  "has": false,
+  "savebox": "none",
+  "scrap": 8,
+  "gens": 0
+ },
+ "SUCCESS": true
+}

@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BREATHLESS - prototype 0.1</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:"Segoe UI",Roboto,monospace;color:#bfeaff}
+  canvas{display:block}
+  #hud{position:fixed;inset:0;pointer-events:none}
+  #cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#bfeaff88}
+  #prompt{position:absolute;left:50%;top:58%;transform:translateX(-50%);padding:6px 14px;background:#001a2899;border:1px solid #2aa6d4;border-radius:4px;font-size:15px;display:none;white-space:nowrap}
+  #suit{position:absolute;left:24px;bottom:24px;width:260px}
+  .lbl{font-size:12px;letter-spacing:2px;opacity:.8;margin-bottom:3px}
+  .bar{height:16px;border:1px solid #2aa6d4;background:#00111a99;position:relative;margin-bottom:10px}
+  .bar>i{position:absolute;left:0;top:0;bottom:0;background:#38c8ff;width:100%;transition:background .2s}
+  #room{position:absolute;right:24px;bottom:24px;text-align:right;font-size:13px;line-height:1.6;background:#00111a88;padding:8px 12px;border:1px solid #1d6f8f}
+  #warn{position:absolute;top:60px;left:50%;transform:translateX(-50%);font-size:22px;letter-spacing:3px;color:#ff5a4a;display:none;text-shadow:0 0 8px #f00}
+  #vig{position:absolute;inset:0;box-shadow:inset 0 0 0 0 #000;transition:box-shadow .3s}
+  #time{position:absolute;top:16px;right:20px;font-size:13px;opacity:.8}
+  #msg{position:absolute;top:16px;left:50%;transform:translateX(-50%);font-size:14px;opacity:.9;text-align:center}
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000d;text-align:center;z-index:5;cursor:pointer}
+  .screen h1{font-size:64px;letter-spacing:14px;margin:0 0 10px;font-weight:200;color:#e6f8ff}
+  .screen p{max-width:560px;line-height:1.6;opacity:.85}
+  #over{display:none}#over h1{color:#ff5a4a}
+  kbd{background:#12384a;border:1px solid #2aa6d4;border-radius:3px;padding:1px 6px}
+</style>
+</head>
+<body>
+<div id="hud">
+  <div id="vig"></div><div id="cross"></div><div id="prompt"></div><div id="warn"></div>
+  <div id="msg"></div><div id="time"></div>
+  <div id="suit">
+    <div class="lbl">SUIT OXYGEN RESERVE</div><div class="bar"><i id="suitbar"></i></div>
+    <div class="lbl">LUNGS / BREATH</div><div class="bar"><i id="breathbar" style="background:#7dffb0"></i></div>
+  </div>
+  <div id="room"></div>
+</div>
+<div id="start" class="screen">
+  <h1>BREATHLESS</h1>
+  <p>Prototype 0.1: the sealed base room. The air will run out. Keep the oxygen plant alive.</p>
+  <p><kbd>W A S D</kbd> move &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>E</kbd> (hold) interact &nbsp; <kbd>Esc</kbd> release mouse</p>
+  <p><b>Click to begin</b></p>
+</div>
+<div id="over" class="screen"><h1>SUFFOCATED</h1><p id="overmsg"></p><p><b>Click to try again</b></p></div>
+
+<script type="module">
+import * as THREE from './lib/three.module.js';
+
+/* =====================================================================
+   BREATHLESS prototype 0.1
+   Layout (all extensible, see DESIGN.md):
+     1. Config         - every tunable number lives here
+     2. EventBus       - decoupled messages (LUCID, cutscenes, scans hook in here)
+     3. GasNetwork     - ONI-style gas containers + ports + flow-limited links
+                          (rooms now; pumps/pipes/bursting plug into Link later)
+     4. Entities       - anything with update(dt, game): plants, player, devices
+     5. VoxelWorld     - STUB: interface for the future block digging grid
+     6. Systems/Game   - fixed-step simulation, kept separate from rendering
+     7. Render/Input/UI
+   ===================================================================== */
+
+// ---------- 1. Config ----------
+const CFG = {
+  room: { w: 12, d: 10, h: 3.2 },
+  gas: {
+    volume: 600,            // gas units the room holds at "full pressure"
+    startO2: 170, startCO2: 8,
+    breathableO2: 0.15,     // O2 fraction needed to breathe room air
+    toxicCO2: 0.08,         // CO2 fraction above which air is unbreathable
+  },
+  player: {
+    speed: 3.2, run: 5.2, radius: 0.35, eye: 1.65,
+    o2Use: 1.0,             // gas units O2 -> CO2 per second
+    suitMax: 100, suitDrain: 3.0, suitRefill: 8.0,
+    breathMax: 100,
+  },
+  plant: {
+    // growth stages by age in seconds: [until, output multiplier, name]
+    stages: [[45, 0.35, 'Seedling'], [260, 1.0, 'Mature'], [330, 0.5, 'Aging'], [Infinity, 0, 'Withered']],
+    o2Rate: 1.9,            // O2 produced per s at 100%
+    co2Rate: 1.6,           // CO2 consumed per s at 100% (if available)
+    waterMax: 100, waterUse: 1.4, waterGain: 28,
+  },
+  timeScale: 1,
+};
+
+// ---------- 2. EventBus ----------
+class EventBus {
+  constructor(){ this.h = {}; }
+  on(e, f){ (this.h[e] ||= []).push(f); }
+  emit(e, d){ (this.h[e] || []).forEach(f => f(d)); }
+}
+
+// ---------- 3. GasNetwork ----------
+// A GasContainer holds gas amounts. A Link moves gas between two containers with a
+// max flow and a pressure tier: this is the hook for pumps (1..4 outlets, flow split
+// equally), pipe tiers, bursting when flow > pipe.maxFlow, and REINFORCING (upgrade
+// pipe.maxFlow in place). Not used by the prototype beyond the single room yet.
+class GasContainer {
+  constructor(volume, gases = {}){ this.volume = volume; this.gases = { o2: 0, co2: 0, ...gases }; }
+  total(){ return Object.values(this.gases).reduce((a, b) => a + b, 0); }
+  frac(g){ return this.gases[g] / Math.max(this.volume, this.total()); }
+  pressure(){ return this.total() / this.volume; }
+  add(g, n){ this.gases[g] = Math.max(0, (this.gases[g] || 0) + n); }
+  // Remove up to n of gas g, returns amount actually removed
+  take(g, n){ const t = Math.min(n, this.gases[g] || 0); this.gases[g] -= t; return t; }
+}
+class Link { // placeholder for pipe/pump: moves gas a->b limited by maxFlow
+  constructor(a, b, maxFlow){ this.a = a; this.b = b; this.maxFlow = maxFlow; this.burst = false; }
+  update(dt){ /* TODO pipes/pumps: equalize pressure, clamp by maxFlow, burst if exceeded */ }
+}
+class GasNetwork {
+  constructor(){ this.containers = []; this.links = []; }
+  add(c){ this.containers.push(c); return c; }
+  update(dt){ this.links.forEach(l => l.update(dt)); }
+}
+
+// ---------- 5. VoxelWorld (stub) ----------
+class VoxelWorld {
+  // Future: chunked block grid with per-cell material (solid/liquid/gas), digging via omni tool.
+  constructor(){ this.cells = new Map(); }
+  get(x, y, z){ return this.cells.get(`${x},${y},${z}`) || null; }
+  set(x, y, z, v){ this.cells.set(`${x},${y},${z}`, v); }
+  dig(x, y, z){ this.cells.delete(`${x},${y},${z}`); /* TODO emit gas/solid items */ }
+}
+
+// ---------- 4. Entities ----------
+class Entity {
+  constructor(){ this.mesh = null; this.interactable = false; }
+  update(dt, game){}
+  prompt(game){ return null; }
+  interact(dt, game){}   // called every frame while E held and aimed at us
+}
+
+class OxygenPlant extends Entity {
+  constructor(game, pos){
+    super();
+    this.interactable = true;
+    this.age = 40; this.water = 70; this.health = 100; this.output = 0; this.replanting = 0;
+    this.pos = pos; this.buildMesh(game);
+  }
+  stage(){ return CFG.plant.stages.find(s => this.age < s[0]); }
+  buildMesh(game){
+    const g = new THREE.Group(); g.position.copy(this.pos);
+    const planter = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.55, 1.0), new THREE.MeshStandardMaterial({ color: 0x4a5560, metalness: .6, roughness: .5 }));
+    planter.position.y = 0.275; g.add(planter);
+    const soil = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.08, 0.85), new THREE.MeshStandardMaterial({ color: 0x2b1f17 }));
+    soil.position.y = 0.58; g.add(soil);
+    this.stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.07, 1, 8), new THREE.MeshStandardMaterial({ color: 0x3fae5a }));
+    this.stem.geometry.translate(0, 0.5, 0); this.stem.position.y = 0.6; g.add(this.stem);
+    this.bulbs = [];
+    for (let i = 0; i < 5; i++){
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), new THREE.MeshStandardMaterial({ color: 0x7dffb0, emissive: 0x2fe08a, emissiveIntensity: 1.2 }));
+      g.add(b); this.bulbs.push(b);
+    }
+    this.light = new THREE.PointLight(0x66ffb0, 1.2, 6); this.light.position.y = 1.4; g.add(this.light);
+    // status label above plant
+    this.cv = document.createElement('canvas'); this.cv.width = 256; this.cv.height = 96;
+    this.tex = new THREE.CanvasTexture(this.cv);
+    this.label = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tex, transparent: true, depthWrite: false }));
+    this.label.scale.set(1.5, 0.56, 1); this.label.position.y = 2.35; g.add(this.label);
+    g.userData.entity = this; planter.userData.entity = this; this.mesh = g; this.hit = [planter];
+    game.scene.add(g); this.paint(); this.shape();
+  }
+  shape(){
+    const s = this.stage(), grow = Math.min(1, 0.25 + this.age / 120);
+    const wilt = s[2] === 'Withered' ? 1 : s[2] === 'Aging' ? 0.4 : 0;
+    this.stem.scale.set(1, 0.3 + 1.0 * grow * (1 - wilt * 0.5), 1);
+    const h = 0.3 + 1.0 * grow * (1 - wilt * 0.5);
+    const dry = this.water < 20;
+    this.bulbs.forEach((b, i) => {
+      const a = i / 5 * Math.PI * 2, r = 0.12 + grow * 0.3;
+      b.position.set(Math.cos(a) * r, 0.6 + h * (0.55 + 0.12 * i / 5), Math.sin(a) * r);
+      b.scale.setScalar(0.4 + grow * 0.8 * (1 - wilt * 0.6));
+      const col = s[2] === 'Withered' ? 0x4a3a2a : dry ? 0xb8a24a : 0x7dffb0;
+      b.material.color.setHex(col);
+      b.material.emissive.setHex(s[2] === 'Withered' ? 0x000000 : dry ? 0x806a10 : 0x2fe08a);
+      b.material.emissiveIntensity = 0.3 + this.output * 1.0;
+    });
+    this.stem.material.color.setHex(s[2] === 'Withered' ? 0x5a4a30 : 0x3fae5a);
+    this.light.intensity = 0.2 + this.output * 1.4;
+  }
+  paint(){
+    const c = this.cv.getContext('2d'); c.clearRect(0, 0, 256, 96);
+    c.fillStyle = '#001a28cc'; c.fillRect(0, 0, 256, 96); c.strokeStyle = '#2aa6d4'; c.strokeRect(1, 1, 254, 94);
+    c.fillStyle = '#bfeaff'; c.font = '16px monospace';
+    c.fillText('OXYGEN PLANT - ' + this.stage()[2], 8, 20);
+    const bar = (y, v, col, t) => { c.fillStyle = '#12384a'; c.fillRect(8, y, 240, 14); c.fillStyle = col; c.fillRect(8, y, 240 * Math.max(0, v), 14); c.fillStyle = '#fff'; c.font = '12px monospace'; c.fillText(t, 12, y + 11); };
+    bar(30, this.water / CFG.plant.waterMax, this.water < 20 ? '#d9a02a' : '#2a8fd9', 'WATER ' + Math.round(this.water));
+    bar(52, this.output, '#2fe08a', 'OUTPUT ' + Math.round(this.output * 100) + '%');
+    c.fillStyle = '#9ccfe6'; c.font = '11px monospace';
+    c.fillText(this.stage()[2] === 'Withered' ? 'Withered! Hold E to replant' : 'Hold E to water', 8, 86);
+    this.tex.needsUpdate = true;
+  }
+  update(dt, game){
+    const P = CFG.plant, room = game.room, st = this.stage();
+    this.age += dt;
+    const alive = st[2] !== 'Withered';
+    // water is consumed only while it is working
+    let out = alive ? st[1] : 0;
+    if (this.water <= 0) out = 0;
+    if (out > 0) this.water = Math.max(0, this.water - P.waterUse * out * dt);
+    // gas exchange: converts CO2 -> O2 (1:1) and tops up some O2 from the soil
+    const co2Want = P.co2Rate * out * dt, co2Got = room.take('co2', co2Want);
+    // output throttles as the room fills up (pressure cap), like ONI over-pressure
+    const room_ok = Math.max(0, Math.min(1, (room.volume * 0.4 - room.gases.o2) / (room.volume * 0.1)));
+    room.add('o2', P.o2Rate * out * dt * room_ok * (0.6 + 0.4 * (co2Want ? co2Got / co2Want : 0)));
+    this.output = out;
+    this.paintT = (this.paintT || 0) + dt;
+    if (this.paintT > 0.25){ this.paintT = 0; this.paint(); this.shape(); }
+  }
+  prompt(){ return this.stage()[2] === 'Withered' ? 'Hold [E] to replant a seedling' : 'Hold [E] to water the plant'; }
+  interact(dt, game){
+    if (this.stage()[2] === 'Withered'){
+      this.replanting += dt;
+      if (this.replanting > 2){ this.age = 0; this.water = 40; this.replanting = 0; game.ui.toast('New seedling planted. It will take a while to mature.'); game.bus.emit('plant:replanted', this); }
+    } else {
+      this.water = Math.min(CFG.plant.waterMax, this.water + CFG.plant.waterGain * dt);
+    }
+  }
+}
+
+class StaticProp extends Entity { // decorative / collidable props (monitor, door, bunk...)
+  constructor(mesh, label){ super(); this.mesh = mesh; this.label = label; this.interactable = !!label; mesh.userData.entity = this; }
+  prompt(){ return this.label; }
+}
+
+class Player {
+  constructor(game){
+    this.game = game; this.pos = new THREE.Vector3(0, 0, 3); this.vel = new THREE.Vector3();
+    this.yaw = Math.PI; this.pitch = 0;
+    this.suit = CFG.player.suitMax; this.breath = CFG.player.breathMax;
+    this.dead = false; this.breathing = 'room';  // 'room' | 'suit'
+  }
+  update(dt, input){
+    const P = CFG.player, room = this.game.room;
+    // movement
+    const f = (input.keys.KeyW ? 1 : 0) - (input.keys.KeyS ? 1 : 0), s = (input.keys.KeyD ? 1 : 0) - (input.keys.KeyA ? 1 : 0);
+    const sp = (input.keys.ShiftLeft || input.keys.ShiftRight) ? P.run : P.speed;
+    const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
+    let dx = (-sin * f + cos * s), dz = (-cos * f - sin * s);
+    const l = Math.hypot(dx, dz) || 1; dx = dx / l * sp * dt * (f || s ? 1 : 0); dz = dz / l * sp * dt * (f || s ? 1 : 0);
+    this.game.world.move(this.pos, dx, dz, P.radius);
+    // breathing: consumes room O2, produces CO2
+    const o2f = room.frac('o2'), co2f = room.frac('co2');
+    const good = o2f >= CFG.gas.breathableO2 && co2f < CFG.gas.toxicCO2 && room.gases.o2 > 0.01;
+    if (room.gases.o2 > 0) { const used = room.take('o2', P.o2Use * dt); room.add('co2', used); }
+    if (good){
+      this.breathing = 'room';
+      this.suit = Math.min(P.suitMax, this.suit + P.suitRefill * dt);
+      this.breath = Math.min(P.breathMax, this.breath + 40 * dt);
+    } else {
+      this.breathing = 'suit';
+      this.breath = Math.max(0, this.breath - 6 * dt);
+      this.suit = Math.max(0, this.suit - P.suitDrain * dt);
+      if (this.suit <= 0) this.breath = Math.max(0, this.breath - 25 * dt);
+      if (this.breath <= 0 && !this.dead){
+        this.dead = true;
+        this.game.bus.emit('player:dead', co2f >= CFG.gas.toxicCO2 ? 'The CO2 got you.' : 'The air ran out.');
+      }
+    }
+  }
+}
+
+// ---------- World / collision ----------
+class World {
+  constructor(){ this.boxes = []; }  // AABBs {minX,maxX,minZ,maxZ}
+  addBox(x, z, w, d){ this.boxes.push({ minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2 }); }
+  hit(x, z, r){ return this.boxes.some(b => x + r > b.minX && x - r < b.maxX && z + r > b.minZ && z - r < b.maxZ); }
+  move(p, dx, dz, r){
+    if (!this.hit(p.x + dx, p.z, r)) p.x += dx;
+    if (!this.hit(p.x, p.z + dz, r)) p.z += dz;
+  }
+}
+
+// ---------- 6. Game (simulation, no rendering needed) ----------
+class Game {
+  constructor(scene){
+    this.scene = scene; this.bus = new EventBus(); this.time = 0;
+    this.world = new World(); this.voxels = new VoxelWorld();
+    this.gas = new GasNetwork();
+    this.room = this.gas.add(new GasContainer(CFG.gas.volume, { o2: CFG.gas.startO2, co2: CFG.gas.startCO2 }));
+    this.entities = []; this.player = new Player(this);
+    this.ui = { toast(){} };
+    this.over = false;
+    this.bus.on('player:dead', why => { this.over = true; this.overReason = why; });
+  }
+  add(e){ this.entities.push(e); return e; }
+  step(dt, input){
+    if (this.over) return;
+    dt *= CFG.timeScale; this.time += dt;
+    this.player.update(dt, input);
+    this.gas.update(dt);
+    this.entities.forEach(e => e.update(dt, this));
+  }
+}
+
+// ---------- 7. Build scene ----------
+const R = CFG.room;
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x05090d);
+scene.fog = new THREE.Fog(0x05090d, 8, 22);
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.05, 60);
+scene.add(new THREE.HemisphereLight(0x8fb8d0, 0x1a2228, 0.55));
+
+const game = new Game(scene);
+const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: .8, metalness: .2, ...o });
+function box(w, h, d, x, y, z, m, collide = true){
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); mesh.position.set(x, y, z); scene.add(mesh);
+  if (collide) game.world.addBox(x, z, w, d);
+  return mesh;
+}
+// shell
+const wallM = mat(0x2c3a44), floorM = mat(0x1d252b, { roughness: .6, metalness: .4 });
+box(R.w, .2, R.d, 0, -.1, 0, floorM, false);
+box(R.w, .2, R.d, 0, R.h + .1, 0, mat(0x222c33), false);
+box(R.w, R.h, .3, 0, R.h / 2, -R.d / 2 - .15, wallM);
+box(R.w, R.h, .3, 0, R.h / 2, R.d / 2 + .15, wallM);
+box(.3, R.h, R.d, -R.w / 2 - .15, R.h / 2, 0, wallM);
+box(.3, R.h, R.d, R.w / 2 + .15, R.h / 2, 0, wallM);
+// ceiling light strips
+for (let i = -1; i <= 1; i++){
+  box(.5, .05, 7, i * 3.5, R.h - .03, 0, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xbfe6ff, emissiveIntensity: 1.1 }), false);
+  const l = new THREE.PointLight(0xbfe6ff, 7, 12, 1.6); l.position.set(i * 3.5, R.h - .3, 0); scene.add(l);
+}
+// grid lines on floor for sense of motion
+const grid = new THREE.GridHelper(12, 12, 0x2a4a5a, 0x1a2e38); grid.position.y = .01; grid.scale.z = 10 / 12; scene.add(grid);
+
+// props
+const plant = game.add(new OxygenPlant(game, new THREE.Vector3(-4.3, 0, -3.5)));
+game.world.addBox(-4.3, -3.5, 1.4, 1.0);
+// second planter slot: empty placeholder for future expansion
+box(1.4, .55, 1.0, -2.3, .275, -4.2, mat(0x3a444d));
+// bunk
+box(2.0, .5, 1.0, 4.6, .25, -4.2, mat(0x3a4a58));
+box(.6, .15, .8, 5.3, .58, -4.2, mat(0x8aa4b8), false);
+// workbench (future omni-tool/crafting)
+box(2.2, .9, .8, 4.8, .45, 4.3, mat(0x4a4036));
+// crates
+box(.9, .9, .9, -5.2, .45, 4.0, mat(0x5a4b2e));
+box(.7, .7, .7, -4.3, .35, 4.5, mat(0x6a5a38));
+// locked ARK door on the far wall
+const door = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.5, .1), mat(0x6a2a2a, { emissive: 0x400808 }));
+door.position.set(0, 1.25, R.d / 2 - .05); scene.add(door);
+game.add(new StaticProp(door, 'Airlock sealed. (Placeholder: the surface and the ARK come later.)'));
+// wall monitor with live gas readout
+const mcv = document.createElement('canvas'); mcv.width = 512; mcv.height = 256;
+const mtex = new THREE.CanvasTexture(mcv);
+const monitor = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.2), new THREE.MeshBasicMaterial({ map: mtex }));
+monitor.position.set(0, 1.9, -R.d / 2 + .02); scene.add(monitor);
+game.add(new StaticProp(monitor, 'Base monitor (LUCID will live here later)'));
+// LUCID placeholder terminal text lines
+let lucidLine = 'LUCID: offline (placeholder)';
+function paintMonitor(){
+  const c = mcv.getContext('2d'); c.fillStyle = '#021722'; c.fillRect(0, 0, 512, 256);
+  c.strokeStyle = '#2aa6d4'; c.strokeRect(2, 2, 508, 252);
+  c.font = '22px monospace'; c.fillStyle = '#7dffb0'; c.fillText('BASE ATMOSPHERE', 16, 34);
+  const r = game.room, pct = g => (r.frac(g) * 100).toFixed(1) + '%';
+  c.fillStyle = r.frac('o2') < CFG.gas.breathableO2 ? '#ff5a4a' : '#bfeaff';
+  c.fillText('O2   ' + pct('o2'), 16, 80);
+  c.fillStyle = r.frac('co2') > CFG.gas.toxicCO2 ? '#ff5a4a' : '#bfeaff';
+  c.fillText('CO2  ' + pct('co2'), 16, 115);
+  c.fillStyle = '#bfeaff'; c.fillText('Pressure ' + (r.pressure() * 100).toFixed(0) + '%', 16, 150);
+  c.fillStyle = '#9ccfe6'; c.font = '16px monospace'; c.fillText(lucidLine, 16, 230);
+  // trend bars
+  const hist = paintMonitor.h ||= []; hist.push(r.frac('o2')); if (hist.length > 60) hist.shift();
+  c.strokeStyle = '#38c8ff'; c.beginPath();
+  hist.forEach((v, i) => { const x = 270 + i * 4, y = 200 - v * 400; i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.stroke();
+  c.fillStyle = '#9ccfe6'; c.font = '11px monospace'; c.fillText('O2 trend', 270, 215);
+  mtex.needsUpdate = true;
+}
+
+// ---------- Input / UI ----------
+const input = { keys: {}, hold: false };
+const $ = id => document.getElementById(id);
+const ui = game.ui = {
+  toast(t){ $('msg').textContent = t; clearTimeout(ui._t); ui._t = setTimeout(() => $('msg').textContent = '', 5000); },
+};
+let locked = false;
+function start(){
+  if (game.over){ location.reload(); return; }
+  renderer.domElement.requestPointerLock?.();
+}
+$('start').addEventListener('click', start);
+$('over').addEventListener('click', () => location.reload());
+document.addEventListener('pointerlockchange', () => {
+  locked = document.pointerLockElement === renderer.domElement;
+  $('start').style.display = locked || game.over ? 'none' : 'flex';
+});
+document.addEventListener('keydown', e => { input.keys[e.code] = true; if (e.code === 'KeyE') input.hold = true; });
+document.addEventListener('keyup', e => { input.keys[e.code] = false; if (e.code === 'KeyE') input.hold = false; });
+document.addEventListener('mousemove', e => {
+  if (!locked) return;
+  game.player.yaw -= e.movementX * 0.0022;
+  game.player.pitch = Math.max(-1.4, Math.min(1.4, game.player.pitch - e.movementY * 0.0022));
+});
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+
+game.bus.on('player:dead', why => {
+  document.exitPointerLock?.();
+  $('overmsg').textContent = why + ' You survived ' + Math.floor(game.time) + ' seconds.';
+  $('over').style.display = 'flex'; $('start').style.display = 'none';
+});
+game.bus.on('plant:replanted', () => {});
+
+// ---------- Audio (tiny, optional) ----------
+let actx, beepT = 0;
+function beep(f, d = .12){
+  try {
+    actx ||= new AudioContext(); const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = f; o.type = 'square'; g.gain.value = .04; o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + d);
+  } catch (e) {}
+}
+
+// ---------- HUD update ----------
+const ray = new THREE.Raycaster(); ray.far = 2.8;
+let aimed = null, warnShown = false, toldHalf = false;
+function updateHud(){
+  const p = game.player, r = game.room;
+  const sb = $('suitbar'); sb.style.width = (p.suit / CFG.player.suitMax * 100) + '%';
+  sb.style.background = p.suit < 25 ? '#ff5a4a' : p.suit < 60 ? '#ffc34a' : '#38c8ff';
+  $('breathbar').style.width = (p.breath / CFG.player.breathMax * 100) + '%';
+  const o2 = r.frac('o2') * 100, co2 = r.frac('co2') * 100;
+  $('room').innerHTML = `ROOM AIR<br>O2 <b style="color:${o2 < 15 ? '#ff5a4a' : o2 < 20 ? '#ffc34a' : '#7dffb0'}">${o2.toFixed(1)}%</b> (need 15%)<br>CO2 <b style="color:${co2 > 8 ? '#ff5a4a' : co2 > 4 ? '#ffc34a' : '#bfeaff'}">${co2.toFixed(1)}%</b><br>Breathing: ${p.breathing === 'room' ? 'room air' : '<b style="color:#ff5a4a">SUIT RESERVE</b>'}`;
+  $('time').textContent = 'Survived ' + Math.floor(game.time) + 's';
+  const w = $('warn');
+  if (p.breathing === 'suit'){
+    w.style.display = 'block';
+    w.textContent = p.suit > 0 ? 'ROOM AIR UNBREATHABLE - SUIT RESERVE DRAINING' : 'NO OXYGEN';
+    beepT -= 1 / 60; if (beepT <= 0){ beep(p.suit > 0 ? 660 : 880); beepT = p.suit > 0 ? 1.2 : .4; }
+  } else w.style.display = 'none';
+  const dark = p.breathing === 'suit' ? Math.min(1, (1 - p.breath / 100) * 1.6 + (1 - p.suit / 100) * 0.3) : 0;
+  $('vig').style.boxShadow = `inset 0 0 ${60 + dark * 220}px ${dark * 90}px rgba(${Math.round(120 * dark)},0,0,${.25 + dark * .7})`;
+  if (!toldHalf && o2 < 20 && game.time > 5){ toldHalf = true; ui.toast('Air is getting thin. Find the oxygen plant and keep it watered.'); }
+  // aim / prompt
+  ray.setFromCamera({ x: 0, y: 0 }, camera);
+  const meshes = []; game.entities.forEach(e => { if (e.interactable) (e.hit || [e.mesh]).forEach(m => m.isMesh ? meshes.push(m) : m.traverse(c => c.isMesh && meshes.push(c))); });
+  const hits = ray.intersectObjects(meshes, false);
+  aimed = hits.length ? hits[0].object.userData.entity || hits[0].object.parent?.userData.entity : null;
+  const pr = $('prompt');
+  if (locked && aimed?.prompt?.(game)){ pr.style.display = 'block'; pr.textContent = aimed.prompt(game); } else pr.style.display = 'none';
+}
+$('start').addEventListener('click', () => { actx ||= new AudioContext(); });
+
+// ---------- Main loop ----------
+let last = performance.now(), monT = 0;
+function frame(now){
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (locked && !game.over){
+    game.step(dt, input);
+    if (input.hold && aimed?.interact) aimed.interact(dt * CFG.timeScale, game);
+  }
+  camera.position.set(game.player.pos.x, CFG.player.eye + Math.sin(game.time * 2) * 0.0, game.player.pos.z);
+  camera.rotation.set(game.player.pitch, game.player.yaw, 0, 'YXZ');
+  monT += dt; if (monT > .5){ monT = 0; paintMonitor(); }
+  updateHud();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+paintMonitor();
+requestAnimationFrame(frame);
+
+// ---------- Debug / self-test (open with ?selftest) ----------
+if (location.search.includes('preview')){ $('start').style.display='none'; game.player.pos.set(-1.5,0,0.5); game.player.yaw=0.61; game.player.pitch=-0.1; }
+window.__breathless = { game, CFG, THREE };
+if (location.search.includes('selftest')){
+  const out = {};
+  out.trace = [];
+  const sim = (g, secs, tend) => { for (let t = 0; t < secs / 0.05; t++){ if (tend) tend(g); g.step(0.05, { keys: {} }); if (sim.tr && t % 400 === 0) out.trace.push([Math.round(g.time), +(g.room.frac('o2')*100).toFixed(1), +(g.room.frac('co2')*100).toFixed(1), Math.round(g.player.suit)]); if (g.over) break; } };
+  const fresh = () => { const g = new Game(new THREE.Scene()); const pl = g.add(new OxygenPlant(g, new THREE.Vector3())); return [g, pl]; };
+  // 1) neglected: must reach game over
+  let [g, pl] = fresh(); sim(g, 900); out.neglected = { over: g.over, t: Math.round(g.time), why: g.overReason };
+  // 2) tended: water whenever low, stays alive for a long time
+  [g, pl] = fresh(); sim.tr = true; sim(g, 600, () => { if (pl.water < 50) pl.interact(0.05, g); });
+  sim.tr = false; out.tended = { over: g.over, t: Math.round(g.time), o2pct: +(g.room.frac('o2') * 100).toFixed(1), plant: pl.stage()[2] };
+  // 3) tended + replant when withered
+  [g, pl] = fresh(); sim(g, 1200, () => { if (pl.water < 50 || pl.stage()[2] === 'Withered') pl.interact(0.05, g); });
+  out.tendedReplant = { over: g.over, t: Math.round(g.time), o2pct: +(g.room.frac('o2') * 100).toFixed(1), plant: pl.stage()[2] };
+  document.title = 'SELFTEST'; const pre = document.createElement('pre'); pre.id = 'selftest'; pre.textContent = JSON.stringify(out); pre.style.cssText = 'position:fixed;z-index:99;background:#000;color:#0f0;top:0'; document.body.append(pre);
+}
+</script>
+</body>
+</html>
