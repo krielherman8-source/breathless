@@ -2129,7 +2129,7 @@ class Player {
     const l = Math.hypot(dx, dz) || 1; dx = dx / l * sp * wmul * dt * (f || s ? 1 : 0); dz = dz / l * sp * wmul * dt * (f || s ? 1 : 0);
     // v3.1.1: sub-step long moves (slow frames on low-end laptops) so a big dt never skips or snags on thin colliders
     { const W = this.game.world, n = Math.max(1, Math.ceil(Math.hypot(dx, dz) / .12)); for (let k = 0; k < n; k++) W.move(this.pos, dx / n, dz / n, P.radius); }
-    unstuckTick(this, dt);
+    unstuckTick(this, dt, !!(f || s));   // only while you're trying to walk
     { const Lq = this.game.liquids; this.wade = Lq ? Lq.depthAt(this.pos) : 0; this.wadeMul = wmul;
       const fl = Lq && this.wade > 0 ? this.game.voxels.cellOfWorld({ x: this.pos.x, y: (this.pos.y || 0) + .25, z: this.pos.z }) : null;
       this.wadeSurf = (this.pos.y || 0) + this.wade; this.submerged = this.wade >= CFG.cave.headDepth;
@@ -9653,12 +9653,12 @@ function freeSpotNear(game, x, z, r, maxR = 4, prefer = null){
 function boxesAt(game, x, z, r){ return game.world.boxes.filter(b => b.walk && b.minY < 1.8 && b.maxY > .05 && x + r > b.minX && x - r < b.maxX && z + r > b.minZ && z - r < b.maxZ)
   .map(b => ({ ref: b.ref?.kind || b.ref?.id || b.ref?.constructor?.name || (b.ref ? 'obj' : 'none'), x: [+b.minX.toFixed(2), +b.maxX.toFixed(2)], z: [+b.minZ.toFixed(2), +b.maxZ.toFixed(2)] })); }
 // overlapping a collider (move() then refuses every direction) or boxed in on all four sides → step to the nearest free spot
-function unstuckTick(P, dt){
+function unstuckTick(P, dt, wantsMove = true){
   const g = P.game, W = g.world, r = CFG.player.radius, x = P.pos.x, z = P.pos.z, e = .06;
-  const stuck = W.hit(x, z, r) || (W.hit(x + e, z, r) && W.hit(x - e, z, r) && W.hit(x, z + e, r) && W.hit(x, z - e, r));
-  P._stuckT = stuck ? (P._stuckT || 0) + dt : 0;
-  if (P._stuckT < .35) return false;
-  P._stuckT = 0; const tgt = g.airlock ? { x: 0, z: g.airlock.zOuter + 1 } : null, f = freeSpotNear(g, x, z, r, 4, tgt);
+  const stuck = wantsMove && (W.hit(x, z, r) || (W.hit(x + e, z, r) && W.hit(x - e, z, r) && W.hit(x, z + e, r) && W.hit(x, z - e, r)));
+  P._stuckT = stuck ? (P._stuckT || 0) + Math.min(dt, .25) : 0; P._stuckN = stuck ? (P._stuckN || 0) + 1 : 0;
+  if (P._stuckT < .35 || P._stuckN < 2) return false;   // held a move key ~0.35 s (and 2+ frames) without getting free
+  P._stuckT = 0; P._stuckN = 0; const tgt = g.airlock ? { x: 0, z: g.airlock.zOuter + 1 } : null, f = freeSpotNear(g, x, z, r, 4, tgt);
   if (!f) return false;
   P.pos.x = f.x; P.pos.z = f.z; P.unstucks = (P.unstucks || 0) + 1; g.bus.emit('player:unstuck', { from: [x, z], to: [f.x, f.z] }); return true;
 }
@@ -17956,7 +17956,7 @@ if (location.search.includes('selftest')){
     // G: version + regression
     {
       const G = s31.G_regression = { title: /2\.9\.1|3\.\d/.test(document.title) || document.title === 'SELFTEST', ver: /2\.9\.1|3\.\d/.test(document.querySelector('.ver')?.textContent || ''),
-        s30: !!out.slice30?.SUCCESS, s29: !!out.slice29?.SUCCESS, s25: !!out.slice25?.SUCCESS, save: window.__breathless.save?.saveCapture ? /^(2\.9\.1|3\.\d)$/.test(window.__breathless.save.saveCapture(game).proto) : true };
+        s30: !!out.slice30?.SUCCESS, s29: !!out.slice29?.SUCCESS, s25: !!out.slice25?.SUCCESS, save: window.__breathless.save?.saveCapture ? /^(2\.9\.1|3\.\d(\.\d)?)$/.test(window.__breathless.save.saveCapture(game).proto) : true };
       G.ok = Object.entries(G).every(([k, v]) => v === true);
     }
     s31.SUCCESS = !!(s31.A_air.ok && s31.B_water.ok && s31.C_lucid.ok && s31.D_screens.ok && s31.E_build.ok && s31.F_labels.ok && s31.G_regression.ok);

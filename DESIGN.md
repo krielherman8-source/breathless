@@ -503,6 +503,11 @@ Pitch: First-person survival like Subnautica, with Oxygen Not Included (ONI) sty
 
 Shots: play/slice33_{crash,shelter,feral,trap,collar,dock,intake}.png.
 
+## v3.1.1 hotfix: can't walk out of the crashed escape pod (2026-10-23)
+**Bug (tester).** A New game put you next to the crashed pod, but no movement key did anything. Reproduced in 3.1 with real held-W key events from the spawn: zero movement over 6 game seconds. Cause: the authored crash spawn sat inside a collider box beside the pod (x -5.45 to -4.95, z 10.88 to 12.28). Once the player overlaps a collider, the movement code refuses every direction, so you were frozen in place.
+**Fix.** The crash start now looks for the nearest spot clear of every collider (searching outward from the authored spot, preferring the side facing the bunker door) and faces you at the bunker. Long frames on slow laptops are split into small steps so you can't skip into or snag on thin walls. Safety net: if you hold a move key for about 0.35 s while overlapping something or boxed in on all four sides, you are nudged to the nearest free spot. It only fires while you're trying to walk, so standing still in water or a tight dig never teleports you.
+**Tests.** Selftest K walks the real new-game world from the spawn to the bunker and seals the airlock at 20 fps and 4 fps, and checks the nudge frees a player dropped inside the pod. `play/e2e_pod.mjs` runs a fresh browser profile, presses New game, holds W and steers to the airlock (3.1 fails, 3.1.1 passes). All slices 24 to 33 green. Graphics unchanged.
+
 ## Design note (user, 2026-10-03)
 - Pumps (gas and liquid) are NOT fixed to walls or floors. They are free-standing, placeable/movable machines (own frame/feet, connect to pipes via ports), so they can be placed anywhere in the base, including in dug-out voxel space.
 
