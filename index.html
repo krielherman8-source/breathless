@@ -18179,6 +18179,7 @@ if (location.search.includes('selftest')){
       // dock: generator bench + T2 cable, dock beside the cable end
       quickGrid(g, s); const dk = placeCollarDock(g, 16, 10, 0); for (let n = 0; n < 12; n++) g.power.update(.25);
       C.dockPlaced = !!dk; C.dockLive = !!dk?.live();
+      if (dk){ const sp = dk.spot(); sv.pos.set(sp.x - 1.2, 0, sp.z); sv.wanderTo = null; }   // v3.2: start near the dock (random wander made this flaky)
       sv.collar.charge = S.collarLife * .2; const tDocked = step(g, 40, () => sv.docked === dk);
       C.walkedToDock = tDocked != null; const ch0 = sv.collar.charge; step(g, 10); C.dockRate = r3((sv.collar.charge - ch0) / 10);
       C.dockRateOk = Math.abs(C.dockRate - S.dockRate) < .2; C.dockDrawW = dk ? dk.powerDemand() : null;
@@ -18190,7 +18191,7 @@ if (location.search.includes('selftest')){
     }
     // D: relapse — at 0 the collar dies: feral again; near you it may turn hostile (rng), else it bolts. Loud line.
     {
-      const run = (rngV, near) => { const [g] = mk33(); g.player.pos.set(near ? 0 : -4.5, 0, near ? 1.5 : 4); g.rng = () => rngV;
+      const run = (rngV, near) => { const [g] = mk33(); g.player.pos.set(near ? 0 : -9, 0, near ? 1.5 : 9);   // v3.2: far = well outside 5 m even after 3 s of wander (was flaky) g.rng = () => rngV;
         const sv = spawnImp(g, new THREE.Vector3(0, 0, 0)); sv.wake(g, true); sv.setJob('wander'); sv.collar.charge = 3; const n0 = g.lines.length;
         const tR = step(g, 6, () => sv.state === 'feral');
         return { at: tR != null ? r3(tR) : null, state: sv.state, mood: sv.mood, dead: !!sv.collar?.dead, relapses: sv.relapses || 0, said: g.lines.slice(n0).some(l => /feral again/.test(l)), rewake: sv.wake(g, true).ok };

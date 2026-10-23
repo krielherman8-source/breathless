@@ -588,3 +588,16 @@ Overload % = (flow - pipe max flow) / pipe max flow.
 
 ## Feel / pacing (user, 2026-10-05)
 - Realism over arcade: the game should often FEEL fine until it suddenly isn't. Quiet degradation (slow CO2 rise, filter wear, stress on pipes under 20–30% overload) so the player thinks everything is okay, then a cascade when multiple systems tip at once ("shit hits the fan"). Warnings exist but can be ignored or missed; sudden crises come from neglect, not random events.
+
+## FINALIZE PLAN (2026-10-23, from v3.1.1)
+Audit of every 'Placeholders / not yet' note plus a playthrough path new game → shelter → LUCID → crew → expansion → ARKs. Systems exist for each step, but the game has no thread through them and no end.
+- **Gaps (must do):**
+  1. No objective chain after FIND SHELTER, so the player is left with no tutorial. Add a step chain: shelter → wake LUCID → keep the plant alive → place a pump → reach ARK-01 → collar a survivor → reach ARK-02 → reach ARK-03 → power home → **Breathing Room** (hold the base: live ARK-03 feed, 2+ crew, air good for 5 min). Steps the player already did are skipped silently, so old saves slot in. One short how-to toast per step. The strip can be hidden, because warnings stay missable.
+  2. **Win and ending:** a BREATHING ROOM ending card with stats (time, crew, ARKs, crises survived) and a *Keep playing* option, so the sandbox continues. Saved as flags.
+  3. **Settings** (title and pause card): mouse sensitivity, invert Y, FOV, master / effects / ambience volume, objective strip on/off, graphics quality **High (default = today's look) / Ultra / Ultra+**. The quality options only go up: higher pixel-ratio cap and supersampling, sharper shadows and anisotropy. Nothing is ever lowered. Saved in localStorage.
+  4. **Audio polish:** a master bus for all sounds, so volume works. Suit breathing that speeds up when the suit or room air runs low (a missable warning). The room hum gets muffled as O2 drops.
+  5. **Save robustness:** save on tab hide and page close (`pagehide` / `visibilitychange`), plus export and import of the save as text from Settings.
+  6. **Remove the auto-laid sump hose:** a new *sump hose reel* craft. The sump stalls on NO HOSE until you lay the hose ([E] with a reel), and you can see the hose run from the sump to the base intake. Old saves and tests keep their sumps hosed.
+  7. **Performance (no visual loss):** skip rendering when the tab is hidden, and throttle label declutter to 20 Hz (same visuals).
+- **Bugs found:** slice33 C (dock walk) and D (far relapse) are flaky because they depend on random wander, so the full selftest went red about 1 run in 2. These are test-setup fixes, not game changes.
+- **Out of scope / stays open:** digging that breaches base walls, cave-ins, legs for the torso that walk, wireless range, real pathing for survivors between sealed zones, fuller production cutscenes.
