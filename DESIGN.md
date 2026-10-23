@@ -617,3 +617,15 @@ Audit of every 'Placeholders / not yet' note plus a playthrough path new game â†
 - Tests: new slice35 (quality monotonic, sens/invert reach mouse look, FOV apply+restore, audio buses + chord).
 - Not yet: breathing/muffled-hum audio layers, sump hose reel (the HOME/FUEL umbilical is still pre-laid), declutter throttle.
 - Shots: play/run_shots.mjs (CDP, port 8766). New shot modes s34_win and s35_settings. Final shots are play/final_*.png.
+
+## Version renumbering
+Builds were labelled "prototype 2.x/3.x". They are now pre-release v0.x: old 3.3 = **v0.3.3**, and this build is **v0.3.4**. Releases continue as v0.3.x / v0.4. v1.0 is reserved for the official release. Save loading is gated by `schema` (still 1), not by `proto`, so old 2.9/3.x saves still load. New saves write `proto: '0.3.4'`.
+
+## v0.3.4 (slice 36): sump hose reel, breathing audio, perf
+- **Sump hose reel** (recipe `hose_reel`: 25 m, 3 scrap, unlocked at start). In a new game a sump pump starts with **NO HOSE**. Press [E] on the pump with a reel to start laying, walk the line to the base intake, then press [E] on the intake to connect. A new reel splices on every 25 m. Pressing [E] on the pump again while laying reels the hose back and refunds the reels.
+- The hose obeys the pipe bands. Hose caps by tier are `CFG.cave.sump.hoseTiers` [1.3, 2.5, 6, 12, 25] L/s. Flow is smoothed over about 2 s, so spikes do not count. Overload bands: more than 20% over cracks slowly, more than 30% over fails fast, more than 75% over bursts. Damage above 5% leaks up to 35% of the flow, and the lost water is tracked in `hoseLost`. A burst stalls the pump and raises a crisis note plus a LUCID line. At full flow, a 1.6 L/s sump on a T1 hose is 23% over, which gives a quiet, slow crack.
+- [E] (hold) patches the hose (faster with a repair kit). [G] adds a tier using a reinforce item; the model visibly gains yellow bands. The hose browns as it takes damage and shows a tear blob when burst.
+- Saves: `sumps[i][4]` = `[tier,dmg,burst,pts]`, or 1 = legacy pre-laid line, or 0 = none. Old saves and test worlds keep the legacy pre-laid T2 line, which has no wear.
+- **Audio:** a breathing layer (noise â†’ bandpass) that is calm in room air, louder and closer in the suit, faster under 25% reserve, and gasping when the suit is empty. Ambience now runs through a lowpass, so the hum is muffled (420 Hz) inside the helmet.
+- **Perf:** label declutter now runs at 20 Hz instead of every frame, and nothing renders while the tab is hidden.
+- Selftest slice36 (A no-hose, B lay and connect, C bands/leak/burst/patch/reinforce, D save and legacy, E audio). Slices 24-36 are green.

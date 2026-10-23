@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>BREATHLESS - prototype 3.3 (settings + ending)</title>
+<title>BREATHLESS - v0.3.4 (sump hose + breathing)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   /* slice 25: shared UI tokens — every panel / HUD box / button pulls from these */
@@ -167,7 +167,7 @@
   <div id="lucidui" class="panel"><span class="close">[Esc] close</span><h2 id="lucidtitle">LUCID LINK</h2><div class="meta" id="lucidmeta"></div><div class="ctrlcmds" id="ctrlcmds" style="display:none"></div><div id="lucidlist"></div><div class="crew sect" id="crewlist" style="display:none"></div><div class="orbcmds" id="orbcmds" style="display:none"></div><div class="last" id="lucidlast"></div></div>
   <div id="hint"><kbd>H</kbd> controls &nbsp; <kbd>B</kbd> build &nbsp; <kbd>Esc</kbd> pause</div>
   <div id="help">
-    <div class="ttl">CONTROLS<span>[H] close · prototype 3.3</span></div>
+    <div class="ttl">CONTROLS<span>[H] close · v0.3.4</span></div>
     <div class="hcols">
     <div class="sec"><h4>MOVE &amp; ACT</h4>
       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>Esc</kbd> pause<br>
@@ -239,7 +239,7 @@
   <p id="starthint"><b>Click to begin</b> &nbsp; <span style="opacity:.6">(<kbd>Shift</kbd>+click replays the intro · <kbd>Space</kbd> skips it)</span></p>
   <div id="savebox" style="display:none"><div class="row"><button id="btnContinue" class="sbtn main">Continue</button><button id="btnNew" class="sbtn">New game</button></div><div class="row"><button id="btnSetT" class="sbtn small">Settings</button></div><div id="saveinfo"></div></div>
   <div id="savenote" style="display:none"></div>
-  <div class="ver">PROTOTYPE 3.3 · BREATHING ROOM</div>
+  <div class="ver">v0.3.4 · BREATHING ROOM</div>
 </div>
 <div id="settings"><div class="card"><h3>SETTINGS</h3>
 <label>Mouse sensitivity <input id="setSens" type="range" min="0.25" max="3" step="0.05"></label>
@@ -258,7 +258,7 @@
 import * as THREE from './lib/three.module.js';
 
 /* =====================================================================
-   BREATHLESS prototype 3.3  (settings card: sens/invert/FOV/volumes/strip/quality High-Ultra-Ultra+, audio buses, win chord, save on tab hide, export/import; objective chain: shelter → Lucid → plant → build → ARK-01 → crew → ARK-02/03 → feed → BREATHING ROOM hold/win; earlier: fix: crash spawn overlapped a collider = could not leave the pod; free-spot spawn, stuck nudge, sub-stepped movement)
+   BREATHLESS v0.3.4  (versions renumbered: old 3.x = 0.3.x, 1.0 reserved for the official release; v0.3.4: player-laid sump hose on pipe overload bands, breathing + helmet-muffled ambience, 20 Hz declutter, no render while hidden; v0.3.3 = old 3.3: settings card: sens/invert/FOV/volumes/strip/quality High-Ultra-Ultra+, audio buses, win chord, save on tab hide, export/import; objective chain: shelter → Lucid → plant → build → ARK-01 → crew → ARK-02/03 → feed → BREATHING ROOM hold/win; earlier: fix: crash spawn overlapped a collider = could not leave the pod; free-spot spawn, stuck nudge, sub-stepped movement)
    prototype 3.1  (slice 33: crash start at the escape pod + FIND SHELTER; feral survivors replace the imps —
    snare cages, mood-dampener collars (30 min), collar docks, hand charge, relapse; survivors breathe 0.9 → O2 planters;
    sump pump now runs on grid power through the base surface intake and real liquid pipe.)
@@ -421,6 +421,7 @@ const CFG = {
       { id: 'seal_curtain', name: 'Seal curtain (x2)',      tier: 1, scrap: 2, yield: 2, note: 'Aim at a dug pocket floor + [E]: hang a strip curtain across that column (leaky seal, walk-through)', startUnlocked: true },
       // slice 18: solid hatch (nearly airtight when closed) + pocket scrubber (CO2→O2 life support)
       { id: 'sump_pump', name: 'Sump pump',                tier: 1, scrap: 5, note: 'Aim at a flooded dig floor + [E]: submersible, powered from the base surface intake; [E] cycles HOME (water up the umbilical — pipe the intake to a tank) / FUEL (crude to a generator) / DUMP', startUnlocked: true },
+      { id: 'hose_reel', name: 'Sump hose reel (25 m)',     tier: 1, scrap: 3, note: 'Carry it: [E] the sump pump to clip the hose on, walk it home, [E] the base surface intake to connect. T1 hose runs ~28% over a sump (slow crack, growing leak) — hold E to patch, [G] + reinforce collar to step it up', startUnlocked: true },
       { id: 'seal_hatch', name: 'Seal hatch',               tier: 1, scrap: 4, note: 'Aim at a dug pocket floor + [E]: solid hatch (nearly sealed closed; [E] open/close to walk through)', startUnlocked: true },
       { id: 'pocket_scrubber', name: 'Pocket scrubber',     tier: 2, scrap: 6, note: 'Aim at a dug pocket floor + [E] (no seal in pack): place a CO2→O2 scrubber that sustains one occupant', startUnlocked: true },
       // slice 20/21: ARK-02 robotics lab — LUCID torso chassis (seat orb into chest bay)
@@ -499,7 +500,7 @@ const CFG = {
     dampR: 2,               // cells (Chebyshev) of darker / wetter soil around an unbreached reservoir
     dripR: 2,               // a dug cell within this many cells of an unbreached reservoir drips
     scanTime: 1.4, scanR: 3.2,   // omni ground scan: hold [F] on soil (needs omni), reveals reservoirs within scanR m
-    sump: { flow: 1.6, foot: .44, watts: 120, lineFlow: 2.0 },   // sump pump L/s; slice 33: powered through the base SURFACE INTAKE (120 W per running sump), HOME water lands in the intake header and needs built liquid pipe to reach a tank
+    sump: { flow: 1.6, foot: .44, watts: 120, lineFlow: 2.0, reelM: 25, hoseTiers: [1.3, 2.5, 6, 12, 25], hoseRepairScrap: 1 },   // v0.3.4: the player lays the hose (reels of 25 m); T1 hose is 23% over a 1.6 L/s sump = the quiet slow-crack band (CFG.pipe bands)   // sump pump L/s; slice 33: powered through the base SURFACE INTAKE (120 W per running sump), HOME water lands in the intake header and needs built liquid pipe to reach a tank
     oilJ: 9000,             // generator fuel J per litre of crude (FUEL mode): ~1/2 a briquette per litre
     seep: { zOff: 25.0, i0: 400, k0: 400, ni: 7, nj: 6, nk: 10 },   // the wet bluff against the +x boundary wall
     // reservoirs (li from the mouth at the -x face, lj up, lk across): realistic small cave pockets, finite volumes
@@ -5701,6 +5702,7 @@ class SumpPump extends Entity {
     super(); this.game = game; this.interactable = true; this.kind = 'sumpPump';
     this.i = o.i; this.j = o.j; this.k = o.k; this.key = game.voxels.key(o.i, o.j, o.k); this.mode = o.mode || 'off';
     this.flow = 0; this.moved = { water: 0, brine: 0, oil: 0 }; this.stall = ''; this.spin = 0;
+    this.hose = o.hose === false ? null : o.hose || (game._needHose ? null : { tier: 2, dmg: 0, burst: false, pts: null, legacy: true }); this.hoseMesh = null; this.repairT = 0;   // v0.3.4: legacy saves/tests keep the old pre-laid line
     const V = game.voxels, c = V.center(o.i, o.j, o.k), fy = V.floorY(o.i, o.j, o.k); this.pos = new THREE.Vector3(c.x, fy, c.z);
     const g = new THREE.Group(); g.position.copy(this.pos);
     const steel = new THREE.MeshStandardMaterial({ color: 0x5c6670, metalness: .8, roughness: .32 });
@@ -5719,14 +5721,14 @@ class SumpPump extends Entity {
     for (let n = 0; n < 5; n++){ const v = new THREE.Mesh(new THREE.BoxGeometry(.11, .02, .025), dark); v.rotation.y = n / 5 * Math.PI * 2; v.position.set(Math.cos(n / 5 * Math.PI * 2) * .05, 0, -Math.sin(n / 5 * Math.PI * 2) * .05); this.imp.add(v); }
     // discharge hose: up out of the cap, loops to the floor and runs out toward the tunnel mouth (the buried home line)
     const pts = [new THREE.Vector3(0, .45, 0), new THREE.Vector3(-.14, .58, 0), new THREE.Vector3(-.34, .3, .04), new THREE.Vector3(-.5, .04, .08), new THREE.Vector3(-1.1, .035, .1), new THREE.Vector3(-1.8, .035, .02)];
-    mk(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, .028, 10, false), hoseM, 0, 0, 0);
+    this.tail = mk(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, .028, 10, false), hoseM, 0, 0, 0); this.tail.visible = !!this.hose?.legacy;   // v0.3.4: only the legacy pre-laid line shows this tail
     this.cv = document.createElement('canvas'); this.cv.width = 128; this.cv.height = 64; this.tex = new THREE.CanvasTexture(this.cv);
     const scr = mk(new THREE.PlaneGeometry(.14, .07), new THREE.MeshBasicMaterial({ map: this.tex }), 0, .26, .132); scr.castShadow = false;
     g.traverse(ch => { if (ch.isMesh) ch.userData.entity = this; });
     this.mesh = g; this.hit = []; g.traverse(ch => { if (ch.isMesh) this.hit.push(ch); });
     game.scene.add(g); V.setOcc(o.i, o.j, o.k, this);
     this.colRef = { id: 'sump-' + this.key }; game.world.addBox(c.x, c.z, .3, .3, fy, fy + .5, { ref: this.colRef, walk: false });
-    this.paint();
+    this.paint(); if (this.hose?.pts) this.buildHose();
   }
   pocket(){ return this.game.pockets.byCell.get(this.key) || null; }
   submerged(){ const pk = this.pocket(); return !!pk && pk.wet?.has(this.key) && LiquidNet.liqTot(pk.liq) > 1e-6; }
@@ -5734,29 +5736,69 @@ class SumpPump extends Entity {
     const L = game.liquids, pk = this.pocket(); this.flow = 0; this.stall = '';
     if (this.mode === 'off') return;
     const ik = game.intakes?.[0];   // slice 33: grid power arrives down the umbilical from the base SURFACE INTAKE
+    if (!this.hose){ this.stall = this.game.hoseLay?.pump === this ? 'LAYING HOSE — walk it to the base surface intake' : 'NO HOSE — [E] here with a hose reel, walk it home'; return; }
+    if (this.hose.burst){ this.stall = 'HOSE BURST — hold [E] on the pump to patch'; return; }
     if (!ik || !ik.live()){ this.stall = 'NO POWER — wire the base surface intake'; return; }
     if (!pk || !this.submerged()){ this.stall = 'DRY — nothing at the intake'; return; }
     const want = CFG.cave.sump.flow * dt, type = L.bottomType(pk), tank = game.tanks?.[0];
     if (this.mode === 'home'){
       if (type !== 'water'){ this.stall = `REFUSED — ${CFG.cave.types[type].label.toLowerCase()} at the intake`; ik.refuse(type); tank?.refuse?.(type, game); return; }
       const room = ik.buffer.space(); if (room <= 1e-6){ this.stall = 'BACKED UP — pipe the base intake to a tank'; return; }
-      const got = L.takeBottom(pk, Math.min(want, room)); const a = ik.buffer.add(got.n); L.led.home += a; this.moved.water += a; this.flow = a / dt; ik.fromSump = (ik.fromSump || 0) + a;
+      const got = L.takeBottom(pk, Math.min(want, room)); const lk = this.hoseLeak(); this.hoseLost = (this.hoseLost || 0) + got.n * lk; const a = ik.buffer.add(got.n * (1 - lk)); this.hoseWear(dt, got.n / dt); L.led.home += a; this.moved.water += a; this.flow = a / dt; ik.fromSump = (ik.fromSump || 0) + a;
     } else if (this.mode === 'fuel'){
       if (type !== 'oil'){ this.stall = type ? `NOT CRUDE — ${CFG.cave.types[type].label.toLowerCase()} at the intake` : 'DRY'; return; }
       const gen = [...(game.generators || [])].sort((a, b) => a.mesh.position.distanceTo(this.pos) - b.mesh.position.distanceTo(this.pos))[0];
       if (!gen){ this.stall = 'NO GENERATOR to burn crude'; return; }
       const space = (gen.tank - gen.fuel) / CFG.cave.oilJ; if (space <= 1e-6){ this.stall = 'GENERATOR TANK FULL'; return; }
-      const got = L.takeBottom(pk, Math.min(want, space)); gen.fuel += got.n * CFG.cave.oilJ; L.led.fuel += got.n; this.moved.oil += got.n; this.flow = got.n / dt; gen.crudeL = (gen.crudeL || 0) + got.n;
+      const got = L.takeBottom(pk, Math.min(want, space)); this.hoseWear(dt, got.n / dt); { const lk = this.hoseLeak(); this.hoseLost = (this.hoseLost || 0) + got.n * lk; got.n *= 1 - lk; } gen.fuel += got.n * CFG.cave.oilJ; L.led.fuel += got.n; this.moved.oil += got.n; this.flow = got.n / dt; gen.crudeL = (gen.crudeL || 0) + got.n;
     } else if (this.mode === 'dump'){
-      const got = L.takeBottom(pk, want); L.led.dumped += got.n; if (got.type) this.moved[got.type] += got.n; this.flow = got.n / dt;
+      const got = L.takeBottom(pk, want); this.hoseWear(dt, got.n / dt); L.led.dumped += got.n; if (got.type) this.moved[got.type] += got.n; this.flow = got.n / dt;
     }
   }
   prompt(){
     const pk = this.pocket(), L = this.game.liquids, t = L.bottomType(pk);
     const lvl = pk ? `${pk.tag} ${LiquidNet.liqTot(pk.liq).toFixed(0)} L${t ? ' (' + CFG.cave.types[t].label.toLowerCase() + ' at intake)' : ''}` : 'no pocket';
-    return `Sump pump [${this.mode.toUpperCase()}] ${this.flow > 0 ? this.flow.toFixed(1) + ' L/s' : this.stall || 'idle'} — ${lvl}  [E] mode: OFF / HOME tank / FUEL gen / DUMP outside`;
+    const h = this.hose, hs = !h ? '' : ` · hose T${h.tier} ${h.burst ? 'BURST' : h.dmg > CFG.pipe.leakStart ? 'LEAKING ' + Math.round(this.hoseLeak() * 100) + '%' : this.hoseOver() > CFG.pipe.safeOver ? 'strained ' + Math.round(this.hoseOver() * 100) + '% over' : 'ok'}`;
+    const act = !h ? (this.game.hoseLay?.pump === this ? '[E] reel the hose back in' : '[E] clip on a hose reel') : (h.burst || h.dmg > CFG.pipe.leakStart) ? 'hold [E] patch hose · [G] reinforce' : '[E] mode: OFF / HOME tank / FUEL gen / DUMP outside · [G] reinforce hose';
+    return `Sump pump [${this.mode.toUpperCase()}] ${this.flow > 0 ? this.flow.toFixed(1) + ' L/s' : this.stall || 'idle'} — ${lvl}${hs}  ${act}`;
+  }
+  hoseCap(){ return CFG.cave.sump.hoseTiers[(this.hose?.tier || 1) - 1]; }
+  hoseOver(){ return this.flow / this.hoseCap() - 1; }
+  hoseLeak(){ const h = this.hose, P = CFG.pipe; if (!h || h.legacy || h.dmg <= P.leakStart) return 0; return P.leakStart + (P.leakMax - P.leakStart) * Math.min(1, (h.dmg - P.leakStart) / (1 - P.leakStart)); }
+  hoseWear(dt, f){   // same ratio bands + timers as CFG.pipe
+    const h = this.hose; if (!h || h.legacy || h.burst || dt <= 0) return; const P = CFG.pipe; this.hoseF = (this.hoseF ?? f) + (f - (this.hoseF ?? f)) * Math.min(1, dt / 2); const r = this.hoseF / this.hoseCap() - 1, lerp = (a, b, u) => a + (b - a) * Math.max(0, Math.min(1, u));
+    let secs = 0; if (r > P.burstOver) secs = P.burstFail; else if (r > P.fastOver) secs = lerp(P.fastFail[0], P.fastFail[1], (r - P.fastOver) / (P.burstOver - P.fastOver)); else if (r > P.safeOver) secs = lerp(P.slowFail[0], P.slowFail[1], (r - P.safeOver) / (P.fastOver - P.safeOver));
+    if (!secs) return; h.dmg = Math.min(1, h.dmg + dt / secs);
+    if (h.dmg >= 1){ h.burst = true; this.game.bus.emit('crisis:note', 'sump hose burst'); this.game.lucidLine?.('The sump hose let go. It was weeping for minutes before it split.', false); }
+  }
+  reinforce(g){ const h = this.hose; if (!h || h.legacy) return 'No laid hose to reinforce.'; if (h.burst) return 'Patch the burst first.'; if (h.tier >= CFG.cave.sump.hoseTiers.length) return 'Hose already max tier.'; h.tier++; this.buildHose(); return `Hose reinforced to T${h.tier} (${this.hoseCap()} L/s).`; }
+  buildHose(){
+    const g = this.game; if (this.hoseMesh){ g.scene.remove(this.hoseMesh); this.hoseMesh.traverse(m => { m.geometry?.dispose(); }); this.hoseMesh = null; }
+    const h = this.hose; if (!h?.pts || h.pts.length < 2) return;
+    const grp = new THREE.Group(), v = h.pts.map(p => new THREE.Vector3(p[0], p[1], p[2])), curve = new THREE.CatmullRomCurve3(v), len = curve.getLength();
+    this.hoseMat ||= new THREE.MeshStandardMaterial({ color: 0x15191d, metalness: .1, roughness: .72 }); this.hoseMat.color.setHex(0x15191d).lerp(new THREE.Color(0x4a2a1c), Math.min(1, h.dmg * 1.1));
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(8, Math.ceil(len * 6)), .03, 10, false), this.hoseMat); tube.castShadow = tube.receiveShadow = true; grp.add(tube);
+    this.bandMat ||= new THREE.MeshStandardMaterial({ color: 0xd9a21c, metalness: .5, roughness: .4 });
+    const nb = Math.floor(len / 2.5);   // tier collars: each tier adds a band at every 2.5 m (visible in-place upgrade)
+    for (let b = 1; b <= nb; b++) for (let t = 1; t < h.tier; t++){ const u = Math.min(1, (b * 2.5 + (t - 1) * .09) / len), p = curve.getPointAt(u), d = curve.getTangentAt(u); const r = new THREE.Mesh(new THREE.TorusGeometry(.036, .009, 6, 14), this.bandMat); r.position.copy(p); r.lookAt(p.clone().add(d)); grp.add(r); }
+    if (h.burst){ const p = curve.getPointAt(.5); const tear = new THREE.Mesh(new THREE.SphereGeometry(.05, 10, 8), new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: .9 })); tear.position.copy(p); tear.scale.set(1.4, .5, 1); grp.add(tear); }
+    g.scene.add(grp); this.hoseMesh = grp; h.len = len;
   }
   interact(dt, game, part, first){
+    const h = this.hose, L = game.hoseLay;
+    if (!h){
+      if (!first) return;
+      if (L?.pump === this){ for (let r = 0; r < L.reels; r++) game.giveItem('hose_reel', 1); game.hoseLay = null; game.ui.toast?.('Hose reeled back in.', 2200); game.ui.refreshInv?.(); return; }
+      if (L){ game.ui.toast?.('You are already laying a hose from another pump.', 2600); return; }
+      if (!game.takeItem('hose_reel')){ game.ui.toast?.('No hose. Craft a sump hose reel (3 scrap) at the table, then [E] here.', 3600); return; }
+      game.hoseLay = { pump: this, reels: 1, len: 0, pts: [[this.pos.x - .5, this.pos.y + .04, this.pos.z + .08]], short: false };
+      game.ui.toast?.('Hose clipped on. Walk it back to the base surface intake (+x wall) and [E] it to connect. 25 m per reel.', 5000); game.ui.refreshInv?.(); return;
+    }
+    if (h.burst || h.dmg > CFG.pipe.leakStart){   // hold E to patch (same timings as pipe repair)
+      const kit = game.hasItem('repair_kit'), need = kit ? CFG.pipe.repairKitTime : CFG.pipe.repairTime; this.repairT += dt;
+      if (this.repairT >= need){ if (kit) game.takeItem('repair_kit'); h.dmg = 0; const was = h.burst; h.burst = false; this.repairT = 0; this.buildHose(); game.ui.toast?.(was ? 'Hose spliced. It will crack again at this load — reinforce it [G].' : 'Hose leak patched.', 3000); game.ui.refreshInv?.(); }
+      return;
+    }
     if (!first) return; this.mode = SUMP_MODES[(SUMP_MODES.indexOf(this.mode) + 1) % SUMP_MODES.length];
     game.ui.toast?.({ off: 'Sump pump off.', home: 'Sump pump → HOME: water only, up the umbilical to the base surface intake (pipe it on to a tank).', fuel: 'Sump pump → FUEL: crude into the nearest generator.', dump: 'Sump pump → DUMP: discharging outside the dig.' }[this.mode], 2600); beep(this.mode === 'off' ? 300 : 560, .04);
   }
@@ -5774,15 +5816,21 @@ class SumpPump extends Entity {
   }
   dispose(){ const g = this.game; g.voxels.clearOcc(this.i, this.j, this.k); g.world.removeRef(this.colRef); g.remove(this); g.scene.remove(this.mesh); }
 }
-function placeSump(game, i, j, k, mode = 'off'){
+function placeSump(game, i, j, k, mode = 'off', hose = null){
   const V = game.voxels; if (!V.isDug(i, j, k)) return { ok: false, msg: 'Sump pump needs a dug pocket floor.' };
   if (V.occ.has(V.key(i, j, k))) return { ok: false, msg: 'Something already stands there.' };
   if (game.pockets.seals.has(V.key(i, j, k))) return { ok: false, msg: 'A seal hangs in that cell.' };
   if (V.isDug(i, j - 1, k) && V.zoneAt(i, j - 1, k)) return { ok: false, msg: 'Set it on the lowest floor of the column.' };
-  const s = game.add(new SumpPump(game, { i, j, k, mode })); (game.sumps ||= []).push(s);
-  return { ok: true, sump: s, msg: 'Sump pump set on the pocket floor. [E] cycles OFF / HOME / FUEL / DUMP.' };
+  const s = game.add(new SumpPump(game, { i, j, k, mode, hose })); (game.sumps ||= []).push(s);
+  return { ok: true, sump: s, msg: game._needHose && !hose ? 'Sump pump set. It needs a hose home: craft a sump hose reel, [E] the pump, walk the hose to the base surface intake.' : 'Sump pump set on the pocket floor. [E] cycles OFF / HOME / FUEL / DUMP.' };
 }
-function removeSump(game, s){ s.dispose(); game.sumps = (game.sumps || []).filter(x => x !== s); }
+function hoseLayTick(g){   // v0.3.4: the hose follows your feet (breadcrumbs every 0.6 m), a reel per 25 m
+  const L = g.hoseLay, P = g.player.pos, last = L.pts[L.pts.length - 1], d = Math.hypot(P.x - last[0], P.z - last[2]); if (d < .6) return;
+  if (d > 8){ L.pts.push([P.x, .04, P.z]); return; }   // teleport/load guard: no giant segment costs
+  if (L.len + d > L.reels * CFG.cave.sump.reelM){ if (g.takeItem('hose_reel')){ L.reels++; g.ui.refreshInv?.(); g.ui.toast?.('Next reel spliced on.', 1800); } else { if (!L.short){ L.short = true; g.ui.toast?.('Out of hose. Craft another reel to keep laying, or [E] the pump to reel it back.', 4200); } return; } }
+  L.short = false; L.len += d; L.pts.push([P.x, .04, P.z]);
+}
+function removeSump(game, s){ if (s.hoseMesh) game.scene.remove(s.hoseMesh); if (game.hoseLay?.pump === s) game.hoseLay = null; s.dispose(); game.sumps = (game.sumps || []).filter(x => x !== s); }
 
 // the wet bluff (slice 32): walk-in DigZone against the +x boundary wall, between ARK-01 and ARK-03 on the east side.
 // Stepped hillside face toward -x (the mouth); hard rock against the back wall. Seeded with three hidden reservoirs.
@@ -9503,11 +9551,16 @@ class SumpIntake extends Entity {
     const got = this.buffer.take(want); this.flow = dt > 0 ? got / dt : 0;
   }
   returnLiquid(n){ this.buffer.add(n); }
+  interact(dt, game, part, first){
+    const L = game.hoseLay; if (!first || !L) return;
+    L.pts.push([this.pos.x - .05, .04, this.pos.z + .16]); const p = L.pump; p.hose = { tier: 1, dmg: 0, burst: false, pts: L.pts.map(q => q.map(v => Math.round(v * 100) / 100)) }; game.hoseLay = null; p.buildHose();
+    game._hoseLaidOnce = true; game.ui.toast?.(`Hose connected: ${p.hose.len.toFixed(0)} m, T1 (${CFG.cave.sump.hoseTiers[0]} L/s). A sump pushes ${CFG.cave.sump.flow} — it will strain. Watch it.`, 5200); beep?.(620, .06);
+  }
   prompt(){
     const ref = this.refused && this.game.time - this.refusedT < 6;
+    if (this.game.hoseLay) return `Surface intake — [E] connect the sump hose (${this.game.hoseLay.len.toFixed(0)} m laid, ${this.game.hoseLay.reels} reel${this.game.hoseLay.reels > 1 ? 's' : ''})`;
     return `Surface intake (sump umbilical) — ${this.live() ? 'POWERED' : 'NO POWER: cable a live circuit to it'} · header ${this.buffer.amount.toFixed(1)}/30 L · ${this.vented > 0 ? this.vented.toFixed(2) + ' L/s into the pipes' : 'pipe its port (+x wall) to a tank'}${ref ? ' · REFUSED ' + this.refused : ''}`;
   }
-  interact(){}
   visual(dt, t){
     const on = this.live(); this.lamp.material.emissive.setHex(!on ? 0x200606 : this.flow > 0 ? 0x30ffb0 : 0x206080);
     this.paintT += dt; if (this.paintT < .4) return; this.paintT = 0;
@@ -9914,6 +9967,7 @@ class Game {
     this.power.update(dt);                            // grid decides which consumers are powered this tick
     this.entities.forEach(e => e.update(dt, this));   // pumps draw gas/liquid; conveyors move packets
     if (this.objective && !this.objective.done) objectiveTick(this);   // slice 33: FIND SHELTER
+    if (this.hoseLay) hoseLayTick(this);
     if (this._chainOn) chainTick(this, dt);           // v3.2: objective chain + ending
     this.pipes.update(dt);                            // gas network routes, stresses pipes
     this.liquidPipes.update(dt);                      // liquid network routes, stresses pipes → puddle on leak
@@ -10915,7 +10969,8 @@ const AUDIO = {
     if (this.ctx) return;
     try {
       const c = this.ctx = new AudioContext(), buf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = buf.getChannelData(0);
-      this.masterB = c.createGain(); this.sfxB = c.createGain(); this.ambB = c.createGain(); this.sfxB.connect(this.masterB); this.ambB.connect(this.masterB); this.masterB.connect(c.destination); this.applyVol();
+      this.masterB = c.createGain(); this.sfxB = c.createGain(); this.ambB = c.createGain(); this.ambLP = c.createBiquadFilter(); this.ambLP.type = 'lowpass'; this.ambLP.frequency.value = 2200; this.sfxB.connect(this.masterB); this.ambB.connect(this.ambLP); this.ambLP.connect(this.masterB);   // v0.3.4: helmet muffles the ambience
+      { const bs = c.createBufferSource(); bs.buffer = buf; bs.loop = true; bs.playbackRate.value = .9; this.breathBP = c.createBiquadFilter(); this.breathBP.type = 'bandpass'; this.breathBP.frequency.value = 900; this.breathBP.Q.value = .9; this.breathG = c.createGain(); this.breathG.gain.value = 0; bs.connect(this.breathBP); this.breathBP.connect(this.breathG); this.breathG.connect(this.sfxB); bs.start(); this.breathPh = 0; } this.masterB.connect(c.destination); this.applyVol();
       for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       this.noise = buf;
       const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
@@ -10956,6 +11011,15 @@ const AUDIO = {
   beep(f, d = .12, v = .04){
     if (!this.ctx) return; const c = this.ctx, o = c.createOscillator(), g = c.createGain();
     o.frequency.value = f; o.type = 'square'; g.gain.value = v; o.connect(g); g.connect(this.sfxB); o.start(); o.stop(c.currentTime + d);
+  },
+  breathe(dt, P, over){   // v0.3.4: your own breathing — near-silent in good air, loud and close in the suit, ragged on low reserve, gasping when it is gone
+    if (!this.ctx || !this.breathG) return; const t = this.ctx.currentTime, suit = P.breathing === 'suit', res = P.suit / (CFG.player.suitMax || 100), lungs = P.breath / (CFG.player.breathMax || 100);
+    let rate = .24, amp = .012, f = 1100, muff = 2200;
+    if (suit){ rate = .3; amp = .045; f = 640; muff = 420; if (res < .25){ rate = .3 + (.25 - res) * 1.6; amp = .06; } if (P.suit <= 0){ rate = .75 + (1 - lungs) * .6; amp = .085 + (1 - lungs) * .05; f = 780; } }
+    if (over || P.dead){ amp = 0; }
+    this.breathPh = (this.breathPh + dt * rate) % 1; const s = Math.sin(this.breathPh * Math.PI * 2), env = s > 0 ? Math.pow(s, 1.6) : Math.pow(-s, 2) * .55;
+    this.breathG.gain.setTargetAtTime(amp * env, t, .04); this.breathBP.frequency.setTargetAtTime(f * (s > 0 ? 1 : .8), t, .1); this.ambLP.frequency.setTargetAtTime(muff, t, .35);
+    this.breathState = { rate, amp, muff };
   },
   applyVol(){ if (!this.masterB) return; this.masterB.gain.value = SETTINGS.master; this.sfxB.gain.value = SETTINGS.sfx; this.ambB.gain.value = SETTINGS.amb; },
   chord(){   // v3.3: the win chord — slow open fifths
@@ -12089,6 +12153,12 @@ document.addEventListener('keydown', e => {
       if (aimed.tier >= maxT){ ui.toast('Pipe already max tier.', 2000); break; }
       if (!game.takeItem('reinforce')){ ui.toast('Need a reinforce collar (craft T5+ after scanning the pipe sample).', 3200); break; }
       ui.toast(aimed.reinforce(game), 2500); ui.refreshInv(); beep(660, .06);
+    } else if (aimed instanceof SumpPump){   // v0.3.4: hose collars, same reinforce item as pipes
+      if (!aimed.hose || aimed.hose.legacy){ ui.toast('No laid hose on this pump.', 2000); break; }
+      if (aimed.hose.burst){ ui.toast('Patch the burst before reinforcing.', 2200); break; }
+      if (aimed.hose.tier >= CFG.cave.sump.hoseTiers.length){ ui.toast('Hose already max tier.', 2000); break; }
+      if (!game.takeItem('reinforce')){ ui.toast('Need a reinforce collar (craft T5+ after scanning the pipe sample).', 3200); break; }
+      ui.toast(aimed.reinforce(game), 2500); ui.refreshInv(); beep(660, .06);
     } else if (aimed instanceof Ark3Feeder){   // slice 26: sleeve the ARK-03 ram feeder like any cable
       const r = aimed.sleeve(game); ui.toast(r.msg, 2800); ui.refreshInv(); beep(r.ok ? 660 : 180, .06);
     } else if (aimed instanceof SurfacePylon || (aimed instanceof Ark3Turbine && aimed.exportTier < 3)){  // slice 30
@@ -12187,6 +12257,7 @@ function visuals(dt, t){
   particles.update(dt);
   liquidView.update(dt, performance.now() / 1000);   // slice 32
   AUDIO.set(Math.min(.25, hiss * .08), Math.min(.1, hum * .05));
+  AUDIO.breathe(dt, game.player, game.over);
 }
 
 // ---------- HUD update ----------
@@ -12337,6 +12408,7 @@ function updateHud(){
 
 // ---------- Main loop ----------
 let last = performance.now(), monT = 0;
+var declT = 0;   // v3.4 declutter throttle
 function tick(dt, t){
   if (intro.active){
     input.ePress = false;
@@ -12392,7 +12464,7 @@ function tick(dt, t){
   camera.updateMatrixWorld(); scene.updateMatrixWorld();   // raycasts below need fresh matrices for meshes rebuilt this tick
   visuals(dt, t);
   build.update(t);
-  declutterLabels(dt);   // slice 31: world labels never stack on each other or under the HUD
+  declT += dt; if (declT >= .05){ declutterLabels(declT); declT = 0; }   // v0.3.4: 20 Hz (was every frame); slice 31: world labels never stack on each other or under the HUD
   if (playedOnce && !locked && !autorun && !game.over && $('resume').style.display !== 'block' && !ui.craftTable && !ui.lucidOpen && !intro.active && !SHOT) showPaused();   // slice 31: lost lock watchdog
   monT += dt; if (monT > .5){ monT = 0; paintMonitor(); if (ui.lucidOpen) ui.refreshLucid(); }
   updateHud();
@@ -12400,7 +12472,7 @@ function tick(dt, t){
 function frame(now){
   const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;
   tick(dt, now / 1000);
-  renderer.render(scene, camera);
+  if (!document.hidden) renderer.render(scene, camera);   // v0.3.4: no GPU work behind a hidden tab
   requestAnimationFrame(frame);
 }
 paintMonitor();
@@ -12532,7 +12604,7 @@ const SAVE_MASKDIRS = m => { const a = []; for (let d = 0; d < 6; d++) if (m & (
 function saveCapture(g){
   const P = g.player, d = {};
   d.player = { p: [sR(P.pos.x), sR(P.pos.z)], yaw: sR(P.yaw, 4), pitch: sR(P.pitch, 4), suit: sR(P.suit, 2), breath: sR(P.breath, 2), zone: P.zone };
-  d.scrap = g.scrap; d.inv = { ...g.inv }; d.omni = !!g.omni; d.time = sR(g.time, 2);
+  d.scrap = g.scrap; d.inv = { ...g.inv }; if (g.hoseLay) d.inv.hose_reel = (d.inv.hose_reel || 0) + g.hoseLay.reels;   // v0.3.4: a hose mid-lay saves as reels in the pack d.omni = !!g.omni; d.time = sR(g.time, 2);
   d.unlocks = { craftTable: g.unlocks.craftTable, recipes: Object.keys(g.unlocks.recipes).filter(k => g.unlocks.recipes[k]) };
   d.flags = {};
   for (const k of Object.keys(g)) if (k[0] === '_' && k !== '_loading' && (typeof g[k] === 'boolean' || typeof g[k] === 'number')) d.flags[k] = typeof g[k] === 'number' ? sR(g[k], 3) : g[k];
@@ -12578,7 +12650,7 @@ function saveCapture(g){
   pl.consoles = (g.controlRooms || []).map(c => [sR(c.mesh.position.x), sR(c.mesh.position.z)]);
   const sealSet = new Set(g.pockets.seals.values());
   pl.seals = [...sealSet].map(s => ({ i: s.i, j: s.j0, k: s.k, f: s.facing, h: s instanceof SealHatch ? 1 : 0, o: s.open ? 1 : 0 }));
-  pl.sumps = (g.sumps || []).map(e => [e.i, e.j, e.k, e.mode]);   // slice 32
+  pl.sumps = (g.sumps || []).map(e => [e.i, e.j, e.k, e.mode, e.hose && !e.hose.legacy ? [e.hose.tier, Math.round(e.hose.dmg * 1000) / 1000, e.hose.burst ? 1 : 0, e.hose.pts] : (e.hose ? 1 : 0)]);   // v0.3.4: 5th = hose (1 = legacy pre-laid, 0 = none)   // slice 32
   { const L = g.liquids;   // slice 32: reservoirs + per-pocket liquid (matched by the pocket's first cell) + mass ledger
     d.liq = { res: L.res.map(r => [sR(r.amount, 3), sR(r.reserve, 3), r.breached ? 1 : 0, r.scanned ? 1 : 0]), led: Object.fromEntries(Object.entries(L.led).map(([k, v]) => [k, sR(v, 3)])),
       pk: g.pockets.list.filter(p => LiquidNet.liqTot(p.liq) > 1e-6).map(p => ({ c: p.cells.values().next().value, w: sR(p.liq.water, 3), b: sR(p.liq.brine, 3), o: sR(p.liq.oil, 3), wet: [...p.wet].join(';') })) }; }
@@ -12613,7 +12685,7 @@ function saveCapture(g){
   const placedN = pl.pumps.length + pl.gens.length + pl.bats.length + pl.brks.length + pl.tables.length + pl.belts.length + pl.drills.length + pl.refs.length + pl.torsos.length + pl.consoles.length;
   const sum = { zone: P.zone, scrap: g.scrap, items: Object.values(g.inv).reduce((a, b) => a + (+b || 0), 0), placed: placedN, pipes: pl.pipes.length + pl.lpipes.length, cables: pl.cables.length,
     recipes: d.unlocks.recipes.length, tier: g.unlocks.craftTable, imps: d.imps.filter(i => i.r).length, t: d.time };
-  return { schema: SAVE_SCHEMA, proto: '3.3', saved: Date.now(), t: d.time, sum, d };
+  return { schema: SAVE_SCHEMA, proto: '0.3.4', saved: Date.now(), t: d.time, sum, d };
 }
 
 // remove every placed thing (free build: no refunds) so the saved layout can be rebuilt on top of the static world
@@ -12709,7 +12781,7 @@ function saveApply(g, snap, sl = (typeof slice !== 'undefined' ? slice : null)){
       for (const [i, j, k, f] of pl.scrub || []){ const r = g.pockets.tryPlaceScrubber({ i, j, k }); if (r.ok) r.scrub.filter = f; else warn.push('scrubber: ' + r.msg); }
     });
     step('liquid', () => {   // slice 32
-      for (const [i, j, k, m] of pl.sumps || []){ const r = placeSump(g, i, j, k, m); if (!r.ok) warn.push('sump: ' + r.msg); }
+      for (const [i, j, k, m, hz] of pl.sumps || []){ const hose = Array.isArray(hz) ? { tier: hz[0], dmg: hz[1], burst: !!hz[2], pts: hz[3] } : hz === 0 ? false : hz === 1 || !g._needHose ? { tier: 2, dmg: 0, burst: false, pts: null, legacy: true } : null; const r = placeSump(g, i, j, k, m, hose); if (!r.ok) warn.push('sump: ' + r.msg); }
       // slice 33: traps / docks / planters / intake header
       for (const [x, z, tier, st] of pl.traps || []){ const t = g.add(new SnareCage(g, new THREE.Vector3(x, 0, z), tier || 1)); if (st === 'broken') t.state = 'broken'; }
       for (const [i, k, yaw] of pl.docks || []){ if (!placeCollarDock(g, i, k, yaw)) warn.push('collar dock: cell taken'); }
@@ -12928,7 +13000,7 @@ window.__breathless.liquid = { liquidView, LiquidNet, SumpPump, placeSump, build
 if (location.search.includes('preview')){ $('start').style.display = 'none'; game.player.pos.set(-1.5, 0, 0.5); game.player.yaw = 0.61; game.player.pitch = -0.1; }
 const SHOT = new URLSearchParams(location.search).get('shot');
 if (SHOT || /[?&](selftest|preview)\b/.test(location.search)) document.body.classList.remove('pregame');   // slice 31: debug views keep the HUD
-if (!SAVE_RT.loaded && !SHOT && !/[?&](selftest|preview|nocrash)\b/.test(location.search)) crashStart(game, slice);   // slice 33: a new game starts at the pod (Continue keeps the save)
+if (!SAVE_RT.loaded && !SHOT && !/[?&](selftest|preview|nocrash)\b/.test(location.search)) { crashStart(game, slice); game._needHose = true; }   // slice 33: a new game starts at the pod (Continue keeps the save)
 // v3.2: objective chain + ending run in real play only (selftests / shots / previews drive their own fixtures)
 if (!SHOT && !/[?&](selftest|preview)\b/.test(location.search)){ if (SAVE_RT.loaded && game._objStep == null) game._chainSilent = true; game._chainOn = true; }
 function showWin(st){
@@ -13693,7 +13765,7 @@ function runShot(name){
       im.shotTag = true; look(d.wx + 1.3, d.wz - 2.2, d.wx + .2, .3, d.wz - .4); break;
     }
     // ---- slice 17: gas venting into digs — dug pockets become air volumes ----
-    case 's32_damp': case 's32_scan': case 's32_flood': case 's32_wade': case 's32_sump': case 's32_types': case 's32_drown': {   // slice 32
+    case 's32_damp': case 's32_scan': case 's32_flood': case 's32_wade': case 's32_sump': case 's36_hose': case 's32_types': case 's32_drown': {   // slice 32
       const al = slice.airlock; al.innerOpen = 0; al.outerOpen = 1; al.state = 'surface'; al.syncColliders();
       game.omni = true; P.suit = 100; P.breath = 100; setTimeout(() => { P.suit = 100; P.breath = 100; }, 0);
       const z = slice.seepZone, c = GRID.c, L = game.liquids, ox = z.ox, mz = z.oz + 2.5;
@@ -13715,6 +13787,7 @@ function runShot(name){
       dg(3, 0, 4); P.pos.set(ox - 2, 0, mz); pre(5);
       if (name === 's32_flood'){ const sp = seepSpot(z, -.2, 4.6); P.pos.copy(sp); pre(.3); look(sp.x, sp.z, ox + 2.0, -.2, mz + .15); break; }
       if (name === 's32_wade'){ const sp = seepSpot(z, .6, 5); P.pos.copy(sp); pre(.5); look(sp.x, sp.z, sp.x + 1.1, -.25, mz - .15); for (let n = 0; n < 4; n++){ P.pos.x += .05; game.step(.05, { keys: {} }); P._lastPos?.set(-99, 0, 0); visuals(.05, game.time); } break; }
+      if (name === 's36_hose'){ game._needHose = true; const r = placeSump(game, z.i0 + 1, z.j0, z.k0 + 4, 'home'); const sp = r.sump; if (sp){ const p0 = (sp.group || sp.mesh || sp.root)?.position || new THREE.Vector3(ox - .9, 0, mz); const pts = []; for (let q = 0; q <= 12; q++) pts.push([p0.x + q * .45, (p0.y || 0) + .05, p0.z + Math.sin(q * .7) * .35 - q * .1]); sp.hose = { tier: 2, dmg: .35, burst: false, pts }; sp.buildHose(); sp.tail.visible = false; } pre(3); look(ox - .9, mz + .45, ox + .75, .2, mz - .25); break; }
       if (name === 's32_sump'){ placeSump(game, z.i0 + 1, z.j0, z.k0 + 4, 'home'); pre(3); look(ox - .9, mz + .45, ox + .75, .2, mz - .25); break; }
       break;
     }
@@ -17650,7 +17723,7 @@ if (location.search.includes('selftest')){
     const A = s29.A_schema = {};
     const samples = ['', 'a', 'abababababababab', JSON.stringify(orig), 'ünïcødé — 氧气 🫁 '.repeat(40), 'x'.repeat(70000)];
     A.lzRoundtrip = samples.every(t => SV.SAVE_LZ.unpack(SV.SAVE_LZ.pack(t)) === t);
-    A.schema = orig.schema === SV.SAVE_SCHEMA && SV.SAVE_SCHEMA === 1 && /^(2\.[89]|3\.\d)(\.\d+)?$/.test(orig.proto);
+    A.schema = orig.schema === SV.SAVE_SCHEMA && SV.SAVE_SCHEMA === 1 && /^(2\.[89]|3\.\d|0\.\d+\.\d+)(\.\d+)?$/.test(orig.proto);
     const m0 = SV.saveMigrate({ schema: 0, player: { p: [1, 2] }, inv: { cable: 3 }, scrap: 7 });
     A.migrate0 = m0.schema === 1 && m0.d.scrap === 7 && m0.d.inv.cable === 3;
     A.newerRejected = (() => { try { SV.saveMigrate({ schema: 99, d: {} }); return false; } catch (e){ return /newer/.test(e.message); } })();
@@ -17911,7 +17984,7 @@ if (location.search.includes('selftest')){
     t.repaired = true; t.chipIn = true; t.exportTier = 3; t.fuel = 12345; t.heat = 33; t.running = true; t.tripped = false;
     for (let i = 0; i < pyl.length; i++){ pyl[i].tier = 3; pyl[i].failed = i === 2; pyl[i].damage = i === 2 ? 1 : 0; pyl[i].repaint(); }
     const snap = SV.saveCapture(g);
-    E.schema = snap.schema === 1; E.proto = /^(2\.9|3\.)/.test(snap.proto);
+    E.schema = snap.schema === 1; E.proto = /^(2\.9|3\.|0\.\d)/.test(snap.proto);
     E.hasTurbSt = Object.keys(snap.d.st || {}).some(k => /Ark3Turbine/.test(k));
     E.hasPylSt = Object.keys(snap.d.st || {}).filter(k => /SurfacePylon/.test(k)).length >= pyl.length;
     // wreck and reload
@@ -18062,7 +18135,7 @@ if (location.search.includes('selftest')){
     // G: version + regression
     {
       const G = s31.G_regression = { title: /2\.9\.1|3\.\d/.test(document.title) || document.title === 'SELFTEST', ver: /2\.9\.1|3\.\d/.test(document.querySelector('.ver')?.textContent || ''),
-        s30: !!out.slice30?.SUCCESS, s29: !!out.slice29?.SUCCESS, s25: !!out.slice25?.SUCCESS, save: window.__breathless.save?.saveCapture ? /^(2\.9\.1|3\.\d(\.\d)?)$/.test(window.__breathless.save.saveCapture(game).proto) : true };
+        s30: !!out.slice30?.SUCCESS, s29: !!out.slice29?.SUCCESS, s25: !!out.slice25?.SUCCESS, save: window.__breathless.save?.saveCapture ? /^(2\.9\.1|3\.\d(\.\d)?|0\.\d+\.\d+)$/.test(window.__breathless.save.saveCapture(game).proto) : true };
       G.ok = Object.entries(G).every(([k, v]) => v === true);
     }
     s31.SUCCESS = !!(s31.A_air.ok && s31.B_water.ok && s31.C_lucid.ok && s31.D_screens.ok && s31.E_build.ok && s31.F_labels.ok && s31.G_regression.ok);
@@ -18203,7 +18276,7 @@ if (location.search.includes('selftest')){
       G.warn = (ap.warn || []).join('|').slice(0, 160); G.water = r3(pk2?.liq.water || 0); G.waterBack = near(pk2?.liq.water || 0, want.w, 1e-4);
       G.wetBack = pk2?.wet.size === want.wet; G.resBack = L.res.every((r, n) => r.breached === want.res[n]); G.ledBack = near(L.led.dumped, want.led.dumped, 1e-4);
       G.sumpBack = g.sumps.length === 1 && g.sumps[0].mode === 'dump'; G.massBack = near(L.total(), T0, 1e-4);
-      G.ok = G.hasLiq && G.hasSump && /^3\.\d(\.\d)?$/.test(G.proto) && G.waterBack && G.wetBack && G.resBack && G.ledBack && G.sumpBack && G.massBack && !(ap.warn || []).some(w => /liq|sump/.test(w));
+      G.ok = G.hasLiq && G.hasSump && /^(0\.)?3\.\d(\.\d)?$/.test(G.proto) && G.waterBack && G.wetBack && G.resBack && G.ledBack && G.sumpBack && G.massBack && !(ap.warn || []).some(w => /liq|sump/.test(w));
       g.ui = ui0;
     }
     // H: version + regression
@@ -18213,6 +18286,36 @@ if (location.search.includes('selftest')){
       H.ok = Object.entries(H).every(([k, v]) => v === true);
     }
     delete s32._W1; delete s32._W4;
+    // slice36 (v0.3.4): the player lays the sump hose; it obeys the pipe overload bands; saves; legacy stays pre-laid
+    const s36 = out.slice36 = {}; try { const r3s = v => Math.round(v * 1000) / 1000;
+      const W = mk32(), g = W.g, L = g.liquids; carveSeepTunnel(g, W.z, 3); dig(W, 3, 0, 4); L.update(0); rig32(W); g._needHose = true;
+      const r = placeSump(g, W.z.i0 + 1, W.z.j0, W.z.k0 + 4, 'home'), sp = r.sump, ik = g.intakes[0]; run(W, 1);
+      const A = s36.A_noHose = { placed: r.ok, stall: sp.stall, tail: sp.tail.visible, ok: r.ok && /NO HOSE/.test(sp.stall) && !sp.tail.visible };
+      g.inv.hose_reel = 0; sp.interact(0, g, null, true); const refused = !g.hoseLay; g.giveItem('hose_reel', 2); sp.interact(0, g, null, true);
+      const B = s36.B_lay = { refused, laying: g.hoseLay?.pump === sp };
+      const from = sp.pos.clone(), to = ik.pos.clone(), dist = from.distanceTo(to), n = Math.ceil(dist / .3);
+      for (let q = 1; q <= n; q++){ g.player.pos.lerpVectors(from, to, q / n); hoseLayTick(g); }
+      ik.interact(0, g, null, true); B.dist = r3s(dist); B.len = r3s(sp.hose?.len || 0); B.tier = sp.hose?.tier; B.mesh = !!sp.hoseMesh; B.reelsLeft = g.inv.hose_reel || 0;
+      B.ok = refused && B.laying && !g.hoseLay && B.tier === 1 && B.mesh && B.len >= dist * .9 && B.reelsLeft === 2 - Math.ceil(B.len / CFG.cave.sump.reelM);
+      run(W, 20); const C = s36.C_bands = { flow: r3s(sp.flow), over: r3s(sp.hoseOver()), dmg: r3s(sp.hose.dmg) };
+      C.ranWear = C.dmg > 0; { const cap = sp.hoseCap(), d0 = sp.hose.dmg; sp.hoseF = cap * 1.25; for (let q = 0; q < 10; q++) sp.hoseWear(1, cap * 1.25); C.slow10s = r3s(sp.hose.dmg - d0); const d1 = sp.hose.dmg; sp.hoseF = cap * 1.5; sp.hoseWear(1, cap * 1.5); C.fast1s = r3s(sp.hose.dmg - d1); sp.hose.dmg = 0; sp.hoseF = cap * 1.15; sp.hoseWear(1, cap * 1.15); C.safe = sp.hose.dmg === 0; }
+      C.slowBand = C.ranWear && C.slow10s > 0 && C.slow10s < .1 && C.fast1s > C.slow10s / 10 * 2 && C.safe;
+      sp.hose.dmg = .6; C.leak = r3s(sp.hoseLeak()); const lost0 = sp.hoseLost || 0; run(W, 4); C.lostToLeak = r3s((sp.hoseLost || 0) - lost0);
+      sp.hose.dmg = .999; run(W, 5); C.burst = sp.hose.burst && /BURST/.test(sp.stall);
+      g.giveItem('repair_kit', 1); for (let q = 0; q < 20; q++) sp.interact(.05, g, null, q === 0); C.patched = !sp.hose.burst && sp.hose.dmg === 0;
+      const rf = sp.reinforce(g); const d1 = sp.hose.dmg; run(W, 20); C.t2 = sp.hose.tier === 2 && sp.hose.dmg === d1 && /T2/.test(rf); C.bands = sp.hoseMesh.children.length > 1;
+      C.ok = C.slowBand && C.leak > CFG.pipe.leakStart && C.lostToLeak > 0 && C.burst && C.patched && C.t2 && C.bands;
+      const SV = window.__breathless.save, snap = SV.saveCapture(g), row = snap.d.placed.sumps[0];
+      const D = s36.D_save = { row4: Array.isArray(row[4]) ? row[4].slice(0, 3) : row[4], pts: Array.isArray(row[4]) ? row[4][3].length : 0 };
+      const W2 = mk32(); carveSeepTunnel(W2.g, W2.z, 3); dig(W2, 3, 0, 4); W2.g.liquids.update(0); W2.g._needHose = true; const r2 = placeSump(W2.g, W2.z.i0 + 1, W2.z.j0, W2.z.k0 + 4, 'off', false), r3x = placeSump(W2.g, W2.z.i0 + 1, W2.z.j0, W2.z.k0 + 5, 'off');
+      const W3 = mk32(); carveSeepTunnel(W3.g, W3.z, 3); dig(W3, 3, 0, 4); W3.g.liquids.update(0); const r4 = placeSump(W3.g, W3.z.i0 + 1, W3.z.j0, W3.z.k0 + 4, 'home');
+      D.legacy = !!r4.sump?.hose?.legacy && r4.sump.tail.visible; D.r4 = [r4.ok, r4.msg || r4.reason || '', !!r4.sump, r4.sump?.hose && JSON.stringify(r4.sump.hose).slice(0,80)]; D.explicitNone = r2.ok ? r2.sump.hose === null : 'n/a';
+      D.ok = Array.isArray(row[4]) && row[4][0] === 2 && D.pts >= 3 && D.legacy;
+      const AU = s36.E_audio = {}; AUDIO.init(); const Pf = { breathing: 'suit', suit: 10, breath: 100, dead: false }; AUDIO.breathe(.1, Pf, false); AU.suitLow = { ...AUDIO.breathState };
+      AUDIO.breathe(.1, { breathing: 'room', suit: 100, breath: 100 }, false); AU.room = { ...AUDIO.breathState };
+      AU.ok = AU.suitLow.rate > AU.room.rate && AU.suitLow.amp > AU.room.amp && AU.suitLow.muff < AU.room.muff;
+      s36.SUCCESS = !!(A.ok && B.ok && C.ok && D.ok && AU.ok);
+    } catch (err){ s36.error = String(err?.stack || err).slice(0, 600); s36.SUCCESS = false; }
     s32.SUCCESS = !!(s32.A_breach.ok && s32.B_flow.ok && s32.C_pump.ok && s32.D_types.ok && s32.E_seal.ok && s32.F_drown.ok && s32.G_save.ok && s32.H_regression.ok);
     } catch (err){ s32.error = String(err?.stack || err).slice(0, 600); s32.SUCCESS = false; }
   }
@@ -18384,7 +18487,7 @@ if (location.search.includes('selftest')){
       const m1 = g3.imps.find(i => i.origin === 'wreck'), m2 = g3.imps.find(i => i.origin === 'ark');
       I.mig = { n: g3._migrated33, crewTag: m1?.tag, crewCollar: m1?.collar?.charge, crewState: m1?.state, worldState: m2?.state, worldMood: m2?.mood, worldLabel: m2?.label, warn: (ap3.warn || []).length };
       I.migOk = I.mig.n === 2 && m1?.tag === 'CREW-1' && m1?.collar?.charge === S.collarLife && m1?.state === 'awake' && m2?.state === 'feral' && m2?.mood === 'hostile' && !/imp/i.test(m1?.label + m2?.label);
-      I.ok = /^3\.\d+(\.\d)?$/.test(I.proto) && I.schema && I.crewBack && I.feralBack && I.traps === 1 && I.docks === 1 && I.planters === 1 && I.objDone && I.migOk;
+      I.ok = /^(0\.)?3\.\d+(\.\d)?$/.test(I.proto) && I.schema && I.crewBack && I.feralBack && I.traps === 1 && I.docks === 1 && I.planters === 1 && I.objDone && I.migOk;
     }
     // J: regression + wording — every older slice green, version 3.1, no 'imp' left in the help / title text
     {
