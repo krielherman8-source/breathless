@@ -616,3 +616,4 @@ Audit of every 'Placeholders / not yet' note plus a playthrough path new game â†
 - Saves on `visibilitychange` (hidden) in addition to pagehide. Export downloads the raw save string. Import validates it with saveDecode, keeps the old save as prev, then reloads. A bad file leaves the current save untouched.
 - Tests: new slice35 (quality monotonic, sens/invert reach mouse look, FOV apply+restore, audio buses + chord).
 - Not yet: breathing/muffled-hum audio layers, sump hose reel (the HOME/FUEL umbilical is still pre-laid), declutter throttle.
+- Shots: play/run_shots.mjs (CDP, port 8766). New shot modes s34_win and s35_settings. Final shots are play/final_*.png.

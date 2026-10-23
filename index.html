@@ -14075,10 +14075,12 @@ function runShot(name){
       setTimeout(() => (via === 'orb' ? ui.openCompanion() : ui.openControlRoom(cons)), 150); break;
     }
     // ---- slice 25: polish shots (1280×800) ----
-    case 's25_panel': case 's25_monitor': case 's25_companion': case 's25_build': case 's25_help': case 's25_craft': case 's25_start': case 's25_paused': {
+    case 's25_panel': case 's25_monitor': case 's25_companion': case 's25_build': case 's25_help': case 's25_craft': case 's25_start': case 's25_paused': case 's34_win': case 's35_settings': {
       if (name === 's25_build'){ game.unlocks.craftTable = 3; build.toggle(true); build.select('craft'); build.setCraftTier(2); look(-2.0, 3.2, -1.5, 0, 1.5); break; }
       if (name === 's25_craft'){ slice.table.setTier(3); game.unlocks.craftTable = 3; game.scrap = 14; look(3.5, 3.2, 4.8, .9, 4.3); setTimeout(() => ui.openCraft(slice.table), 200); break; }
       if (name === 's25_start'){ autorun = false; locked = false; look(-1.5, .5, 2, 1.4, -2); setTimeout(() => { $('start').style.display = 'flex'; }, 100); break; }
+      if (name === 's34_win'){ playedOnce = true; look(-1.5, .5, 2, 1.4, -2); setTimeout(() => { locked = false; autorun = false; showWin({ secs: 7260, crew: 2, arks: 3, crises: 4, relapses: 1 }); }, 100); break; }
+      if (name === 's35_settings'){ playedOnce = true; look(-1.5, .5, 2, 1.4, -2); setTimeout(() => { locked = false; autorun = false; settingsUI.open(); }, 100); break; }
       if (name === 's25_paused'){ playedOnce = true; look(-1.5, .5, 2, 1.4, -2); setTimeout(() => { locked = false; autorun = false; $('resume').style.display = 'block'; }, 100); break; }
       if (name === 's25_help'){ look(-1.5, .5, 2, 1.4, -2); $('help').style.display = 'block'; break; }
       game.unlockRecipe('control_room', 'shot'); game.unlockRecipe('control_chip', 'shot'); game.unlockRecipe('control_link', 'shot');
