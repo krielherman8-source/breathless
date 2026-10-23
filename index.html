@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>BREATHLESS - prototype 3.1.1 (crash start: feral survivors)</title>
+<title>BREATHLESS - prototype 3.2 (objective chain + ending)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   /* slice 25: shared UI tokens — every panel / HUD box / button pulls from these */
@@ -19,7 +19,12 @@
   #hud{position:fixed;inset:0;pointer-events:none}
   #cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#bfeaff88}
   #objective{position:absolute;left:50%;top:14px;transform:translateX(-50%);padding:6px 16px 7px;background:#1a0a04b0;border:1px solid #ff9a4a66;border-radius:var(--r-s);font-size:13px;letter-spacing:.06em;display:none;text-align:center;color:#ffd9b0;pointer-events:none}
-  #objective b{color:#ffb070;letter-spacing:.14em}#objective .arr{display:inline-block;margin:0 6px;color:#7dffb0;transition:transform .15s}#objective.ok{border-color:#4dff8866;background:#03160cb0;color:#bfffd8}
+  #objective b{color:#ffb070;letter-spacing:.14em}#objective .arr{display:inline-block;margin:0 6px;color:#7dffb0;transition:transform .15s}#objective.chain{background:#04121ab0;border-color:#5ad0ff44;color:#cfefff;font-size:12px;opacity:.88}#objective.chain b{color:#8fe0ff}
+  #win{background:radial-gradient(ellipse at 50% 40%,#0d2a22ee,#020806f6)}#win h1{color:#9fffd0;letter-spacing:.3em}#win .stats{font-family:monospace;color:#bfeee0;line-height:1.8;margin:14px 0}
+  #settings{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:#000a}#settings .card{background:#06121acc;border:1px solid #5ad0ff55;border-radius:10px;padding:18px 26px;min-width:420px;color:#cfefff;font-size:13px;backdrop-filter:blur(6px)}
+  #settings label{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:7px 0}#settings input[type=range]{width:180px}#settings select{background:#0a1c26;color:#cfefff;border:1px solid #5ad0ff55}#settings h3{margin:0 0 10px;letter-spacing:.2em;color:#8fe0ff}#settings textarea{width:100%;height:60px;background:#020a0e;color:#9fd;font-size:10px}
+  .sbtn.small{padding:4px 10px;font-size:12px}
+  #objective.ok{border-color:#4dff8866;background:#03160cb0;color:#bfffd8}
   #prompt{position:absolute;left:50%;top:63%;transform:translateX(-50%);padding:6px 14px;background:#001a28b8;border:1px solid var(--c-line2);border-radius:var(--r-s);font-size:14px;display:none;max-width:min(860px,calc(100vw - 80px));text-align:center;line-height:1.4}
   #suit{position:absolute;left:24px;bottom:24px;width:260px}
   .lbl{font-size:var(--fs-s);letter-spacing:2px;opacity:.8;margin-bottom:3px}
@@ -162,7 +167,7 @@
   <div id="lucidui" class="panel"><span class="close">[Esc] close</span><h2 id="lucidtitle">LUCID LINK</h2><div class="meta" id="lucidmeta"></div><div class="ctrlcmds" id="ctrlcmds" style="display:none"></div><div id="lucidlist"></div><div class="crew sect" id="crewlist" style="display:none"></div><div class="orbcmds" id="orbcmds" style="display:none"></div><div class="last" id="lucidlast"></div></div>
   <div id="hint"><kbd>H</kbd> controls &nbsp; <kbd>B</kbd> build &nbsp; <kbd>Esc</kbd> pause</div>
   <div id="help">
-    <div class="ttl">CONTROLS<span>[H] close · prototype 3.1.1</span></div>
+    <div class="ttl">CONTROLS<span>[H] close · prototype 3.2</span></div>
     <div class="hcols">
     <div class="sec"><h4>MOVE &amp; ACT</h4>
       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>Esc</kbd> pause<br>
@@ -234,14 +239,15 @@
   <p id="starthint"><b>Click to begin</b> &nbsp; <span style="opacity:.6">(<kbd>Shift</kbd>+click replays the intro · <kbd>Space</kbd> skips it)</span></p>
   <div id="savebox" style="display:none"><div class="row"><button id="btnContinue" class="sbtn main">Continue</button><button id="btnNew" class="sbtn">New game</button></div><div id="saveinfo"></div></div>
   <div id="savenote" style="display:none"></div>
-  <div class="ver">PROTOTYPE 3.1.1 · FERAL SURVIVORS</div>
+  <div class="ver">PROTOTYPE 3.2 · BREATHING ROOM</div>
 </div>
+<div id="win" class="screen" style="display:none"><h1>BREATHING ROOM</h1><p>Bunker 1 breathes on its own. The turbine in ARK-03 turns, the line home holds, and the people you pulled out of the dust sleep under their collars. You are still on a dead world, but the air does not run out today.</p><div class="stats" id="winstats"></div><p><button id="btnKeep" class="sbtn main">Keep playing</button> <button id="btnWinNew" class="sbtn">New game</button></p></div>
 <div id="over" class="screen"><h1>SUFFOCATED</h1><p id="overmsg"></p><p><b>Click to try again</b></p></div>
 <script type="module">
 import * as THREE from './lib/three.module.js';
 
 /* =====================================================================
-   BREATHLESS prototype 3.1.1  (fix: crash spawn overlapped a collider = could not leave the pod; free-spot spawn, stuck nudge, sub-stepped movement)
+   BREATHLESS prototype 3.2  (objective chain: shelter → Lucid → plant → build → ARK-01 → crew → ARK-02/03 → feed → BREATHING ROOM hold/win; earlier: fix: crash spawn overlapped a collider = could not leave the pod; free-spot spawn, stuck nudge, sub-stepped movement)
    prototype 3.1  (slice 33: crash start at the escape pod + FIND SHELTER; feral survivors replace the imps —
    snare cages, mood-dampener collars (30 min), collar docks, hand charge, relapse; survivors breathe 0.9 → O2 planters;
    sump pump now runs on grid power through the base surface intake and real liquid pipe.)
@@ -755,6 +761,7 @@ const CFG = {
     },
   },
   // slice 33: crash start — escape pod on the surface, FIND SHELTER (the base airlock)
+  chain: { holdSecs: 300, holdO2: .19, holdCO2: .02 },   // v3.2: BREATHING ROOM — hold the base this long (s) with 2+ crew + ARK-03 feed
   crash: {
     suitMul: .42,           // suit drain multiplier while the pod's emergency bottle feeds the suit (~85 s from full)
     podX: -6.6, podZOff: 5.4, spawnX: -5.1, spawnZOff: 4.2,
@@ -1423,7 +1430,7 @@ class OxygenPlant extends Entity {
       const src = this.waterSource(game);
       const got = src.kind === 'tank' ? src.tank.liquid.take(want) : want;
       this.water = Math.min(CFG.plant.waterMax, this.water + got);
-      this.watered = (this.watered || 0) + got; this.wateringT = .4;
+      this.watered = (this.watered || 0) + got; this.wateringT = .4; if (got > 0) game._wateredOnce = true;   // v3.2 objective chain
       if (!this._waterTold && game.ui?.toast){ this._waterTold = true; game.ui.toast(src.kind === 'tank' ? 'Watering from the base tank.' : 'Watering from the suit canteen.', 1800); }
     }
   }
@@ -9689,6 +9696,40 @@ function objectiveTick(game){
   }
 }
 
+// ---------- v3.2: objective chain (tutorial thread) + the BREATHING ROOM ending ----------
+// Each step has a state predicate; the chain advances through every step that is already true (old saves skip silently).
+// The strip is a nudge, never an alarm: crises stay quiet and missable. Final step: hold the base for CFG.chain.holdSecs.
+function crewCount(g){ return (g.imps || []).filter(im => im.collar && !im.collar.dead && im.state !== 'feral' && im.state !== 'trapped').length; }
+function baseAirGood(g){ const r = g.room; return r.frac('o2') >= CFG.chain.holdO2 && r.frac('co2') < CFG.chain.holdCO2; }
+const CHAIN = [
+  { id: 'shelter', t: 'FIND SHELTER', h: 'Reach the bunker airlock and seal the outer door.', ok: g => !g.objective || g.objective.done },
+  { id: 'lucid', t: 'WAKE LUCID', h: 'A dormant orb sits by the west wall of the base. Aim at it and press [E].', ok: g => !!g.lucid?.orbActive },
+  { id: 'plant', t: 'KEEP THE AIR', h: 'The oxygen plant is the only thing making O2 in here. Hold [E] on it to water it.', ok: g => !!g._wateredOnce },
+  { id: 'build', t: 'BUILD SOMETHING', h: 'Craft at the table [E] (scrap: the pod locker, piles), then [B] to build. Cyan = valid, red = blocked.', ok: g => !!g._builtOnce },
+  { id: 'ark1', t: 'FIND ARK-01', h: 'Cycle the airlock [E] and follow the surface lane to the grow-lab hatch.', ok: g => !!g._arkEnteredOnce },
+  { id: 'crew', t: 'COLLAR A SURVIVOR', h: 'Craft a snare cage and a mood-dampener collar. Bait it, wait out the thrashing, then hold [E] while it is calm.', ok: g => crewCount(g) >= 1 },
+  { id: 'ark2', t: 'FIND ARK-02', h: 'The ARK-01 records point to a robotics lab further out. Follow the waypoint.', ok: g => !!g._ark2EnteredOnce },
+  { id: 'ark3', t: 'FIND ARK-03', h: 'Power works. The ARK-02 lore leads there. Bring scrap and a drill.', ok: g => !!g._ark3EnteredOnce },
+  { id: 'feed', t: 'POWER HOME', h: 'Restart the ARK-03 turbine (repair, chip, sleeve, fuel) and sleeve every pylon to T3.', ok: g => !!g._arkFeedLive },
+  { id: 'hold', t: 'BREATHING ROOM', h: 'Keep base air good with 2+ crew collared and the ARK-03 feed live.', ok: g => (g._holdT || 0) >= CFG.chain.holdSecs },
+];
+function chainStep(g){ return CHAIN[Math.min(g._objStep | 0, CHAIN.length - 1)]; }
+function chainTick(g, dt){
+  if (g._won && (g._objStep | 0) >= CHAIN.length) return;
+  let n = g._objStep | 0, adv = 0;
+  if (CHAIN[n]?.id === 'hold'){
+    const okNow = g._arkFeedLive && crewCount(g) >= 2 && baseAirGood(g);
+    g._holdT = okNow ? (g._holdT || 0) + dt : Math.max(0, (g._holdT || 0) - dt * 2);   // a lapse bleeds the timer back (not a hard reset)
+  }
+  while (n < CHAIN.length && CHAIN[n].ok(g)){ n++; adv++; }
+  if (!adv) return;
+  const quiet = g._loading || g._chainSilent; g._objStep = n; g._chainSilent = false;
+  if (n >= CHAIN.length){ g._won = true; g._wonT = g.time; g.bus.emit('game:won', chainStats(g)); return; }
+  g._objT = g.time; g.bus.emit('objective:step', CHAIN[n]);
+  if (!quiet) g.ui?.toast?.(`NEW OBJECTIVE · ${CHAIN[n].t} — ${CHAIN[n].h}`, 7000);
+}
+function chainStats(g){ return { secs: Math.round(g.time), crew: crewCount(g), arks: [g._arkEnteredOnce, g._ark2EnteredOnce, g._ark3EnteredOnce].filter(Boolean).length, crises: g._crisisN || 0, relapses: (g.imps || []).reduce((a, im) => a + (im.relapses || 0), 0) }; }
+
 class Game {
   constructor(scene){
     this.scene = scene; this.bus = new EventBus(); this.time = 0;
@@ -9721,6 +9762,8 @@ class Game {
     this.ui = { toast(){} };
     this.over = false;
     this.bus.on('player:dead', why => { this.over = true; this.overReason = why; });
+    this.bus.on('build:placed', () => { if (!this._loading) this._builtOnce = true; });   // v3.2 objective chain
+    this.bus.on('crisis:note', () => { this._crisisN = (this._crisisN || 0) + 1; });
     this.bus.on('dig:block', d => impDigSpoil(this, d));   // slice 16: hauling imps sift dig spoil
     // slice 17: dug cells in outdoor DigZones join pocket air volumes (PocketNet); quiet monitor notes only
     this.pockets = new PocketNet(this);
@@ -9860,6 +9903,7 @@ class Game {
     this.power.update(dt);                            // grid decides which consumers are powered this tick
     this.entities.forEach(e => e.update(dt, this));   // pumps draw gas/liquid; conveyors move packets
     if (this.objective && !this.objective.done) objectiveTick(this);   // slice 33: FIND SHELTER
+    if (this._chainOn) chainTick(this, dt);           // v3.2: objective chain + ending
     this.pipes.update(dt);                            // gas network routes, stresses pipes
     this.liquidPipes.update(dt);                      // liquid network routes, stresses pipes → puddle on leak
     this.lucidNet.update(dt);                         // slice 8: quiet watch over linked units
@@ -9991,6 +10035,11 @@ function priorityBrownoutGrid(g, s){
 }
 
 
+// ---------- v3.3: player settings (localStorage). Graphics quality only goes UP from the authored look, never down. ----------
+const SETTINGS_KEY = 'breathless_settings_v1';
+const SETTINGS_DEF = { sens: 1, invertY: false, fov: 75, master: .8, sfx: 1, amb: 1, objStrip: true, quality: 'high' };
+const SETTINGS = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}; } catch (e){} return { ...SETTINGS_DEF, ...o }; })();
+function settingsSave(){ try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(SETTINGS)); } catch (e){} }
 // ---------- 8. Build scene ----------
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -11572,7 +11621,7 @@ function lockPointer(){
   } catch (e){ lockPointer.denied = (lockPointer.denied || 0) + 1; showPaused(); }
 }
 function showPaused(){
-  const busy = locked || game.over || ui.craftTable || ui.lucidOpen || intro.active || SHOT;
+  const busy = locked || game.over || $('win')?.style.display === 'flex' || $('settings')?.style.display === 'flex' || ui.craftTable || ui.lucidOpen || intro.active || SHOT;
   $('resume').style.display = (!busy && playedOnce) ? 'block' : 'none';
   $('start').style.display = (!busy && !playedOnce) ? 'flex' : 'none';
 }
@@ -12198,6 +12247,11 @@ function updateHud(){
         el.className = ''; el.style.display = 'block';
         el.innerHTML = `<b>FIND SHELTER</b> &nbsp; suit O2 <span style="color:${left < 25 ? '#ff5a4a' : left < 45 ? '#ffc34a' : '#ffe2c4'}">${mm}:${String(ss).padStart(2, '0')}</span><br><span style="opacity:.75;font-size:12px">${inside ? 'In the airlock — [E] the panel to cycle in and seal the outer door' : `bunker hatch <span class="arr" style="transform:rotate(${(-rel).toFixed(2)}rad)">▲</span>${dist.toFixed(0)} m · follow the green strobe`}</span>`;
       } else if (o && o.done && game.time - (o.doneT ?? -99) < 6){ el.className = 'ok'; el.style.display = 'block'; el.innerHTML = `<b>SHELTER</b> &nbsp; sealed in · ${o.secs ?? '?'} s on the bottle`; }
+      else if (game._chainOn && !game._won && SETTINGS.objStrip && (game._objStep | 0) > 0){   // v3.2 objective chain strip (hide it in Settings)
+        const st = chainStep(game), hold = st.id === 'hold';
+        el.className = 'chain'; el.style.display = 'block';
+        el.innerHTML = `<b>${st.t}</b>${hold ? ` &nbsp; ${Math.floor((game._holdT || 0) / 60)}:${String(Math.floor((game._holdT || 0) % 60)).padStart(2, '0')} / ${CFG.chain.holdSecs / 60}:00 · crew ${crewCount(game)}/2 · feed ${game._arkFeedLive ? 'LIVE' : 'off'} · air ${baseAirGood(game) ? 'good' : 'BAD'}` : ''}<br><span style="opacity:.7;font-size:12px">${st.h}</span>`;
+      }
       else el.style.display = 'none';
     } }
   const sb = $('suitbar'); sb.style.width = (p.suit / CFG.player.suitMax * 100) + '%';
@@ -12540,7 +12594,7 @@ function saveCapture(g){
   const placedN = pl.pumps.length + pl.gens.length + pl.bats.length + pl.brks.length + pl.tables.length + pl.belts.length + pl.drills.length + pl.refs.length + pl.torsos.length + pl.consoles.length;
   const sum = { zone: P.zone, scrap: g.scrap, items: Object.values(g.inv).reduce((a, b) => a + (+b || 0), 0), placed: placedN, pipes: pl.pipes.length + pl.lpipes.length, cables: pl.cables.length,
     recipes: d.unlocks.recipes.length, tier: g.unlocks.craftTable, imps: d.imps.filter(i => i.r).length, t: d.time };
-  return { schema: SAVE_SCHEMA, proto: '3.1.1', saved: Date.now(), t: d.time, sum, d };
+  return { schema: SAVE_SCHEMA, proto: '3.2', saved: Date.now(), t: d.time, sum, d };
 }
 
 // remove every placed thing (free build: no refunds) so the saved layout can be rebuilt on top of the static world
@@ -12836,6 +12890,17 @@ if (location.search.includes('preview')){ $('start').style.display = 'none'; gam
 const SHOT = new URLSearchParams(location.search).get('shot');
 if (SHOT || /[?&](selftest|preview)\b/.test(location.search)) document.body.classList.remove('pregame');   // slice 31: debug views keep the HUD
 if (!SAVE_RT.loaded && !SHOT && !/[?&](selftest|preview|nocrash)\b/.test(location.search)) crashStart(game, slice);   // slice 33: a new game starts at the pod (Continue keeps the save)
+// v3.2: objective chain + ending run in real play only (selftests / shots / previews drive their own fixtures)
+if (!SHOT && !/[?&](selftest|preview)\b/.test(location.search)){ if (SAVE_RT.loaded && game._objStep == null) game._chainSilent = true; game._chainOn = true; }
+function showWin(st){
+  const m = Math.floor(st.secs / 60), h = Math.floor(m / 60);
+  $('winstats').innerHTML = `time alive ${h ? h + ' h ' : ''}${m % 60} min · crew ${st.crew} · ARKs reached ${st.arks}/3<br>crises logged ${st.crises} · collar relapses ${st.relapses}`;
+  $('win').style.display = 'flex'; if (document.pointerLockElement) document.exitPointerLock(); if (typeof AUDIO !== 'undefined') AUDIO.chord?.();
+  try { saveNow?.('auto'); } catch (e){}
+}
+game.bus.on('game:won', st => showWin(st));
+$('btnKeep').addEventListener('click', ev => { ev.stopPropagation(); $('win').style.display = 'none'; lockPointer(); });
+$('btnWinNew').addEventListener('click', ev => { ev.stopPropagation(); saveClear(); location.reload(); });
 if (SHOT) runShot(SHOT);
 if (location.search.includes('pwrlog')) setInterval(() => { document.title = 'PDBG ' + JSON.stringify({ cables: [...game.power.cables.values()].map(c => [c.key, c.live, c.lit?.[0]?.material === powerMats().live]), circuits: game.power.circuits.map(c => c.stats && { ...c.stats, live: c.live }), pump: [slice.pump.power, slice.pump.powered] }); }, 300);
 if (location.search.includes('dbg')) setInterval(() => { const h = build.pick(); document.title = JSON.stringify({ cand: build.cand && { ...build.cand, cells: undefined }, hit: h && { obj: h.object.userData.part || h.object.userData.entity?.constructor.name || h.object.geometry.type, p: h.point.toArray().map(v => +v.toFixed(2)) } }); }, 200);
@@ -18191,10 +18256,10 @@ if (location.search.includes('selftest')){
     }
     // D: relapse — at 0 the collar dies: feral again; near you it may turn hostile (rng), else it bolts. Loud line.
     {
-      const run = (rngV, near) => { const [g] = mk33(); g.player.pos.set(near ? 0 : -9, 0, near ? 1.5 : 9);   // v3.2: far = well outside 5 m even after 3 s of wander (was flaky) g.rng = () => rngV;
+      const run = (rngV, near) => { const [g] = mk33(); g.player.pos.set(near ? 0 : -9, 0, near ? 1.5 : 9); g.rng = () => rngV;   // v3.2: far = well outside 5 m (was flaky)
         const sv = spawnImp(g, new THREE.Vector3(0, 0, 0)); sv.wake(g, true); sv.setJob('wander'); sv.collar.charge = 3; const n0 = g.lines.length;
-        const tR = step(g, 6, () => sv.state === 'feral');
-        return { at: tR != null ? r3(tR) : null, state: sv.state, mood: sv.mood, dead: !!sv.collar?.dead, relapses: sv.relapses || 0, said: g.lines.slice(n0).some(l => /feral again/.test(l)), rewake: sv.wake(g, true).ok };
+        const tR = step(g, 6, () => { if (sv.state !== 'feral') sv.pos.set(0, 0, 0); return sv.state === 'feral'; });   // v3.2: pin it (wander drift made near/far flaky)
+        return { at: tR != null ? r3(tR) : null, d: r3(Math.hypot(g.player.pos.x - sv.pos.x, g.player.pos.z - sv.pos.z)), pp: [r3(g.player.pos.x), r3(g.player.pos.z)], sp: [r3(sv.pos.x), r3(sv.pos.z)], state: sv.state, mood: sv.mood, dead: !!sv.collar?.dead, relapses: sv.relapses || 0, said: g.lines.slice(n0).some(l => /feral again/.test(l)), rewake: sv.wake(g, true).ok };
       };
       const hostile = run(0, true), flee = run(.99, true), far = run(0, false);
       s33.D_relapse = { hostile, flee, far, ok: hostile.state === 'feral' && hostile.mood === 'hostile' && hostile.dead && hostile.said && !hostile.rewake && flee.mood === 'flee' && far.mood === 'flee' && Math.abs(hostile.at - 3) < .2 };
@@ -18278,12 +18343,12 @@ if (location.search.includes('selftest')){
       const m1 = g3.imps.find(i => i.origin === 'wreck'), m2 = g3.imps.find(i => i.origin === 'ark');
       I.mig = { n: g3._migrated33, crewTag: m1?.tag, crewCollar: m1?.collar?.charge, crewState: m1?.state, worldState: m2?.state, worldMood: m2?.mood, worldLabel: m2?.label, warn: (ap3.warn || []).length };
       I.migOk = I.mig.n === 2 && m1?.tag === 'CREW-1' && m1?.collar?.charge === S.collarLife && m1?.state === 'awake' && m2?.state === 'feral' && m2?.mood === 'hostile' && !/imp/i.test(m1?.label + m2?.label);
-      I.ok = /^3\.1(\.\d)?$/.test(I.proto) && I.schema && I.crewBack && I.feralBack && I.traps === 1 && I.docks === 1 && I.planters === 1 && I.objDone && I.migOk;
+      I.ok = /^3\.\d+(\.\d)?$/.test(I.proto) && I.schema && I.crewBack && I.feralBack && I.traps === 1 && I.docks === 1 && I.planters === 1 && I.objDone && I.migOk;
     }
     // J: regression + wording — every older slice green, version 3.1, no 'imp' left in the help / title text
     {
       const help = document.getElementById('help')?.textContent || '', st = document.getElementById('start')?.textContent || '';
-      const J = s33.J_regression = { title: /3\.1/.test(document.title) || document.title === 'SELFTEST', ver: /3\.1/.test(document.querySelector('.ver')?.textContent || ''),
+      const J = s33.J_regression = { title: /3\.\d/.test(document.title) || document.title === 'SELFTEST', ver: /3\.\d/.test(document.querySelector('.ver')?.textContent || ''),
         noImpHelp: !/\bimps?\b/i.test(help), noImpStart: !/\bimps?\b/i.test(st), recipes: ['snare_cage', 'snare_cage_t2', 'mood_collar', 'collar_dock', 'o2_planter'].every(id => CFG.craft.recipes.some(r => r.id === id)) };
       for (let n = 16; n <= 32; n++) if (out['slice' + n] && 'SUCCESS' in out['slice' + n]) J['s' + n] = !!out['slice' + n].SUCCESS;
       J.ok = Object.entries(J).every(([k, v]) => v === true);
@@ -18314,6 +18379,26 @@ if (location.search.includes('selftest')){
     }
     s33.SUCCESS = !!(s33.K_walk.ok && s33.A_trap.ok && s33.B_fit.ok && s33.C_charge.ok && s33.D_relapse.ok && s33.E_breath.ok && s33.F_crash.ok && s33.G_shelter.ok && s33.H_intake.ok && s33.I_save.ok && s33.J_regression.ok);
     } catch (err){ s33.error = String(err?.stack || err).slice(0, 600); s33.SUCCESS = false; }
+    // slice34 (v3.2): objective chain advances on state, old saves skip silently, the hold bleeds back on a lapse, then BREATHING ROOM fires once
+    const s34 = out.slice34 = {}; try {
+      const mkG = () => { const bus = new EventBus(), gs = { o2: .21, co2: .005 }; const g = { bus, time: 0, imps: [], objective: { done: false }, lucid: { orbActive: false }, room: { frac: k => gs[k] }, gs, toasts: [], ui: null }; g.ui = { toast: m => g.toasts.push(m) }; return g; };
+      const crew = () => ({ collar: { charge: 1, dead: false }, state: 'idle' });
+      const g = mkG(); const steps = []; let won = 0; g.bus.on('objective:step', st => steps.push(st.id)); g.bus.on('game:won', () => won++);
+      chainTick(g, .1); const a0 = g._objStep | 0;
+      g.objective.done = true; chainTick(g, .1); const a1 = g._objStep;
+      g.lucid.orbActive = true; g._wateredOnce = true; g._builtOnce = true; chainTick(g, .1); const a2 = g._objStep;
+      s34.A_advance = { a0, a1, a2, steps: steps.slice(), toasts: g.toasts.length, ok: a0 === 0 && a1 === 1 && a2 === 4 && g.toasts.length === 2 && /FIND ARK-01/.test(g.toasts[1]) };
+      const L = mkG(); L._loading = true; L.objective.done = true; L.lucid.orbActive = true; L._wateredOnce = L._builtOnce = L._arkEnteredOnce = true; L.imps.push(crew()); chainTick(L, .1);
+      s34.B_legacySilent = { step: L._objStep, toasts: L.toasts.length, ok: L._objStep === 6 && L.toasts.length === 0 };
+      g._arkEnteredOnce = g._ark2EnteredOnce = g._ark3EnteredOnce = g._arkFeedLive = true; g.imps.push(crew()); chainTick(g, .1);
+      const atHold = CHAIN[g._objStep]?.id; for (let t = 0; t < 100; t += 1) chainTick(g, 1); const h1 = g._holdT;
+      g.gs.co2 = .03; for (let t = 0; t < 20; t += 1) chainTick(g, 1); const h2 = g._holdT; g.gs.co2 = .005; g.imps.push(crew());
+      for (let t = 0; t < 400; t += 1) chainTick(g, 1); chainTick(g, 1);
+      s34.C_hold = { atHold, h1, h2, step: g._objStep, won, _won: g._won, ok: atHold === 'hold' && h1 === 0 && h2 === 0 && won === 1 && g._won === true };
+      const H = mkG(); H._objStep = 9; H._arkFeedLive = true; H.imps.push(crew(), crew()); for (let t = 0; t < 100; t++) chainTick(H, 1); const k1 = H._holdT; H.imps[1].collar.dead = true; for (let t = 0; t < 20; t++) chainTick(H, 1); const k2 = H._holdT;
+      s34.D_bleed = { k1, k2, ok: k1 === 100 && k2 === 60 };
+      s34.SUCCESS = !!(s34.A_advance.ok && s34.B_legacySilent.ok && s34.C_hold.ok && s34.D_bleed.ok);
+    } catch (err){ s34.error = String(err?.stack || err).slice(0, 600); s34.SUCCESS = false; }
   }
     document.title = 'SELFTEST'; const pre = document.createElement('pre'); pre.id = 'selftest'; pre.textContent = JSON.stringify(out); pre.style.cssText = 'position:fixed;z-index:99;background:#000;color:#0f0;top:0;white-space:pre-wrap;max-width:100%'; document.body.append(pre);
 }

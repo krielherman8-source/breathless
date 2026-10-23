@@ -601,3 +601,11 @@ Audit of every 'Placeholders / not yet' note plus a playthrough path new game �
   7. **Performance (no visual loss):** skip rendering when the tab is hidden, and throttle label declutter to 20 Hz (same visuals).
 - **Bugs found:** slice33 C (dock walk) and D (far relapse) are flaky because they depend on random wander, so the full selftest went red about 1 run in 2. These are test-setup fixes, not game changes.
 - **Out of scope / stays open:** digging that breaches base walls, cave-ins, legs for the torso that walk, wireless range, real pathing for survivors between sealed zones, fuller production cutscenes.
+
+### Build log — v3.2 (slice 34, 2026-10-23): objective chain + BREATHING ROOM ending
+- 10-step state-driven chain (shelter → wake Lucid → water plant → build → ARK-01 → collar a survivor → ARK-02 → ARK-03 → ARK-03 feed live → BREATHING ROOM). HUD strip shows step + hint; toast on advance. Old saves skip completed steps silently.
+- Final hold: 300 s with feed live, 2+ live-collared crew, O2 ≥ 19 %, CO2 < 2 %. A lapse bleeds the timer back at 2x (not a hard reset). Win card shows stats (time, crew, arks, crises, relapses) with Keep playing / New game, plus an autosave.
+- Chain runs only in real play (not selftest/SHOT/preview), so the old fixtures don't change.
+- Tests: new slice34 (advance, silent legacy skip, hold+win once, bleed). Fixed flaky slice33 C (sv placed at dock) and D (a comment had swallowed `g.rng = () => rngV`, so relapse mood was random; far player moved to -9,0,9). slice33 I/J version regexes now accept 3.x.
+- New CDP runner play/run_selftest.mjs (port 8766, temp profile, ~15 s). selftest.sh dump-dom path is deprecated (times out).
+- Not yet: SETTINGS object exists but is not wired to the UI, audio or renderer (slice 35). AUDIO.chord is called optionally and doesn't exist yet.
