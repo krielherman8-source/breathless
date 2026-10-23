@@ -609,3 +609,10 @@ Audit of every 'Placeholders / not yet' note plus a playthrough path new game �
 - Tests: new slice34 (advance, silent legacy skip, hold+win once, bleed). Fixed flaky slice33 C (sv placed at dock) and D (a comment had swallowed `g.rng = () => rngV`, so relapse mood was random; far player moved to -9,0,9). slice33 I/J version regexes now accept 3.x.
 - New CDP runner play/run_selftest.mjs (port 8766, temp profile, ~15 s). selftest.sh dump-dom path is deprecated (times out).
 - Not yet: SETTINGS object exists but is not wired to the UI, audio or renderer (slice 35). AUDIO.chord is called optionally and doesn't exist yet.
+
+### Build log — v3.3 (slice 35, 2026-10-23): settings, audio buses, save-on-hide, export/import
+- Settings card, opened from the title (Settings under Continue/New) and the pause card. Options: mouse sensitivity, invert Y, FOV 60-100, master/effects/ambience volume, objective strip, and graphics quality. Quality is High (old default, DPR≤2), Ultra (1.25x, ≤2.5) or Ultra+ (1.5x, ≤3) and only goes up. Settings persist in `breathless_settings_v1`.
+- AUDIO: every voice now goes through sfx/amb buses into a master gain instead of `c.destination`. Added `AUDIO.chord()` for the win screen.
+- Saves on `visibilitychange` (hidden) in addition to pagehide. Export downloads the raw save string. Import validates it with saveDecode, keeps the old save as prev, then reloads. A bad file leaves the current save untouched.
+- Tests: new slice35 (quality monotonic, sens/invert reach mouse look, FOV apply+restore, audio buses + chord).
+- Not yet: breathing/muffled-hum audio layers, sump hose reel (the HOME/FUEL umbilical is still pre-laid), declutter throttle.

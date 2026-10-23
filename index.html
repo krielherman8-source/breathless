@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>BREATHLESS - prototype 3.2 (objective chain + ending)</title>
+<title>BREATHLESS - prototype 3.3 (settings + ending)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   /* slice 25: shared UI tokens — every panel / HUD box / button pulls from these */
@@ -167,7 +167,7 @@
   <div id="lucidui" class="panel"><span class="close">[Esc] close</span><h2 id="lucidtitle">LUCID LINK</h2><div class="meta" id="lucidmeta"></div><div class="ctrlcmds" id="ctrlcmds" style="display:none"></div><div id="lucidlist"></div><div class="crew sect" id="crewlist" style="display:none"></div><div class="orbcmds" id="orbcmds" style="display:none"></div><div class="last" id="lucidlast"></div></div>
   <div id="hint"><kbd>H</kbd> controls &nbsp; <kbd>B</kbd> build &nbsp; <kbd>Esc</kbd> pause</div>
   <div id="help">
-    <div class="ttl">CONTROLS<span>[H] close · prototype 3.2</span></div>
+    <div class="ttl">CONTROLS<span>[H] close · prototype 3.3</span></div>
     <div class="hcols">
     <div class="sec"><h4>MOVE &amp; ACT</h4>
       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>Esc</kbd> pause<br>
@@ -222,7 +222,7 @@
     </div>
   </div>
 </div>
-<div id="resume"><div class="card"><b>PAUSED</b><div class="cta">Click to resume</div><small>pointer released &nbsp;·&nbsp; <kbd>H</kbd> controls</small></div></div>
+<div id="resume"><div class="card"><b>PAUSED</b><div class="cta">Click to resume</div><small>pointer released &nbsp;·&nbsp; <kbd>H</kbd> controls</small><div style="margin-top:10px"><button id="btnSetP" class="sbtn small">Settings</button></div></div></div>
 <div id="intro">
   <div id="introglitch"></div>
   <div id="introcard"><div class="beat" id="introbeat">01 / 08</div><h2 id="introtitle">BREATHLESS</h2><p id="introbody">…</p></div>
@@ -237,17 +237,28 @@
     <span><kbd>C</kbd> LUCID panel</span><span><kbd>B</kbd> build · <kbd>0</kbd>-<kbd>9</kbd></span><span><kbd>H</kbd> all controls</span>
   </div>
   <p id="starthint"><b>Click to begin</b> &nbsp; <span style="opacity:.6">(<kbd>Shift</kbd>+click replays the intro · <kbd>Space</kbd> skips it)</span></p>
-  <div id="savebox" style="display:none"><div class="row"><button id="btnContinue" class="sbtn main">Continue</button><button id="btnNew" class="sbtn">New game</button></div><div id="saveinfo"></div></div>
+  <div id="savebox" style="display:none"><div class="row"><button id="btnContinue" class="sbtn main">Continue</button><button id="btnNew" class="sbtn">New game</button></div><div class="row"><button id="btnSetT" class="sbtn small">Settings</button></div><div id="saveinfo"></div></div>
   <div id="savenote" style="display:none"></div>
-  <div class="ver">PROTOTYPE 3.2 · BREATHING ROOM</div>
+  <div class="ver">PROTOTYPE 3.3 · BREATHING ROOM</div>
 </div>
+<div id="settings"><div class="card"><h3>SETTINGS</h3>
+<label>Mouse sensitivity <input id="setSens" type="range" min="0.25" max="3" step="0.05"></label>
+<label>Invert Y <input id="setInv" type="checkbox"></label>
+<label>Field of view <input id="setFov" type="range" min="60" max="100" step="1"></label>
+<label>Master volume <input id="setMaster" type="range" min="0" max="1" step="0.05"></label>
+<label>Effects volume <input id="setSfx" type="range" min="0" max="1" step="0.05"></label>
+<label>Ambience volume <input id="setAmb" type="range" min="0" max="1" step="0.05"></label>
+<label>Objective strip <input id="setObj" type="checkbox"></label>
+<label>Graphics quality <select id="setQ"><option value="high">High</option><option value="ultra">Ultra</option><option value="ultraplus">Ultra+</option></select></label>
+<label>Save file <span><button id="btnExport" class="sbtn small">Export</button> <button id="btnImport" class="sbtn small">Import</button><input id="setFile" type="file" accept=".json,.txt" style="display:none"></span></label>
+<div style="text-align:right;margin-top:12px"><button id="btnSetClose" class="sbtn small">Close</button></div></div></div>
 <div id="win" class="screen" style="display:none"><h1>BREATHING ROOM</h1><p>Bunker 1 breathes on its own. The turbine in ARK-03 turns, the line home holds, and the people you pulled out of the dust sleep under their collars. You are still on a dead world, but the air does not run out today.</p><div class="stats" id="winstats"></div><p><button id="btnKeep" class="sbtn main">Keep playing</button> <button id="btnWinNew" class="sbtn">New game</button></p></div>
 <div id="over" class="screen"><h1>SUFFOCATED</h1><p id="overmsg"></p><p><b>Click to try again</b></p></div>
 <script type="module">
 import * as THREE from './lib/three.module.js';
 
 /* =====================================================================
-   BREATHLESS prototype 3.2  (objective chain: shelter → Lucid → plant → build → ARK-01 → crew → ARK-02/03 → feed → BREATHING ROOM hold/win; earlier: fix: crash spawn overlapped a collider = could not leave the pod; free-spot spawn, stuck nudge, sub-stepped movement)
+   BREATHLESS prototype 3.3  (settings card: sens/invert/FOV/volumes/strip/quality High-Ultra-Ultra+, audio buses, win chord, save on tab hide, export/import; objective chain: shelter → Lucid → plant → build → ARK-01 → crew → ARK-02/03 → feed → BREATHING ROOM hold/win; earlier: fix: crash spawn overlapped a collider = could not leave the pod; free-spot spawn, stuck nudge, sub-stepped movement)
    prototype 3.1  (slice 33: crash start at the escape pod + FIND SHELTER; feral survivors replace the imps —
    snare cages, mood-dampener collars (30 min), collar docks, hand charge, relapse; survivors breathe 0.9 → O2 planters;
    sump pump now runs on grid power through the base surface intake and real liquid pipe.)
@@ -10042,13 +10053,14 @@ const SETTINGS = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem(
 function settingsSave(){ try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(SETTINGS)); } catch (e){} }
 // ---------- 8. Build scene ----------
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+function qualityPR(q){ const d = Math.max(1, devicePixelRatio || 1); return q === 'ultraplus' ? Math.min(d * 1.5, 3) : q === 'ultra' ? Math.min(d * 1.25, 2.5) : Math.min(d, 2); }   // only ever at or above the old High
+renderer.setPixelRatio(qualityPR(SETTINGS.quality));
 renderer.setSize(innerWidth, innerHeight);
 document.body.prepend(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x05090d);
 scene.fog = new THREE.Fog(0x05090d, 8, 22);
-const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.05, 120);
+const camera = new THREE.PerspectiveCamera(SETTINGS.fov || 75, innerWidth / innerHeight, 0.05, 120);
 scene.add(new THREE.HemisphereLight(0x8fb8d0, 0x1a2228, 0.55));
 const hemiSurf = new THREE.HemisphereLight(0x4a6080, 0x0a0810, 0.22); scene.add(hemiSurf);
 
@@ -10903,14 +10915,15 @@ const AUDIO = {
     if (this.ctx) return;
     try {
       const c = this.ctx = new AudioContext(), buf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = buf.getChannelData(0);
+      this.masterB = c.createGain(); this.sfxB = c.createGain(); this.ambB = c.createGain(); this.sfxB.connect(this.masterB); this.ambB.connect(this.masterB); this.masterB.connect(c.destination); this.applyVol();
       for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       this.noise = buf;
       const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
       const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 3200; bp.Q.value = .7;
-      this.hissG = c.createGain(); this.hissG.gain.value = 0; src.connect(bp); bp.connect(this.hissG); this.hissG.connect(c.destination); src.start();
+      this.hissG = c.createGain(); this.hissG.gain.value = 0; src.connect(bp); bp.connect(this.hissG); this.hissG.connect(this.ambB); src.start();
       const osc = c.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = 52;
       const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 180;
-      this.humG = c.createGain(); this.humG.gain.value = 0; osc.connect(lp); lp.connect(this.humG); this.humG.connect(c.destination); osc.start();
+      this.humG = c.createGain(); this.humG.gain.value = 0; osc.connect(lp); lp.connect(this.humG); this.humG.connect(this.ambB); osc.start();
     } catch (e) { this.ctx = null; }
   },
   set(hiss, hum){ if (!this.ctx) return; const t = this.ctx.currentTime; this.hissG.gain.setTargetAtTime(hiss, t, .15); this.humG.gain.setTargetAtTime(hum, t, .3); },
@@ -10918,32 +10931,37 @@ const AUDIO = {
     if (!this.ctx) return; const c = this.ctx, t = c.currentTime;
     const s = c.createBufferSource(); s.buffer = this.noise; const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1200;
     const g = c.createGain(); g.gain.setValueAtTime(.5 * v, t); g.gain.exponentialRampToValueAtTime(.001, t + .6);
-    s.connect(lp); lp.connect(g); g.connect(c.destination); s.start(t); s.stop(t + .7);
+    s.connect(lp); lp.connect(g); g.connect(this.sfxB); s.start(t); s.stop(t + .7);
     const o = c.createOscillator(), og = c.createGain(); o.frequency.setValueAtTime(90, t); o.frequency.exponentialRampToValueAtTime(30, t + .3);
-    og.gain.setValueAtTime(.4 * v, t); og.gain.exponentialRampToValueAtTime(.001, t + .35); o.connect(og); og.connect(c.destination); o.start(t); o.stop(t + .4);
+    og.gain.setValueAtTime(.4 * v, t); og.gain.exponentialRampToValueAtTime(.001, t + .35); o.connect(og); og.connect(this.sfxB); o.start(t); o.stop(t + .4);
   },
   creak(v = 1){
     if (!this.ctx) return; const c = this.ctx, t = c.currentTime, o = c.createOscillator(), g = c.createGain();
     o.type = 'triangle'; o.frequency.setValueAtTime(140 + Math.random() * 80, t); o.frequency.linearRampToValueAtTime(90 + Math.random() * 30, t + .3);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05 * v, t + .05); g.gain.linearRampToValueAtTime(0, t + .32);
-    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + .35);
+    o.connect(g); g.connect(this.sfxB); o.start(t); o.stop(t + .35);
   },
   drip(v = 1){   // slice 32: a single water drop — short falling sine pluck
     if (!this.ctx || SAVEQ.quiet) return; const c = this.ctx, t = c.currentTime, o = c.createOscillator(), g = c.createGain(), f0 = 1500 + Math.random() * 900;
     o.type = 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * .45, t + .07);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.045 * v, t + .004); g.gain.exponentialRampToValueAtTime(.0005, t + .16);
-    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + .18);
+    o.connect(g); g.connect(this.sfxB); o.start(t); o.stop(t + .18);
   },
   gush(){   // slice 32: breach — low filtered rush of liquid
     if (!this.ctx || SAVEQ.quiet) return; const c = this.ctx, t = c.currentTime, n = c.sampleRate * 2.4, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 1.5);
     const src = c.createBufferSource(), lp = c.createBiquadFilter(), g = c.createGain(); src.buffer = b; lp.type = 'lowpass'; lp.frequency.value = 520; g.gain.value = .12;
-    src.connect(lp); lp.connect(g); g.connect(c.destination); src.start(t);
+    src.connect(lp); lp.connect(g); g.connect(this.sfxB); src.start(t);
   },
   beep(f, d = .12, v = .04){
     if (!this.ctx) return; const c = this.ctx, o = c.createOscillator(), g = c.createGain();
-    o.frequency.value = f; o.type = 'square'; g.gain.value = v; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + d);
+    o.frequency.value = f; o.type = 'square'; g.gain.value = v; o.connect(g); g.connect(this.sfxB); o.start(); o.stop(c.currentTime + d);
   },
+  applyVol(){ if (!this.masterB) return; this.masterB.gain.value = SETTINGS.master; this.sfxB.gain.value = SETTINGS.sfx; this.ambB.gain.value = SETTINGS.amb; },
+  chord(){   // v3.3: the win chord — slow open fifths
+    if (!this.ctx) return; const c = this.ctx, t = c.currentTime;
+    [196, 293.7, 392, 587.3].forEach((f, i) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.08, t + .8 + i * .3); g.gain.exponentialRampToValueAtTime(.001, t + 6); o.connect(g); g.connect(this.sfxB); o.start(t); o.stop(t + 6.2); });
+  }
 };
 const beep = (f, d) => SAVEQ.quiet ? undefined : AUDIO.beep(f, d);
 
@@ -12103,8 +12121,9 @@ document.addEventListener('mousedown', e => {
 document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('mousemove', e => {
   if (!locked) return;
-  game.player.yaw -= e.movementX * 0.0022;
-  game.player.pitch = Math.max(-1.4, Math.min(1.4, game.player.pitch - e.movementY * 0.0022));
+  const k = 0.0022 * (SETTINGS.sens || 1);
+  game.player.yaw -= e.movementX * k;
+  game.player.pitch = Math.max(-1.4, Math.min(1.4, game.player.pitch - e.movementY * k * (SETTINGS.invertY ? -1 : 1)));
 });
 addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); particles.mat.uniforms.scale.value = innerHeight / 2; });
 
@@ -12594,7 +12613,7 @@ function saveCapture(g){
   const placedN = pl.pumps.length + pl.gens.length + pl.bats.length + pl.brks.length + pl.tables.length + pl.belts.length + pl.drills.length + pl.refs.length + pl.torsos.length + pl.consoles.length;
   const sum = { zone: P.zone, scrap: g.scrap, items: Object.values(g.inv).reduce((a, b) => a + (+b || 0), 0), placed: placedN, pipes: pl.pipes.length + pl.lpipes.length, cables: pl.cables.length,
     recipes: d.unlocks.recipes.length, tier: g.unlocks.craftTable, imps: d.imps.filter(i => i.r).length, t: d.time };
-  return { schema: SAVE_SCHEMA, proto: '3.2', saved: Date.now(), t: d.time, sum, d };
+  return { schema: SAVE_SCHEMA, proto: '3.3', saved: Date.now(), t: d.time, sum, d };
 }
 
 // remove every placed thing (free build: no refunds) so the saved layout can be rebuilt on top of the static world
@@ -12853,6 +12872,26 @@ game.bus.on('unlock:recipe', () => saveSoon('unlock'));
 game.bus.on('airlock:done', e => { if (e?.state === 'surface') saveSoon('airlock'); });
 game.bus.on('player:dead', () => { SAVE_RT.dead = true; SAVE_RT.pending = null; });
 window.addEventListener('pagehide', () => { if (!SAVE_RT.off && playedOnce && !game.over && !SAVE_RT.dead) saveNow('exit'); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && !SAVE_RT.off && playedOnce && !game.over && !SAVE_RT.dead) saveNow('hidden'); });   // v3.3: tab switch / phone lock
+// ---------- v3.3: settings card (title + pause) ----------
+const settingsUI = {
+  open(){ const S = SETTINGS; $('setSens').value = S.sens; $('setInv').checked = S.invertY; $('setFov').value = S.fov; $('setMaster').value = S.master; $('setSfx').value = S.sfx; $('setAmb').value = S.amb; $('setObj').checked = S.objStrip; $('setQ').value = S.quality; $('settings').style.display = 'flex'; $('resume').style.display = 'none'; },
+  close(){ $('settings').style.display = 'none'; if (playedOnce && !locked && $('start').style.display === 'none') showPaused(); },
+  apply(){
+    const S = SETTINGS; S.sens = +$('setSens').value; S.invertY = $('setInv').checked; S.fov = +$('setFov').value; S.master = +$('setMaster').value; S.sfx = +$('setSfx').value; S.amb = +$('setAmb').value; S.objStrip = $('setObj').checked; S.quality = $('setQ').value;
+    camera.fov = S.fov; camera.updateProjectionMatrix(); renderer.setPixelRatio(qualityPR(S.quality)); renderer.setSize(innerWidth, innerHeight); AUDIO.applyVol(); settingsSave();
+  }
+};
+['btnSetT', 'btnSetP'].forEach(id => $(id)?.addEventListener('click', ev => { ev.stopPropagation(); settingsUI.open(); }));
+$('btnSetClose')?.addEventListener('click', ev => { ev.stopPropagation(); settingsUI.close(); });
+$('settings')?.addEventListener('click', ev => ev.stopPropagation());
+$('settings')?.querySelectorAll('input,select').forEach(el => el.addEventListener(el.type === 'range' ? 'input' : 'change', () => settingsUI.apply()));
+$('btnExport')?.addEventListener('click', ev => { ev.stopPropagation(); if (playedOnce && !game.over) saveNow('export'); const raw = localStorage.getItem(CFG.save.key); if (!raw){ ui.toast?.('No save to export yet.'); return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([raw], { type: 'text/plain' })); a.download = `breathless_save_${new Date().toISOString().slice(0, 10)}.txt`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); });
+$('btnImport')?.addEventListener('click', ev => { ev.stopPropagation(); $('setFile').click(); });
+$('setFile')?.addEventListener('change', async ev => { const f = ev.target.files?.[0]; if (!f) return; const raw = await f.text(); const old = localStorage.getItem(CFG.save.key);
+  try { const snap = saveDecode(raw.trim()); if (!snap?.d) throw new Error('not a Breathless save'); if (old) localStorage.setItem(CFG.save.prevKey, old); localStorage.setItem(CFG.save.key, raw.trim()); SAVE_RT.off = true; location.reload(); }
+  catch (e){ alert('Import failed: ' + (e.message || e) + ' (your current save is untouched)'); } });
 
 // title card: Continue / New game
 function saveAge(ms){ const s = Math.max(0, (Date.now() - ms) / 1000); return s < 90 ? 'just now' : s < 5400 ? Math.round(s / 60) + ' min ago' : s < 129600 ? Math.round(s / 3600) + ' h ago' : Math.round(s / 86400) + ' days ago'; }
@@ -18399,6 +18438,21 @@ if (location.search.includes('selftest')){
       s34.D_bleed = { k1, k2, ok: k1 === 100 && k2 === 60 };
       s34.SUCCESS = !!(s34.A_advance.ok && s34.B_legacySilent.ok && s34.C_hold.ok && s34.D_bleed.ok);
     } catch (err){ s34.error = String(err?.stack || err).slice(0, 600); s34.SUCCESS = false; }
+    // slice35 (v3.3): settings — quality only goes up, sensitivity/invert reach mouse look, FOV reaches the camera, audio runs through master/sfx/amb buses
+    const s35 = out.slice35 = {}; try {
+      const prs = ['high', 'ultra', 'ultraplus'].map(qualityPR), base = Math.min(Math.max(1, devicePixelRatio || 1), 2);
+      s35.A_quality = { prs, base, ok: prs[0] >= base - 1e-9 && prs[1] >= prs[0] && prs[2] >= prs[1] && $('setQ').options.length === 3 };
+      const keep = { ...SETTINGS }, P = game.player, y0 = P.yaw, p0 = P.pitch, lk = locked; locked = true;
+      SETTINGS.sens = 2; SETTINGS.invertY = true; document.dispatchEvent(Object.assign(new MouseEvent('mousemove'), {}));
+      const ev = new MouseEvent('mousemove', { movementX: 10, movementY: 10 }); document.dispatchEvent(ev);
+      const dy = y0 - P.yaw, dp = P.pitch - p0; locked = lk; P.yaw = y0; P.pitch = p0;
+      s35.B_mouse = { dy, dp, ok: Math.abs(dy - 10 * .0022 * 2) < 1e-6 && Math.abs(dp - 10 * .0022 * 2) < 1e-6 };
+      settingsUI.open(); $('setFov').value = 90; settingsUI.apply(); const fov = camera.fov; Object.assign(SETTINGS, keep); settingsUI.open(); settingsUI.apply(); settingsUI.close();
+      s35.C_fov = { fov, back: camera.fov, ok: fov === 90 && camera.fov === keep.fov };
+      AUDIO.init(); const ok = !!AUDIO.ctx && !!AUDIO.masterB && Math.abs(AUDIO.masterB.gain.value - SETTINGS.master) < 1e-6; let chordOk = true; try { AUDIO.chord(); AUDIO.bang(.1); } catch (e){ chordOk = false; }
+      s35.D_audio = { ctx: !!AUDIO.ctx, ok: ok && chordOk };
+      s35.SUCCESS = !!(s35.A_quality.ok && s35.B_mouse.ok && s35.C_fov.ok && s35.D_audio.ok);
+    } catch (err){ s35.error = String(err?.stack || err).slice(0, 600); s35.SUCCESS = false; }
   }
     document.title = 'SELFTEST'; const pre = document.createElement('pre'); pre.id = 'selftest'; pre.textContent = JSON.stringify(out); pre.style.cssText = 'position:fixed;z-index:99;background:#000;color:#0f0;top:0;white-space:pre-wrap;max-width:100%'; document.body.append(pre);
 }
