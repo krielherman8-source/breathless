@@ -1,5 +1,21 @@
 # BREATHLESS - Game Design Brief (from the user, verbatim intent)
 
+**Current version: v0.3.5** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
+
+## Version history (old labels → v0.x)
+Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those old labels as **v0.X.Y**. The build-log entries below keep their original labels as **history**.
+
+| Old label | Same build as | Slices |
+|---|---|---|
+| prototype 0.1 - 0.9 | v0.0.1 - v0.0.9 | 1-9 |
+| prototype 1.0 - 1.9 | v0.1.0 - v0.1.9 | 10-19 |
+| prototype 2.0 - 2.9.1 | v0.2.0 - v0.2.9.1 | 20-31 |
+| v3.0 / v3.1 / v3.1.1 | v0.3.0 / v0.3.1 / v0.3.1.1 | 32-33 + hotfix |
+| v3.2 / v3.3 | v0.3.2 / v0.3.3 | 34 / 35 |
+| (new numbering) | v0.3.4, **v0.3.5 (current)** | 36, 37 |
+
+Old saves (any proto string) still load, because loading is gated by `schema` (1).
+
 Pitch: First-person survival like Subnautica, with Oxygen Not Included (ONI) style systems. Oxygen management is the biggest point of the game.
 
 ## Opening / cutscenes (in-engine scripted cutscenes + generated stills)
@@ -38,7 +54,7 @@ Pitch: First-person survival like Subnautica, with Oxygen Not Included (ONI) sty
 ## Notes
 - User says there is more design to come; this is what is known so far. Build an expandable architecture.
 
-## Build log
+## Build log (HISTORY: entries keep the version labels used at the time; see the table above)
 - 2026-10-03: Prototype 0.1 at /workspace/breathless/index.html (Three.js in lib/, serve with `python3 -m http.server 8765` in this folder, open http://localhost:8765/). Sealed room, room gas container (O2/CO2), player breathes room air else suit reserve, oxygen plant with life cycle (seedling > mature > aging > withered, needs water, replant), game over at 0. Code stubs: GasContainer/Link/GasNetwork (pumps, pipes, burst, reinforce), VoxelWorld, EventBus (LUCID, cutscenes), Entity base class.
 - Placeholders (prototype 0.1): airlock door (replaced in slice 10), base monitor LUCID text, empty second planter, workbench; no voxels, pumps, conveyors, LUCID, cutscenes, surface, creatures, sound beyond beeps.
 - 2026-10-05: Slice 2 (prototype 0.2, same single index.html): gas pump + tier-1 pipes + holographic blueprints.
@@ -445,7 +461,7 @@ Pitch: First-person survival like Subnautica, with Oxygen Not Included (ONI) sty
   - **Tests**: `?selftest` slice31 (A_air calm 100/240 s + slow neglect ≥420 s + tended survives, B_water canteen/tank/prompt/eye-ray, C_lucid sloppy-aim hit/prompt/monitor/[C] hint/beacon, D_screens pregame hidden/resume card, E_build prop-on-floor not "Needs floor" + cell highlight + wall not faked, F_labels overlap/HUD/monitor culling + monitor dodge, G_regression). Slice 16 F test now scales its gas levels with `CFG.gas.volume`. All slices green.
   - **Note**: `shots.sh` uses the default Chrome profile and can serve a cached old page for `?shot=` URLs. Use a fresh `--user-data-dir` for current shots.
 
-### 2026-10-12 — slice 32 (v3.0): underground liquid
+### HISTORY — 2026-10-12 — slice 32 (old v3.0 = v0.3.0): underground liquid
 - **Wet bluff** is a new walk-in DigZone against the +x boundary wall (7 × 6 × 10 cells, mouth facing -x). Existing ridge and berm tests are untouched. It hides three finite reservoirs (1 cell = 0.5 m = 125 L):
   - **W-1 water:** 16 cells, 1800 L, plus a 2400 L aquifer reserve that seeps in at 4 L/s.
   - **B-1 brine:** 8 cells, 650 L.
@@ -476,7 +492,7 @@ Pitch: First-person survival like Subnautica, with Oxygen Not Included (ONI) sty
 - **Save:** saves now store reservoir state, per-pocket liquid and wet cells, the ledger, and sumps. On load, breaches are re-checked.
 - **Tests:** slice32 A–H selftests (breach, flow, pump, types, seal, drown, save, regression), all green, with slices 24–31 still green. Shots are in play/slice32_*.png (damp, scan, flood, wade, sump, types, drown).
 
-## Slice 33 (v3.1): crash start + feral survivors (2026-10-13)
+## HISTORY — Slice 33 (old v3.1 = v0.3.1): crash start + feral survivors (2026-10-13)
 
 **Crash start.** A new game puts you on the surface beside a crashed escape pod: scorched, tipped hull in its own crater, torn drogue chute, blown hatch, a debris furrow with embers, a smoke column, spark bursts from a severed trunk, a red strobe and fire light. The objective strip reads **FIND SHELTER** with a suit-O2 countdown and a bearing and distance to the bunker hatch. A green strobe and light shaft on the airlock frame acts as the beacon. While the objective runs, the pod's emergency bottle stretches the suit (drain x0.42, so ~85 s from full instead of ~36 s). Walking into the airlock and cycling in completes it once the outer door seals ("Shelter sealed — Bunker 1"). After that the LUCID orb hint arrives sooner. The pod locker holds 4 scrap and there is a readable flight log. **Continue** still resumes a save; a loaded game never replays the crash.
 
@@ -503,7 +519,7 @@ Pitch: First-person survival like Subnautica, with Oxygen Not Included (ONI) sty
 
 Shots: play/slice33_{crash,shelter,feral,trap,collar,dock,intake}.png.
 
-## v3.1.1 hotfix: can't walk out of the crashed escape pod (2026-10-23)
+## HISTORY — old v3.1.1 hotfix (= v0.3.1.1): can't walk out of the crashed escape pod (2026-10-23)
 **Bug (tester).** A New game put you next to the crashed pod, but no movement key did anything. Reproduced in 3.1 with real held-W key events from the spawn: zero movement over 6 game seconds. Cause: the authored crash spawn sat inside a collider box beside the pod (x -5.45 to -4.95, z 10.88 to 12.28). Once the player overlaps a collider, the movement code refuses every direction, so you were frozen in place.
 **Fix.** The crash start now looks for the nearest spot clear of every collider (searching outward from the authored spot, preferring the side facing the bunker door) and faces you at the bunker. Long frames on slow laptops are split into small steps so you can't skip into or snag on thin walls. Safety net: if you hold a move key for about 0.35 s while overlapping something or boxed in on all four sides, you are nudged to the nearest free spot. It only fires while you're trying to walk, so standing still in water or a tight dig never teleports you.
 **Tests.** Selftest K walks the real new-game world from the spawn to the bunker and seals the airlock at 20 fps and 4 fps, and checks the nudge frees a player dropped inside the pod. `play/e2e_pod.mjs` runs a fresh browser profile, presses New game, holds W and steers to the airlock (3.1 fails, 3.1.1 passes). All slices 24 to 33 green. Graphics unchanged.
@@ -589,7 +605,7 @@ Overload % = (flow - pipe max flow) / pipe max flow.
 ## Feel / pacing (user, 2026-10-05)
 - Realism over arcade: the game should often FEEL fine until it suddenly isn't. Quiet degradation (slow CO2 rise, filter wear, stress on pipes under 20–30% overload) so the player thinks everything is okay, then a cascade when multiple systems tip at once ("shit hits the fan"). Warnings exist but can be ignored or missed; sudden crises come from neglect, not random events.
 
-## FINALIZE PLAN (2026-10-23, from v3.1.1)
+## HISTORY — FINALIZE PLAN (2026-10-23, from old v3.1.1 = v0.3.1.1)
 Audit of every 'Placeholders / not yet' note plus a playthrough path new game → shelter → LUCID → crew → expansion → ARKs. Systems exist for each step, but the game has no thread through them and no end.
 - **Gaps (must do):**
   1. No objective chain after FIND SHELTER, so the player is left with no tutorial. Add a step chain: shelter → wake LUCID → keep the plant alive → place a pump → reach ARK-01 → collar a survivor → reach ARK-02 → reach ARK-03 → power home → **Breathing Room** (hold the base: live ARK-03 feed, 2+ crew, air good for 5 min). Steps the player already did are skipped silently, so old saves slot in. One short how-to toast per step. The strip can be hidden, because warnings stay missable.
@@ -602,7 +618,7 @@ Audit of every 'Placeholders / not yet' note plus a playthrough path new game �
 - **Bugs found:** slice33 C (dock walk) and D (far relapse) are flaky because they depend on random wander, so the full selftest went red about 1 run in 2. These are test-setup fixes, not game changes.
 - **Out of scope / stays open:** digging that breaches base walls, cave-ins, legs for the torso that walk, wireless range, real pathing for survivors between sealed zones, fuller production cutscenes.
 
-### Build log — v3.2 (slice 34, 2026-10-23): objective chain + BREATHING ROOM ending
+### HISTORY — Build log, old v3.2 = v0.3.2 (slice 34, 2026-10-23): objective chain + BREATHING ROOM ending
 - 10-step state-driven chain (shelter → wake Lucid → water plant → build → ARK-01 → collar a survivor → ARK-02 → ARK-03 → ARK-03 feed live → BREATHING ROOM). HUD strip shows step + hint; toast on advance. Old saves skip completed steps silently.
 - Final hold: 300 s with feed live, 2+ live-collared crew, O2 ≥ 19 %, CO2 < 2 %. A lapse bleeds the timer back at 2x (not a hard reset). Win card shows stats (time, crew, arks, crises, relapses) with Keep playing / New game, plus an autosave.
 - Chain runs only in real play (not selftest/SHOT/preview), so the old fixtures don't change.
@@ -610,7 +626,7 @@ Audit of every 'Placeholders / not yet' note plus a playthrough path new game �
 - New CDP runner play/run_selftest.mjs (port 8766, temp profile, ~15 s). selftest.sh dump-dom path is deprecated (times out).
 - Not yet: SETTINGS object exists but is not wired to the UI, audio or renderer (slice 35). AUDIO.chord is called optionally and doesn't exist yet.
 
-### Build log — v3.3 (slice 35, 2026-10-23): settings, audio buses, save-on-hide, export/import
+### HISTORY — Build log, old v3.3 = v0.3.3 (slice 35, 2026-10-23): settings, audio buses, save-on-hide, export/import
 - Settings card, opened from the title (Settings under Continue/New) and the pause card. Options: mouse sensitivity, invert Y, FOV 60-100, master/effects/ambience volume, objective strip, and graphics quality. Quality is High (old default, DPR≤2), Ultra (1.25x, ≤2.5) or Ultra+ (1.5x, ≤3) and only goes up. Settings persist in `breathless_settings_v1`.
 - AUDIO: every voice now goes through sfx/amb buses into a master gain instead of `c.destination`. Added `AUDIO.chord()` for the win screen.
 - Saves on `visibilitychange` (hidden) in addition to pagehide. Export downloads the raw save string. Import validates it with saveDecode, keeps the old save as prev, then reloads. A bad file leaves the current save untouched.
@@ -618,10 +634,10 @@ Audit of every 'Placeholders / not yet' note plus a playthrough path new game �
 - Not yet: breathing/muffled-hum audio layers, sump hose reel (the HOME/FUEL umbilical is still pre-laid), declutter throttle.
 - Shots: play/run_shots.mjs (CDP, port 8766). New shot modes s34_win and s35_settings. Final shots are play/final_*.png.
 
-## Version renumbering
+## HISTORY — Version renumbering (done in v0.3.4)
 Builds were labelled "prototype 2.x/3.x". They are now pre-release v0.x: old 3.3 = **v0.3.3**, and this build is **v0.3.4**. Releases continue as v0.3.x / v0.4. v1.0 is reserved for the official release. Save loading is gated by `schema` (still 1), not by `proto`, so old 2.9/3.x saves still load. New saves write `proto: '0.3.4'`.
 
-## v0.3.4 (slice 36): sump hose reel, breathing audio, perf
+## HISTORY — v0.3.4 (slice 36): sump hose reel, breathing audio, perf
 - **Sump hose reel** (recipe `hose_reel`: 25 m, 3 scrap, unlocked at start). In a new game a sump pump starts with **NO HOSE**. Press [E] on the pump with a reel to start laying, walk the line to the base intake, then press [E] on the intake to connect. A new reel splices on every 25 m. Pressing [E] on the pump again while laying reels the hose back and refunds the reels.
 - The hose obeys the pipe bands. Hose caps by tier are `CFG.cave.sump.hoseTiers` [1.3, 2.5, 6, 12, 25] L/s. Flow is smoothed over about 2 s, so spikes do not count. Overload bands: more than 20% over cracks slowly, more than 30% over fails fast, more than 75% over bursts. Damage above 5% leaks up to 35% of the flow, and the lost water is tracked in `hoseLost`. A burst stalls the pump and raises a crisis note plus a LUCID line. At full flow, a 1.6 L/s sump on a T1 hose is 23% over, which gives a quiet, slow crack.
 - [E] (hold) patches the hose (faster with a repair kit). [G] adds a tier using a reinforce item; the model visibly gains yellow bands. The hose browns as it takes damage and shows a tear blob when burst.
@@ -629,3 +645,16 @@ Builds were labelled "prototype 2.x/3.x". They are now pre-release v0.x: old 3.3
 - **Audio:** a breathing layer (noise → bandpass) that is calm in room air, louder and closer in the suit, faster under 25% reserve, and gasping when the suit is empty. Ambience now runs through a lowpass, so the hum is muffled (420 Hz) inside the helmet.
 - **Perf:** label declutter now runs at 20 Hz instead of every frame, and nothing renders while the tab is hidden.
 - Selftest slice36 (A no-hose, B lay and connect, C bands/leak/burst/patch/reinforce, D save and legacy, E audio). Slices 24-36 are green.
+
+## v0.3.5 (slice 37, 2026-10-26): playthrough pass (current)
+- **Versions reconciled.** Title, help, version tag, save `proto`, README and DESIGN all say v0.3.5. Old 2.x/3.x labels are mapped in the version-history table at the top. Old entries are marked HISTORY.
+- **Scripted playthrough** (`?playthrough`, `runPlaythrough`). It runs from a new game at the crashed pod to the BREATHING ROOM ending using real actions: walk, [E] use/hold, craft, place, trap/collar, fuel and restart the turbine. It does a save → reload roundtrip after each of the 10 steps. Edge cases tested: death (over screen, save kept, autosave blocked), power loss during the hold, a collar relapse during the hold (re-cage and re-collar), and a save mid-hold. Result: **SUCCESS** at about 690 s of game time, with no issues logged. Concessions: about 16 teleports on long surface lanes (script navigation, not game blockers), 77 scrap of top-ups (no crew labour assigned) and 2 suit top-ups.
+- **Fixes found by the playthrough:**
+  - *Soft-lock:* a running ARK-03 turbine burned the mine-lab air with no regeneration, so the 300 s hold could starve itself. New `CFG.ark3.lifeSupport` (O2 +0.2/s up to 50, CO2 scrubbed to 5) gives a net burn of 0.04/s at 480 W. The hall now lasts about 1050 s (≥3× the hold), so it is still a slow, quiet crisis afterwards.
+  - *Hold counted a dead feed:* the chain and HUD used a sticky `_arkFeedLive` flag. They now use `arkFeedCap(g) > 0`, so a trip, an empty hopper, a shorted pylon or a dead export line all lapse the hold.
+  - *Save:* `saveCapture` wrote omni/time wrongly. Fixed, with an apply fallback for old saves. `_builtOnce` resets on a new game, so the BUILD step can't be pre-satisfied.
+- **Feedback added:** a two-note objective chime on each step. One hint toast per hold lapse that says why (feed tripped/empty/not spinning/air too thin/pylon/export, crew count, or base O2/CO2 with the fix). The death screen says whether a click continues from the last save or starts over. The HUD shows `feed LIVE/off`.
+- **Economy:** an ARK-03 spares crate (8 cable sleeves, 2 repair kits) cut the playthrough top-ups from 180 to 77 scrap.
+- **Hose polish:** the reinforce bands now glow subtly (emissive amber, intensity 0.22). They breathe faster and brighter (up to 0.9) as the hose overloads past the safe band. Reel balance: 3 scrap per 25 m reel against a 12-scrap early game is fine. A T1 hose at full flow (23% over, slow band) bursts after about 203 s, a patch costs 1 scrap, and T5 reinforce collars stop it.
+- **Tests:** new selftest slice37 (A save omni/time, B fresh build flag, C ARK-03 air budget, D live feed + hints + death text, E hose balance + glow, F spares). The slice34 mock gained a turbine and pylons. Full selftest ran 3× back to back: all green each time (about 15 s per run, 157 boolean checks; the only false one is `slice8.A_noLink.remoteOk`, which the test expects to be false).
+- **Open / for the user:** scrap is still tight without crew labour. Base O2 drifts to about 39% with planters (no cap or venting). A T1 hose on full sump flow bursts about every 3.4 min until it is reinforced. After the win, a continuous ARK-03 burn starves the hall in about 17 min.

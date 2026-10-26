@@ -1,10 +1,15 @@
 # Breathless
 
-First-person survival game (Subnautica-style view, Oxygen Not Included-style systems). Oxygen management is the core.
+**Current version: v0.3.5** (pre-release; builds stay on v0.x and v1.0 is reserved for the official release).
 
-- `index.html` — the whole game (Three.js, `lib/three.module.js`). Serve with `python3 -m http.server 8765` and open http://localhost:8765/.
+First-person survival game (Subnautica-style view, Oxygen Not Included-style systems). Oxygen management is the core. A new game starts at a crashed escape pod with the objective FIND SHELTER, and the objective chain ends at BREATHING ROOM.
+
+- `index.html` — the whole game (Three.js, `lib/three.module.js`). Serve this folder with `python3 -m http.server <port>` (for example 8766) and open `http://localhost:<port>/`.
 - `DESIGN.md` — design brief, user rules and per-slice build log.
-- `play/` — screenshots, selftest results and test scripts. Run selftests with `?selftest`.
+- `play/` — screenshots, selftest results and test scripts. Run selftests with `?selftest` (CDP runner `play/run_selftest.mjs`). `?playthrough` runs the scripted new-game → ending playthrough.
 - `.backup/` — snapshots of index.html before each slice.
 
-Public playable build: https://krielherman8-source.github.io/breathless-play/
+## Version history
+Older builds were labelled "prototype X.Y" or "vX.Y". Read them as **v0.X.Y**: prototype 0.1-0.9 = v0.0.x, 1.x = v0.1.x, 2.x (to 2.9.1) = v0.2.x, and v3.0-v3.3 = v0.3.0-v0.3.3. Builds since then are v0.3.4 and v0.3.5 (current). Old saves still load. The full table is in `DESIGN.md`.
+
+Older public build (history; not updated with this repo): https://krielherman8-source.github.io/breathless-play/
