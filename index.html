@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>BREATHLESS - v0.3.5 (playthrough pass)</title>
+<title>BREATHLESS - v0.3.6 (rich air &amp; salvage)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   /* slice 25: shared UI tokens — every panel / HUD box / button pulls from these */
@@ -167,7 +167,7 @@
   <div id="lucidui" class="panel"><span class="close">[Esc] close</span><h2 id="lucidtitle">LUCID LINK</h2><div class="meta" id="lucidmeta"></div><div class="ctrlcmds" id="ctrlcmds" style="display:none"></div><div id="lucidlist"></div><div class="crew sect" id="crewlist" style="display:none"></div><div class="orbcmds" id="orbcmds" style="display:none"></div><div class="last" id="lucidlast"></div></div>
   <div id="hint"><kbd>H</kbd> controls &nbsp; <kbd>B</kbd> build &nbsp; <kbd>Esc</kbd> pause</div>
   <div id="help">
-    <div class="ttl">CONTROLS<span>[H] close · v0.3.5</span></div>
+    <div class="ttl">CONTROLS<span>[H] close · v0.3.6</span></div>
     <div class="hcols">
     <div class="sec"><h4>MOVE &amp; ACT</h4>
       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>Esc</kbd> pause<br>
@@ -239,7 +239,7 @@
   <p id="starthint"><b>Click to begin</b> &nbsp; <span style="opacity:.6">(<kbd>Shift</kbd>+click replays the intro · <kbd>Space</kbd> skips it)</span></p>
   <div id="savebox" style="display:none"><div class="row"><button id="btnContinue" class="sbtn main">Continue</button><button id="btnNew" class="sbtn">New game</button></div><div class="row"><button id="btnSetT" class="sbtn small">Settings</button></div><div id="saveinfo"></div></div>
   <div id="savenote" style="display:none"></div>
-  <div class="ver">v0.3.5 · BREATHING ROOM</div>
+  <div class="ver">v0.3.6 · BREATHING ROOM</div>
 </div>
 <div id="settings"><div class="card"><h3>SETTINGS</h3>
 <label>Mouse sensitivity <input id="setSens" type="range" min="0.25" max="3" step="0.05"></label>
@@ -258,7 +258,10 @@
 import * as THREE from './lib/three.module.js';
 
 /* =====================================================================
-   BREATHLESS v0.3.5  (versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.5: full scripted
+   BREATHLESS v0.3.6  (versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.6: rich air is a
+   fire risk (O2 > 30 %: quiet RICH tell, sparks from strained cables / burst pipes / generators can start a small fire; O2 regulator bleeds
+   the excess), starter hose weeps ~12 min before it bursts (drips, hiss, creaks), scannable salvage caches (surface + ARKs), crew-labour hint;
+   HISTORY — v0.3.5: full scripted
    playthrough pass — ARK-03 life support (the turbine no longer starves the hall inside the hold), hold counts only on a LIVE feed, lapse hints,
    objective chime, saves keep omni + clock again, crash start no longer pre-ticks BUILD, ARK-03 spares crate, hose collar glow;
    HISTORY — v0.3.4: player-laid sump hose on pipe overload bands, breathing + helmet-muffled ambience, 20 Hz declutter, no render while hidden; v0.3.3 = old 3.3: settings card: sens/invert/FOV/volumes/strip/quality High-Ultra-Ultra+, audio buses, win chord, save on tab hide, export/import; objective chain: shelter → Lucid → plant → build → ARK-01 → crew → ARK-02/03 → feed → BREATHING ROOM hold/win; earlier: fix: crash spawn overlapped a collider = could not leave the pod; free-spot spawn, stuck nudge, sub-stepped movement)
@@ -442,6 +445,7 @@ const CFG = {
       { id: 'mood_collar', name: 'Mood-dampener collar',    tier: 1, scrap: 6, note: 'Hold [E] on a CALM caged survivor (~2 s, it may flinch). 30 min charge; dock or hold [R] to hand-charge', startUnlocked: true },
       { id: 'collar_dock', name: 'Collar dock',             tier: 1, scrap: 6, note: 'Place with [E] on the base floor; cable it (60 W while charging). Crew below 30% walk over and recharge (empty → full in 2 min)', startUnlocked: true },
       { id: 'o2_planter', name: 'O2 planter',               tier: 1, scrap: 6, note: 'Place with [E] in the base: another oxygen plant (+1.9 O2/s when mature). Each awake survivor breathes 0.9', startUnlocked: true },
+      { id: 'o2_regulator', name: 'O2 regulator',           tier: 1, scrap: 5, note: 'Place with [E] in the base: a bleed valve on a ceiling vent riser. Vents base O2 above its setpoint (23/25/28 %, [E] to change). Rich air above 30 % is a fire risk', startUnlocked: true },
       { id: 'mining_drill', name: 'Mining drill', tier: 5, scrap: 24, note: 'Place with [E] on floor; cable 150 W; faces diggable cells / berm. Output → loader or ground.', scan: 'drill_head' },
       { id: 'drill_bit', name: 'Hardened drill bit', tier: 3, scrap: 8, note: 'Aim at a placed mining drill + [E]: faster dig, cuts hard rock', scan: 'drill_head' },
       { id: 'control_chip', name: 'LUCID control chip', tier: 5, scrap: 8, note: 'Aim at pump/generator chip bay + [E]: central control + brownout priority (1–9) when LUCID is installed', scan: 'control_schematic' },
@@ -503,7 +507,7 @@ const CFG = {
     dampR: 2,               // cells (Chebyshev) of darker / wetter soil around an unbreached reservoir
     dripR: 2,               // a dug cell within this many cells of an unbreached reservoir drips
     scanTime: 1.4, scanR: 3.2,   // omni ground scan: hold [F] on soil (needs omni), reveals reservoirs within scanR m
-    sump: { flow: 1.6, foot: .44, watts: 120, lineFlow: 2.0, reelM: 25, hoseTiers: [1.3, 2.5, 6, 12, 25], hoseRepairScrap: 1, bandGlow: [.22, .9] },   // v0.3.4: the player lays the hose (reels of 25 m); T1 hose is 23% over a 1.6 L/s sump = the quiet slow-crack band (CFG.pipe bands)   // sump pump L/s; slice 33: powered through the base SURFACE INTAKE (120 W per running sump), HOME water lands in the intake header and needs built liquid pipe to reach a tank
+    sump: { flow: 1.6, foot: .44, watts: 120, lineFlow: 2.0, reelM: 25, hoseTiers: [1.3, 2.5, 6, 12, 25], hoseRepairScrap: 1, bandGlow: [.22, .9], hoseSlowFail: [840, 420] },   // v0.3.4: the player lays the hose (reels of 25 m); T1 hose is 23% over a 1.6 L/s sump = the quiet slow-crack band (CFG.pipe bands)   // sump pump L/s; slice 33: powered through the base SURFACE INTAKE (120 W per running sump), HOME water lands in the intake header and needs built liquid pipe to reach a tank
     oilJ: 9000,             // generator fuel J per litre of crude (FUEL mode): ~1/2 a briquette per litre
     seep: { zOff: 25.0, i0: 400, k0: 400, ni: 7, nj: 6, nk: 10 },   // the wet bluff against the +x boundary wall
     // reservoirs (li from the mouth at the -x face, lj up, lk across): realistic small cave pockets, finite volumes
@@ -647,7 +651,7 @@ const CFG = {
     cable: 'Power cable', fuel_brick: 'Fuel briquettes', generator: 'Generators', battery: 'Batteries',
     cable_sleeve: 'Cable sleeves', breaker: 'Breakers', gen_manifold: 'Gen manifolds',
     liquid_pipe: 'Liquid pipe', liquid_pump: 'Liquid pumps', liquid_filter: 'Liquid filters',
-    control_link: 'Control links', snare_cage: 'Snare cages', snare_cage_t2: 'Reinforced cages', mood_collar: 'Mood collars', collar_dock: 'Collar docks', o2_planter: 'O2 planters',
+    control_link: 'Control links', snare_cage: 'Snare cages', snare_cage_t2: 'Reinforced cages', mood_collar: 'Mood collars', collar_dock: 'Collar docks', o2_planter: 'O2 planters', o2_regulator: 'O2 regulators',
     soil: 'Soil', ore_scrap: 'Ore scrap', omni_tool: 'Omni-tool',
     conveyor_belt: 'Conveyor belts', conveyor_loader: 'Conveyor loaders', conveyor_unloader: 'Conveyor unloaders',
     orb_arm: 'Orb arm actuators', clearance_chip: 'ARK clearance chips',
@@ -779,6 +783,20 @@ const CFG = {
       relapseHostile: .5,             // chance a relapsed survivor near you turns on you (else it bolts)
     },
   },
+  // v0.3.6: O2 overshoot is realistic, not capped. Above warn the air is quietly flagged; the longer it stays rich the
+  // likelier a spark source (strained / shorted cable, burst pipe, running generator) lights a small fire.
+  o2rich: {
+    warn: .30, rearm: .015,  // flag above 30 % (re-arms once back under 28.5 %)
+    smellS: 240,            // s of rich air before the 'sharp air' toast (second, still quiet warning)
+    rampS: 600,             // ignition risk ramps in over 10 min of rich air (decays 2x as fast when it clears)
+    sparkK: .004,           // ignitions / s per spark source at 40 % O2 after the full ramp (scales with (O2-30%)/10%)
+    genW: .25,              // a running generator counts as a quarter spark source
+    fire: { start: .15, sustainO2: .24, outO2: .17, grow: .08, starve: .2, burnFrac: .0004, co2PerO2: 1,
+            srcDmgPerS: .02, douseS: 2.5, douseL: 15, maxN: 3 },
+    reg: { sets: [.23, .25, .28], ventFrac: .0008, k: .05 },   // regulator: bleed above setpoint, max .08 %/s of the base volume
+  },
+  // v0.3.6: modest scavenged scrap (surface + ARKs). Crew labour stays the main source.
+  salvage: { stock: 3, perStrip: 2, omniMul: .6, laborHintS: 45 },
   // slice 33: crash start — escape pod on the surface, FIND SHELTER (the base airlock)
   chain: { holdSecs: 300, holdO2: .19, holdCO2: .02 },   // v0.3.2: BREATHING ROOM — hold the base this long (s) with 2+ crew + ARK-03 feed
   crash: {
@@ -5774,7 +5792,7 @@ class SumpPump extends Entity {
   hoseLeak(){ const h = this.hose, P = CFG.pipe; if (!h || h.legacy || h.dmg <= P.leakStart) return 0; return P.leakStart + (P.leakMax - P.leakStart) * Math.min(1, (h.dmg - P.leakStart) / (1 - P.leakStart)); }
   hoseWear(dt, f){   // same ratio bands + timers as CFG.pipe
     const h = this.hose; if (!h || h.legacy || h.burst || dt <= 0) return; const P = CFG.pipe; this.hoseF = (this.hoseF ?? f) + (f - (this.hoseF ?? f)) * Math.min(1, dt / 2); const r = this.hoseF / this.hoseCap() - 1, lerp = (a, b, u) => a + (b - a) * Math.max(0, Math.min(1, u));
-    let secs = 0; if (r > P.burstOver) secs = P.burstFail; else if (r > P.fastOver) secs = lerp(P.fastFail[0], P.fastFail[1], (r - P.fastOver) / (P.burstOver - P.fastOver)); else if (r > P.safeOver) secs = lerp(P.slowFail[0], P.slowFail[1], (r - P.safeOver) / (P.fastOver - P.safeOver));
+    let secs = 0; if (r > P.burstOver) secs = P.burstFail; else if (r > P.fastOver) secs = lerp(P.fastFail[0], P.fastFail[1], (r - P.fastOver) / (P.burstOver - P.fastOver)); else if (r > P.safeOver){ const SF = CFG.cave.sump.hoseSlowFail || P.slowFail; secs = lerp(SF[0], SF[1], (r - P.safeOver) / (P.fastOver - P.safeOver)); }   /* v0.3.6: a rubber hose weeps for ~12 min in the slow band */
     // v0.3.5: the collar glow breathes faster + brighter the further over the safe band the hose runs (a quiet visual tell, no siren)
     if (this.bandMat){ const G = CFG.cave.sump.bandGlow, w = r > P.safeOver ? Math.min(1, (r - P.safeOver) / (P.burstOver - P.safeOver)) : 0; this.hoseGlowT = (this.hoseGlowT || 0) + dt * (1 + w * 3);
       this.bandMat.emissiveIntensity = G[0] + w * G[1] * (.6 + .4 * Math.sin(this.hoseGlowT * 2.2)); }
@@ -5791,6 +5809,7 @@ class SumpPump extends Entity {
     this.bandMat ||= new THREE.MeshStandardMaterial({ color: 0xd9a21c, metalness: .5, roughness: .4, emissive: 0xffa424, emissiveIntensity: CFG.cave.sump.bandGlow[0] });   // v0.3.5: faint amber glow so the collars read in the dark cave
     const nb = Math.floor(len / 2.5);   // tier collars: each tier adds a band at every 2.5 m (visible in-place upgrade)
     for (let b = 1; b <= nb; b++) for (let t = 1; t < h.tier; t++){ const u = Math.min(1, (b * 2.5 + (t - 1) * .09) / len), p = curve.getPointAt(u), d = curve.getTangentAt(u); const r = new THREE.Mesh(new THREE.TorusGeometry(.036, .009, 6, 14), this.bandMat); r.position.copy(p); r.lookAt(p.clone().add(d)); grp.add(r); }
+    this.hoseMid = curve.getPointAt(.5).clone();   // v0.3.6: leak drips / spray emit here
     if (h.burst){ const p = curve.getPointAt(.5); const tear = new THREE.Mesh(new THREE.SphereGeometry(.05, 10, 8), new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: .9 })); tear.position.copy(p); tear.scale.set(1.4, .5, 1); grp.add(tear); }
     g.scene.add(grp); this.hoseMesh = grp; h.len = len;
   }
@@ -6998,6 +7017,8 @@ class ArkBulkhead extends Entity {
     // scrap crate in records
     const scrap = game.add(new ScrapCrate(game, new THREE.Vector3(hx - 2.4, 0, recordsZ + 1.6), 4));
     if (slice) slice.arkDeepScrap = scrap;
+    const cache = game.add(new SalvageCache(game, new THREE.Vector3(hx - 1.3, 0, recordsZ + 2.3), { yaw: .9, label: 'Collapsed shelf debris', what: 'a buried parts bin' }));   // v0.3.6
+    if (slice) (slice.salvage ||= []).push(cache);
     // arm actuator findable (hydro annex)
     const arm = game.add(new ScanFind(game, {
       id: 'arm_actuator', recipeId: 'orb_arm', kind: 'arm',
@@ -9529,6 +9550,273 @@ function tryPlacePlanterInFront(game){
   game.ui.toast?.(`O2 planter set. Mature it makes ${CFG.plant.o2Rate} O2/s — enough for about two resting survivors.`, 3600); return pl;
 }
 
+// ---------- v0.3.6: salvage caches, O2-rich fire risk, O2 regulator, small fires, crew-labour hint ----------
+// Salvage cache: dust-buried debris on the surface / in the ARKs. Reads as junk until the omni scans it ([F]); then [E] strips it for scrap.
+class SalvageCache extends Entity {
+  constructor(game, pos, opts = {}){
+    super(); this.game = game; this.interactable = true; this.kind = 'salvageCache';
+    this.stock = opts.stock ?? CFG.salvage.stock; this.stock0 = this.stock; this.scanned = false; this.progress = 0;
+    this.label = opts.label || 'Half-buried debris'; this.what = opts.what || 'a sealed tool case';
+    this.pos = pos.clone(); this.pos.y = 0;
+    const g = new THREE.Group(); g.position.copy(this.pos); g.rotation.y = opts.yaw || 0; this.mesh = g;
+    const M = SalvageCache.mats();
+    const mk = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); m.castShadow = m.receiveShadow = true; g.add(m); return m; };
+    // dust mound the debris sank into
+    const dust = mk(new THREE.SphereGeometry(.5, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2), M.dust, 0, -.01, 0); dust.scale.set(1.2, .2, .92); dust.castShadow = false;
+    // buckled hull panel with ribs + rivet heads
+    const panel = new THREE.Group(); panel.position.set(-.06, .1, -.04); panel.rotation.set(.34, .2, -.2); g.add(panel);
+    const pm = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; panel.add(m); return m; };
+    pm(new THREE.BoxGeometry(.8, .035, .48), M.hull, 0, 0, 0);
+    for (let i = -1; i <= 1; i++) pm(new THREE.BoxGeometry(.035, .05, .46), M.rib, i * .26, .03, 0);
+    for (let i = 0; i < 8; i++) pm(new THREE.SphereGeometry(.011, 6, 4), M.rib, -.36 + i * .1, .022, .21);
+    pm(new THREE.BoxGeometry(.18, .036, .12), M.burn, .22, .004, -.1);   // scorched corner
+    // the salvage: sealed tool case with strap + latches (vanishes when stripped)
+    const cs = this.caseG = new THREE.Group(); cs.position.set(.2, .1, .18); cs.rotation.set(0, -.45, .06); g.add(cs);
+    const cm = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; cs.add(m); return m; };
+    cm(new THREE.BoxGeometry(.36, .15, .24), M.case, 0, 0, 0);
+    cm(new THREE.BoxGeometry(.37, .025, .05), M.rib, 0, .078, 0);
+    for (const x of [-.12, .12]) cm(new THREE.BoxGeometry(.04, .03, .02), M.brass, x, .02, .125);
+    cm(new THREE.BoxGeometry(.14, .02, .03), M.rib, 0, .085, -.06);
+    // conduit stub + cable coil + loose plates (more pieces = more stock left)
+    mk(new THREE.CylinderGeometry(.035, .035, .52, 10), M.pipe, -.3, .05, .2, 0, .3, Math.PI / 2 - .15);
+    mk(new THREE.TorusGeometry(.012 + .028, .003 + .006, 6, 10), M.brass, -.53, .07, .26, 0, 1.4, 0);
+    this.coil = mk(new THREE.TorusGeometry(.09, .018, 6, 18), M.cable, -.2, .03, -.22, Math.PI / 2, 0, 0);
+    this.plates = [];
+    for (let i = 0; i < 3; i++) this.plates.push(mk(new THREE.BoxGeometry(.16 + i * .03, .012, .1), M.hull, .38 - i * .07, .02 + i * .012, -.2 + i * .05, 0, i * .7, .05));
+    // faint dust-stirred ring (only a close look gives it away); a small amber tag pops up once scanned
+    this.ring = new THREE.Mesh(new THREE.RingGeometry(.5, .54, 40), M.ring); this.ring.rotation.x = -Math.PI / 2; this.ring.position.y = .012; g.add(this.ring);
+    this.tag = new THREE.Mesh(new THREE.OctahedronGeometry(.045), M.tag); this.tag.position.set(.2, .42, .18); this.tag.visible = false; g.add(this.tag);
+    this.hit = []; g.traverse(c => { if (c.isMesh && c !== this.ring && c !== this.tag){ c.userData.entity = this; this.hit.push(c); } });
+    game.scene.add(g);
+  }
+  static mats(){
+    return SalvageCache._m ||= {
+      dust: new THREE.MeshStandardMaterial({ color: 0x3a2f27, roughness: 1, metalness: 0 }),
+      hull: new THREE.MeshStandardMaterial({ color: 0x6d7276, metalness: .72, roughness: .52 }),
+      rib: new THREE.MeshStandardMaterial({ color: 0x3e4448, metalness: .8, roughness: .45 }),
+      burn: new THREE.MeshStandardMaterial({ color: 0x1b1512, metalness: .3, roughness: .9 }),
+      case: new THREE.MeshStandardMaterial({ color: 0x8a5a1e, metalness: .45, roughness: .55 }),
+      brass: new THREE.MeshStandardMaterial({ color: 0xb08a4a, metalness: .7, roughness: .35 }),
+      pipe: new THREE.MeshStandardMaterial({ color: 0x7f8d98, metalness: .75, roughness: .4 }),
+      cable: new THREE.MeshStandardMaterial({ color: 0x1d1f22, metalness: .1, roughness: .7 }),
+      ring: new THREE.MeshBasicMaterial({ color: 0xc8b080, transparent: true, opacity: .1, depthWrite: false }),
+      tag: new THREE.MeshStandardMaterial({ color: 0xffb040, emissive: 0xff9a20, emissiveIntensity: 1.2, metalness: .2, roughness: .4 }),
+    };
+  }
+  need(game){ return CFG.scan.holdTime * (game.omni ? CFG.salvage.omniMul : 1); }
+  prompt(game){
+    if (!this.scanned) return `${this.label} — hold [F] to scan it${this.progress > 0 ? ` (${Math.min(100, Math.round(this.progress / this.need(game) * 100))}%)` : ''}`;
+    if (this.stock <= 0) return `${this.label} — stripped bare`;
+    return `Salvage cache (${this.what}) — [E] strip it (+${CFG.salvage.perStrip} scrap · ${this.stock} left)`;
+  }
+  tickScan(dt, game){
+    if (this.scanned){ this.progress = 0; return 'done'; }
+    this.progress += dt; if (this.progress < this.need(game)) return 'scanning';
+    this.scanned = true; this.progress = 0; this.refresh();
+    game.ui.toast?.(`Scan: ${this.what} under the dust — about ${this.stock * CFG.salvage.perStrip} scrap. [E] to strip it.`, 3200); beep(760, .05);
+    game.bus.emit('salvage:scanned', this); return 'done';
+  }
+  decay(dt){ this.progress = Math.max(0, this.progress - dt * 1.8); }
+  interact(dt, game, part, first){
+    if (!first) return;
+    if (!this.scanned){ game.ui.toast?.('Just wreckage at a glance. The omni might read what is under it — hold [F].', 2400); return; }
+    if (this.stock <= 0){ game.ui.toast?.('Nothing useful left in it.', 1600); return; }
+    this.stock--; game.scrap += CFG.salvage.perStrip; game.ui.refreshInv?.(); this.refresh(); beep(420, .05);
+    game.bus.emit('salvage:stripped', this);
+    game.ui.toast?.(`+${CFG.salvage.perStrip} scrap stripped${this.stock > 0 ? ` (${this.stock} left)` : ' — cache empty'}.`, 1800);
+  }
+  refresh(){
+    this.ring.visible = !this.scanned; this.tag.visible = this.scanned && this.stock > 0;
+    const left = this.stock / Math.max(1, this.stock0);
+    this.caseG.visible = this.stock > 0; this.coil.visible = left > .34;
+    this.plates.forEach((p, i) => { p.visible = left > i / 3; });
+  }
+  visual(dt, t){
+    if (this.tag.visible){ this.tag.rotation.y += dt * 1.4; this.tag.position.y = .42 + Math.sin(t * 2.2) * .03; }
+    if (this.ring.visible) this.ring.material.opacity = .07 + .05 * (.5 + .5 * Math.sin(t * .9));
+  }
+}
+
+// O2 regulator: a bleed valve on a ceiling vent riser. Vents base O2 above its setpoint out to the surface. [E] cycles the setpoint.
+class O2Regulator extends Entity {
+  constructor(game, pos, setIdx = 1){
+    super(); this.game = game; this.interactable = true; this.kind = 'o2Regulator'; this.pos = pos.clone(); this.pos.y = 0;
+    this.setIdx = setIdx; this.vented = 0; this.rate = 0; this._ledT = 0;
+    const g = new THREE.Group(); g.position.copy(this.pos); this.mesh = g;
+    const M = O2Regulator.mats(), H = CFG.room.h;
+    const mk = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0, par = g) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); m.castShadow = m.receiveShadow = true; par.add(m); return m; };
+    mk(new THREE.BoxGeometry(.52, .05, .52), M.dark, 0, .025, 0);                     // floor plate
+    for (const [x, z] of [[-.21, -.21], [.21, -.21], [-.21, .21], [.21, .21]]) mk(new THREE.CylinderGeometry(.018, .018, .02, 8), M.brass, x, .06, z);
+    mk(new THREE.CylinderGeometry(.16, .18, .82, 24), M.body, 0, .46, 0);             // pressure body
+    mk(new THREE.CylinderGeometry(.165, .165, .07, 24), M.band, 0, .62, 0);           // O2 band (blue)
+    mk(new THREE.CylinderGeometry(.185, .185, .04, 24), M.dark, 0, .07, 0);
+    mk(new THREE.SphereGeometry(.16, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), M.body, 0, .87, 0);   // dome
+    mk(new THREE.CylinderGeometry(.05, .05, .1, 12), M.steel, 0, 1.0, 0);
+    // gauge (face + bezel + needle) on the front
+    const gz = .17; mk(new THREE.CylinderGeometry(.085, .085, .03, 24), M.steel, 0, .5, gz, Math.PI / 2, 0, 0);
+    this.face = mk(new THREE.CircleGeometry(.072, 24), M.face, 0, .5, gz + .017);
+    const needleG = new THREE.Group(); needleG.position.set(0, .5, gz + .02); g.add(needleG); this.needle = needleG;
+    mk(new THREE.BoxGeometry(.008, .062, .004), M.needle, 0, .026, 0, 0, 0, 0, needleG);
+    mk(new THREE.CylinderGeometry(.008, .008, .01, 8), M.dark, 0, .5, gz + .024, Math.PI / 2, 0, 0);
+    // setpoint handwheel on the side (turns when the setpoint changes)
+    const wh = new THREE.Group(); wh.position.set(.2, .72, 0); wh.rotation.z = Math.PI / 2; g.add(wh); this.wheel = wh;
+    mk(new THREE.TorusGeometry(.075, .012, 8, 22), M.red, 0, 0, 0, Math.PI / 2, 0, 0, wh);
+    for (let i = 0; i < 3; i++) mk(new THREE.BoxGeometry(.15, .012, .012), M.red, 0, 0, 0, 0, i * Math.PI / 3, 0, wh);
+    mk(new THREE.CylinderGeometry(.02, .02, .06, 10), M.steel, -.03, 0, 0, 0, 0, Math.PI / 2, wh);
+    // status LED
+    this.ledMat = M.led.clone(); mk(new THREE.SphereGeometry(.018, 10, 8), this.ledMat, -.1, .78, .13);
+    // vent riser to the ceiling: elbow, pipe, ceiling flange + louvre
+    mk(new THREE.TorusGeometry(.06, .035, 10, 16, Math.PI / 2), M.steel, -.06, 1.05, 0, 0, 0, 0);
+    mk(new THREE.CylinderGeometry(.035, .035, H - 1.1, 12), M.steel, -.12, 1.05 + (H - 1.1) / 2, 0);
+    for (let y = 1.4; y < H - .2; y += .55) mk(new THREE.CylinderGeometry(.045, .045, .03, 12), M.brass, -.12, y, 0);
+    mk(new THREE.CylinderGeometry(.11, .11, .04, 16), M.dark, -.12, H - .02, 0);
+    this.outlet = new THREE.Vector3(this.pos.x - .12, H - .12, this.pos.z);
+    this.hit = []; g.traverse(c => { if (c.isMesh){ c.userData.entity = this; this.hit.push(c); } });
+    game.scene.add(g);
+  }
+  static mats(){
+    return O2Regulator._m ||= {
+      body: new THREE.MeshStandardMaterial({ color: 0xc9ced2, metalness: .55, roughness: .35 }),
+      band: new THREE.MeshStandardMaterial({ color: 0x1c5fb0, metalness: .4, roughness: .4 }),
+      steel: new THREE.MeshStandardMaterial({ color: 0x8a96a0, metalness: .8, roughness: .32 }),
+      dark: new THREE.MeshStandardMaterial({ color: 0x1c2328, metalness: .6, roughness: .5 }),
+      brass: new THREE.MeshStandardMaterial({ color: 0xb08a4a, metalness: .7, roughness: .35 }),
+      red: new THREE.MeshStandardMaterial({ color: 0xa8261e, metalness: .4, roughness: .45 }),
+      face: new THREE.MeshStandardMaterial({ color: 0xe8e4d6, roughness: .6, emissive: 0x30302a, emissiveIntensity: .4 }),
+      needle: new THREE.MeshStandardMaterial({ color: 0xd02a18, roughness: .5 }),
+      led: new THREE.MeshStandardMaterial({ color: 0x30ff80, emissive: 0x30ff80, emissiveIntensity: 1.6 }),
+    };
+  }
+  setpoint(){ return CFG.o2rich.reg.sets[this.setIdx]; }
+  update(dt, g){
+    this.rate = 0; if (dt <= 0 || g.zoneAt(this.pos) !== 'base') return;
+    const r = g.room, S = CFG.o2rich.reg, ex = r.frac('o2') - this.setpoint(); if (ex <= 0) return;
+    const n = Math.min(S.ventFrac * r.volume * dt, ex * r.volume * S.k * dt, r.gases.o2); r.take('o2', n); this.vented += n; this.rate = n / dt;
+  }
+  prompt(){
+    return `O2 regulator — set ${Math.round(this.setpoint() * 100)}% · ${this.rate > .02 ? `venting ${this.rate.toFixed(2)}/s` : 'idle'} · vented ${this.vented.toFixed(0)} — [E] change setpoint`;
+  }
+  interact(dt, game, part, first){
+    if (!first) return; this.setIdx = (this.setIdx + 1) % CFG.o2rich.reg.sets.length; this._turn = 1; beep(520, .04);
+    game.ui.toast?.(`Regulator setpoint ${Math.round(this.setpoint() * 100)}% O2 — anything above it bleeds out the riser.`, 2200);
+  }
+  visual(dt, t, game){
+    const f = game.room.frac('o2'); this.needle.rotation.z = 2.2 - Math.max(0, Math.min(.5, f)) / .5 * 4.4;
+    if (this._turn > 0){ this._turn = Math.max(0, this._turn - dt * 2); this.wheel.rotation.x += dt * 6; }
+    const venting = this.rate > .02; this._ledT += dt;
+    this.ledMat.color.setHex(venting ? 0xffb030 : 0x30ff80); this.ledMat.emissive.setHex(venting ? 0xffa020 : 0x30ff80);
+    this.ledMat.emissiveIntensity = venting ? 1.2 + Math.sin(this._ledT * 9) * .8 : 1.4;
+    if (venting && Math.random() < dt * 8) particles.emit(this.outlet, null, .5, .25, 1, .9);
+  }
+}
+
+// Small fire: starts at a spark source in O2-rich air. Grows while base O2 stays above ~24 %, burns O2 into CO2,
+// cooks the thing that sparked it; starves below 17 % O2. Hold [E] to douse (base tank water, else the suit canteen).
+class SmallFire extends Entity {
+  constructor(game, pos, I = CFG.o2rich.fire.start, src = null, why = 'spark'){
+    super(); this.game = game; this.interactable = true; this.kind = 'smallFire'; this.pos = pos.clone(); this.pos.y = 0;
+    this.I = I; this.src = src; this.why = why; this.douse = 0; this.burned = 0; this.out = false; this._ft = Math.random() * 10;
+    const g = new THREE.Group(); g.position.copy(this.pos); this.mesh = g;
+    const scorch = new THREE.Mesh(new THREE.CircleGeometry(.5, 28), new THREE.MeshStandardMaterial({ color: 0x0c0907, roughness: 1, transparent: true, opacity: .8, depthWrite: false }));
+    scorch.rotation.x = -Math.PI / 2; scorch.position.y = .012; g.add(scorch); this.scorch = scorch;
+    // fuel: charred insulation / debris the spark caught
+    const char = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: .95, emissive: 0xff3a08, emissiveIntensity: .6 }); this.charMat = char;
+    for (let i = 0; i < 5; i++){ const m = new THREE.Mesh(new THREE.BoxGeometry(.12 + i * .02, .03, .05), char); m.position.set(Math.cos(i * 1.3) * .12, .02, Math.sin(i * 1.3) * .12); m.rotation.y = i * .9; g.add(m); }
+    this.flames = [];
+    const fm = (c, o) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false });
+    const layers = [[0xff4a10, .55, .22, .7], [0xff8a20, .6, .15, .55], [0xffd070, .7, .08, .38]];
+    for (let k = 0; k < 3; k++) for (let i = 0; i < 3; i++){
+      const [c, o, r, h] = layers[k], m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 12, 1, true), fm(c, o));
+      const a = i / 3 * Math.PI * 2 + k; m.position.set(Math.cos(a) * .06 * (2 - k), h / 2, Math.sin(a) * .06 * (2 - k)); m.userData.h = h; m.userData.ph = a * 3;
+      g.add(m); this.flames.push(m);
+    }
+    this.light = new THREE.PointLight(0xff8a3a, 0, 7, 1.6); this.light.position.set(0, .5, 0); g.add(this.light);
+    const hb = new THREE.Mesh(new THREE.CylinderGeometry(.35, .4, .7, 10), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+    hb.position.y = .35; g.add(hb); hb.userData.entity = this; this.hit = [hb];
+    game.scene.add(g); this.smokeAt = new THREE.Vector3(this.pos.x, .9, this.pos.z);
+  }
+  vol(g){ return g.zoneAt(this.pos) === 'base' ? g.room : (g.volumeAt?.(this.pos) || g.room); }
+  update(dt, g){
+    if (this.out || dt <= 0) return; const F = CFG.o2rich.fire, r = this.vol(g), f = r.frac('o2');
+    this.I = Math.max(0, Math.min(1, this.I + (f - F.sustainO2) * F.grow * dt - (f < F.outO2 ? F.starve * dt : 0)));
+    const n = Math.min(r.gases.o2, F.burnFrac * r.volume * this.I * dt); r.take('o2', n); r.add('co2', n * F.co2PerO2); this.burned += n;
+    const s = this.src; if (s && s.damage != null && !s.failed){ s.damage = Math.min(1, s.damage + F.srcDmgPerS * this.I * dt);
+      if (s.damage >= 1){ s.failed = true; s._justFailed = true; s.inflow = 0; g.power.dirty = true; g.bus.emit('cable:fail', s); g.crisisNote('fire', 'fire burned through a cable', { quiet: true }); } }
+    if (this.I <= 0) this.extinguish(g, 'starved');
+  }
+  prompt(game){
+    const src = (game.tanks || []).find(t => t.liquid && t.liquid.amount > CFG.o2rich.fire.douseL);
+    return `FIRE (${Math.round(this.I * 100)}%) — hold [E] to douse it${this.douse > 0 ? ` ${Math.min(100, Math.round(this.douse / CFG.o2rich.fire.douseS * 100))}%` : ''} (${src ? 'base tank water' : 'suit canteen'})`;
+  }
+  interact(dt, game){
+    if (this.out) return; const F = CFG.o2rich.fire; this.douse += dt; this.I = Math.max(.02, this.I - dt * .15);
+    if (Math.random() < dt * 20) particles.emit(this.smokeAt, null, .8, .6, 2, .6);
+    if (this.douse >= F.douseS){ const tk = (game.tanks || []).find(t => t.liquid && t.liquid.amount > F.douseL); if (tk) tk.liquid.take(F.douseL); this.extinguish(game, 'doused'); }
+  }
+  extinguish(g, how){
+    if (this.out) return; this.out = true; this.I = 0; this.light.intensity = 0; this.flames.forEach(m => m.visible = false); this.charMat.emissiveIntensity = 0; this.hit = [];
+    g.fires = (g.fires || []).filter(x => x !== this); g.remove(this); this.interactable = false;
+    g.bus.emit('fire:out', { fire: this, how });
+    if (!g._loading) g.ui?.toast?.(how === 'doused' ? 'Fire out. The scorch stays.' : 'The fire guttered out — not enough O2 left to feed it.', 2400);
+    this._smokeLeft = 6;   // the scorch decal + a last wisp of smoke stay as a quiet reminder
+    (g.scorches ||= []).push(this); if (g.scorches.length > 6){ const old = g.scorches.shift(); g.scene.remove(old.mesh); }
+  }
+  visual(dt, t){
+    if (this.out) return; this._ft += dt; const I = this.I, s = .35 + I * .95;
+    for (const m of this.flames){ const fl = .8 + .25 * Math.sin(this._ft * 11 + m.userData.ph) + .12 * Math.sin(this._ft * 23 + m.userData.ph * 2);
+      m.scale.set(s, s * fl, s); m.position.y = m.userData.h * s * fl / 2; m.rotation.y += dt * 1.5; }
+    this.light.intensity = (2 + I * 9) * (.85 + .15 * Math.sin(this._ft * 17)); this.charMat.emissiveIntensity = .4 + I * .9;
+    this.scorch.scale.setScalar(.6 + Math.min(1, this.burned / 40) * .9);
+    if (Math.random() < dt * (4 + I * 18)) particles.emit(this.smokeAt, null, .35, .7 + I * .5, 1, 1.4);
+  }
+}
+
+// spark sources inside the base (DESIGN: O2 overshoot). Weights: strained/shorted cable 1, burst pipe .5, running generator genW.
+function o2SparkSources(g){
+  const S = [], inBase = p => g.zoneAt(p) === 'base';
+  for (const c of g.power.cables.values()){ const p = c.group.position; if (!inBase(p)) continue;
+    if (c.failed) S.push({ w: .35, p, src: null, why: 'a shorted cable' });
+    else if (c.damage > .05 && c.over > CFG.pipe.safeOver && c.inflow > 0) S.push({ w: 1, p, src: c, why: 'an overloaded cable' }); }
+  for (const net of [g.pipes, g.liquidPipes]) for (const p of net.pipes.values()) if (p.burst && inBase(p.group.position)) S.push({ w: .5, p: p.group.position, src: null, why: 'a burst pipe' });
+  for (const gen of g.generators || []) if (gen.out > 0 && inBase(gen.mesh.position)) S.push({ w: CFG.o2rich.genW, p: gen.mesh.position, src: null, why: 'the generator exhaust' });
+  return S;
+}
+function o2Ignite(g, s){
+  const a = (g.rng ? g.rng() : Math.random()) * Math.PI * 2, p = new THREE.Vector3(s.p.x + Math.cos(a) * .3, 0, s.p.z + Math.sin(a) * .3);
+  const f = g.add(new SmallFire(g, p, CFG.o2rich.fire.start, s.src, s.why)); (g.fires ||= []).push(f);
+  const n = g.crisisNote('fire', `fire: ${s.why} sparked in O2-rich air`);
+  if (n.toast) g.ui?.toast?.('Something is burning in the base.', 3000);
+  g.bus.emit('fire:start', f); return f;
+}
+function o2RichTick(g, dt){
+  const O = CFG.o2rich, f = g.room.frac('o2'), rich = f > O.warn;
+  g._o2RichT = rich ? (g._o2RichT || 0) + dt : Math.max(0, (g._o2RichT || 0) - dt * 2);
+  if (rich && !g._o2Warned){ g._o2Warned = true; g.lucidLine?.(`Base O2 is past ${Math.round(O.warn * 100)}%. Rich air burns hot — one spark from a strained cable and we have a fire. An O2 regulator bleeds the excess.`, false); }
+  if (rich && g._o2RichT > O.smellS && !g._o2Smell){ g._o2Smell = true; g.ui?.toast?.('The air tastes sharp and metallic.', 3600); }
+  if (f < O.warn - O.rearm){ g._o2Warned = false; g._o2Smell = false; }
+  if (!rich || (g.fires || []).length >= O.fire.maxN) return 0;
+  const ramp = Math.min(1, g._o2RichT / O.rampS), ex = (f - O.warn) / .1; let p = 0;
+  for (const s of o2SparkSources(g)){ const lam = O.sparkK * s.w * ex * ramp; p += lam; if ((g.rng ? g.rng() : Math.random()) < lam * dt){ o2Ignite(g, s); break; } }
+  return p;
+}
+function tryPlaceRegulatorInFront(game){
+  if (!game.hasItem('o2_regulator') && !game.freeBuild) return false;
+  const p = game.player, pos = new THREE.Vector3(p.pos.x - Math.sin(p.yaw) * 1.2, 0, p.pos.z - Math.cos(p.yaw) * 1.2);
+  if (game.zoneAt(pos) !== 'base'){ game.ui.toast?.('The regulator bleeds base air — it goes inside the base.', 2200); return false; }
+  if (game.world.hit(pos.x, pos.z, .3)){ game.ui.toast?.('No room for the regulator there.', 1800); return false; }
+  if (!game.freeBuild) game.takeItem('o2_regulator');
+  const r = game.add(new O2Regulator(game, pos)); (game.regs ||= []).push(r);
+  game.ui.toast?.(`O2 regulator set at ${Math.round(r.setpoint() * 100)}%. [E] it to change the setpoint.`, 3200); return r;
+}
+// gentle nudge once you have crew but no one is working for scrap
+function laborIdle(g){ return crewCount(g) >= 1 && !(g.imps || []).some(im => im.collar && (im.job === 'labor' || im.job === 'haul')); }
+function laborHintTick(g, dt){
+  if (g._laborHinted || !laborIdle(g)){ g._laborIdleT = 0; return; }
+  g._laborIdleT = (g._laborIdleT || 0) + dt;
+  if (g._laborIdleT >= CFG.salvage.laborHintS){ g._laborHinted = true; g.ui?.toast?.(`Crew can earn scrap: [E] a collared survivor until it is on LABOR at the craft table (~1 scrap / ${CFG.imp.laborEvery} s), or HAUL.`, 5200); }
+}
+function laborTip(g){ return g._laborHinted && laborIdle(g) ? ` · tip: set a collared survivor to LABOR (craft table) for ~1 scrap / ${CFG.imp.laborEvery} s` : ''; }
+
 // ---------- Slice 33 (slice 32 leftover): the sump's surface intake bulkhead ----------
 // A fixed bulkhead on the base +x wall. The sump umbilical (power + water hose, laid through the airlock) ends here.
 // It is a grid CONSUMER (cable a live circuit to it; it powers every sump on its line) and a liquid OUTLET port:
@@ -9794,6 +10082,7 @@ const CHAIN = [
 ];
 function chainStep(g){ return CHAIN[Math.min(g._objStep | 0, CHAIN.length - 1)]; }
 function chainTick(g, dt){
+  laborHintTick(g, dt);   // v0.3.6
   if (g._won && (g._objStep | 0) >= CHAIN.length) return;
   let n = g._objStep | 0, adv = 0;
   if (CHAIN[n]?.id === 'hold'){
@@ -9995,7 +10284,8 @@ class Game {
     this.entities.forEach(e => e.update(dt, this));   // pumps draw gas/liquid; conveyors move packets
     if (this.objective && !this.objective.done) objectiveTick(this);   // slice 33: FIND SHELTER
     if (this.hoseLay) hoseLayTick(this);
-    if (this._chainOn) chainTick(this, dt);           // v0.3.2: objective chain + ending
+    if (this._chainOn) chainTick(this, dt);
+    if (this.o2RiskOn) o2RichTick(this, dt);          // v0.3.6: rich-air fire risk (real play only)           // v0.3.2: objective chain + ending
     this.pipes.update(dt);                            // gas network routes, stresses pipes
     this.liquidPipes.update(dt);                      // liquid network routes, stresses pipes → puddle on leak
     this.lucidNet.update(dt);                         // slice 8: quiet watch over linked units
@@ -10289,7 +10579,7 @@ function paintMonitor(){
   c.font = F(20); c.fillStyle = C.lucid; c.fillText('BASE ATMOSPHERE', 14, 32);
   const r = game.room, pct = g => (r.frac(g) * 100).toFixed(1) + '%';
   c.font = F(22);
-  c.fillStyle = r.frac('o2') < CFG.gas.breathableO2 ? C.bad : C.text; c.fillText('O2   ' + pct('o2'), 14, 72);
+  c.fillStyle = r.frac('o2') < CFG.gas.breathableO2 ? C.bad : r.frac('o2') > CFG.o2rich.warn ? C.amber : C.text; c.fillText('O2   ' + pct('o2') + (r.frac('o2') > CFG.o2rich.warn ? '  RICH' : ''), 14, 72);   /* v0.3.6 quiet rich-air tell */
   c.fillStyle = r.frac('co2') > CFG.gas.toxicCO2 ? C.bad : C.text; c.fillText('CO2  ' + pct('co2'), 14, 104);
   c.font = F(17); c.fillStyle = C.text; c.fillText('Pressure ' + (r.pressure() * 100).toFixed(0) + '%', 14, 134);
   const pw = game.power.totals();   // diegetic only (quiet): numbers, muted amber when wanting more than served
@@ -10529,6 +10819,12 @@ slice.pocketReturn = game.add(new PocketReturn(game, 4, 5));   // slice 18: dig 
     kind: 'scrap', label: 'Twisted hull scrap',
     pos: new THREE.Vector3(-4.5, 0, z0 + 6.2), yaw: 1.0,
   }));
+  // v0.3.6: dust-buried salvage caches off the lanes (scan [F] to read them, [E] to strip)
+  slice.salvage = [
+    game.add(new SalvageCache(game, new THREE.Vector3(7.4, 0, z0 + 7.2), { yaw: .6, what: 'a sealed tool case' })),
+    game.add(new SalvageCache(game, new THREE.Vector3(-1.4, 0, z0 + 20.6), { yaw: -1.1, what: 'a cargo pod liner' })),
+    game.add(new SalvageCache(game, new THREE.Vector3(8.6, 0, z0 + 31.0), { yaw: 2.2, what: 'a crushed cable spool' })),
+  ];
   // inventory label for seedling
   CFG.invLabels.o2_seedling = 'O2 seedlings';
 })();
@@ -10625,6 +10921,7 @@ placeCrashPod(game, slice);   // slice 33: the escape pod you came down in
     pos: new THREE.Vector3(hx - 1.8, 0.02, hz + 4.2), yaw: 0.5
   }));
   slice.ark2Scrap = game.add(new ScrapCrate(game, new THREE.Vector3(hx - 2.2, 0, hz + 5.4), 5));
+  (slice.salvage ||= []).push(game.add(new SalvageCache(game, new THREE.Vector3(hx + .1, 0, hz + 5.8), { yaw: -.5, label: 'Fallen servo rack', what: 'a servo parts tray' })));   // v0.3.6
   // small ore dig sample inside (flavor / scrap)
   const ore = game.add(new DigBlock(game, {
     i: 113, j: 0, k: 113, mat: 'ore',
@@ -10704,6 +11001,7 @@ placeCrashPod(game, slice);   // slice 33: the escape pod you came down in
     pos: new THREE.Vector3(hx - 1.7, 0.02, hz + 3.6), yaw: .3,
   }));
   slice.ark3Scrap = game.add(new ScrapCrate(game, new THREE.Vector3(hx + .4, 0, hz + 4.9), 6));
+  (slice.salvage ||= []).push(game.add(new SalvageCache(game, new THREE.Vector3(hx - .7, 0, hz + 4.8), { yaw: 1.3, label: 'Blown switchgear debris', what: 'a breaker parts drawer' })));   // v0.3.6
   // v0.3.5: the power works kept a spares crate — cable sleeves + kits for the export run (the pylon re-sleeve was a ~100-scrap grind)
   slice.ark3Spares = game.add(new StorageCrate(game, new THREE.Vector3(hx + 1.3, 0, hz + 4.9), CFG.ark3.spares));
   // ore vein seam on the -X wall (soft ore → ore scrap for the press)
@@ -12255,7 +12553,7 @@ game.bus.on('unlock:recipe', ({ id, recipe }) => {
 });
 
 // ---------- Render-side visuals: entity animation, gas particles, audio levels ----------
-const _v = new THREE.Vector3();
+const _v = new THREE.Vector3(), _hoseDown = new THREE.Vector3(0, -1, 0);
 function visuals(dt, t){
   for (const e of game.entities) e.visual?.(dt, t, game);
   let hiss = 0, hum = 0;
@@ -12283,6 +12581,14 @@ function visuals(dt, t){
       if (Math.random() < dt * (.2 + cab.over * .8)){ particles.emit(c, null, .4, 1.4, 1, .35); AUDIO.creak(.5 / (1 + eyeDist2(c) * .3)); }
     }
   }
+  // v0.3.6: the starter hose weeps before it splits — drips + hiss grow with the leak, it creaks when strained
+  for (const sp of game.sumps || []){
+    const h = sp.hose, c = sp.hoseMid; if (!h || h.legacy || !c) continue; const att = 1 / (1 + eyeDist2(c) * .5), lk = sp.hoseLeak();
+    if (h.burst){ if (sp.flow > 0 || Math.random() < dt * .5) particles.emit(c, _hoseDown, 1.2, .9, (sp.flow > 0 ? 30 : 2) * dt, .55); hiss += .5 * att; }
+    else if (lk > 0 && sp.flow > 0){ particles.emit(c, _hoseDown, .6, .35, (2 + lk * 70) * dt, .55); hiss += lk * 2.4 * att; if (Math.random() < dt * (.04 + lk * .9)) AUDIO.creak(.6 / (1 + eyeDist2(c) * .3)); }
+    else if (sp.flow > 0 && sp.hoseOver() > CFG.pipe.safeOver && Math.random() < dt * .05) AUDIO.creak(.35 / (1 + eyeDist2(c) * .3));
+  }
+  for (const f of game.fires || []) hiss += f.I * .8 / (1 + eyeDist2(f.mesh.position) * .4);   // fire roar rides the hiss bus
   particles.update(dt);
   liquidView.update(dt, performance.now() / 1000);   // slice 32
   AUDIO.set(Math.min(.25, hiss * .08), Math.min(.1, hum * .05));
@@ -12369,7 +12675,7 @@ function updateHud(){
       else if (game._chainOn && !game._won && SETTINGS.objStrip && (game._objStep | 0) > 0){   // v0.3.2 objective chain strip (hide it in Settings)
         const st = chainStep(game), hold = st.id === 'hold';
         el.className = 'chain'; el.style.display = 'block';
-        el.innerHTML = `<b>${st.t}</b>${hold ? ` &nbsp; ${Math.floor((game._holdT || 0) / 60)}:${String(Math.floor((game._holdT || 0) % 60)).padStart(2, '0')} / ${CFG.chain.holdSecs / 60}:00 · crew ${crewCount(game)}/2 · feed ${arkFeedCap(game) > 0 ? 'LIVE' : 'off'} · air ${baseAirGood(game) ? 'good' : 'BAD'}` : ''}<br><span style="opacity:.7;font-size:12px">${st.h}</span>`;
+        el.innerHTML = `<b>${st.t}</b>${hold ? ` &nbsp; ${Math.floor((game._holdT || 0) / 60)}:${String(Math.floor((game._holdT || 0) % 60)).padStart(2, '0')} / ${CFG.chain.holdSecs / 60}:00 · crew ${crewCount(game)}/2 · feed ${arkFeedCap(game) > 0 ? 'LIVE' : 'off'} · air ${baseAirGood(game) ? 'good' : 'BAD'}` : ''}<br><span style="opacity:.7;font-size:12px">${st.h}${laborTip(game)}</span>`;
       }
       else el.style.display = 'none';
     } }
@@ -12382,7 +12688,7 @@ function updateHud(){
   const tankL = game.tanks[0]?.liquid.amount, puddle = game.puddle.amount;
   const baseO2 = (r.frac('o2') * 100).toFixed(1);
   const feedPk = game.pockets?.feedTarget();
-  $('room').innerHTML = `${zoneLabel}${wadeLine}<br>O2 <b style="color:${o2 < 15 ? '#ff5a4a' : o2 < 20 ? '#ffc34a' : '#7dffb0'}">${o2.toFixed(1)}%</b> (need 15%)<br>CO2 <b style="color:${co2 > 8 ? '#ff5a4a' : co2 > 4 ? '#ffc34a' : '#bfeaff'}">${co2.toFixed(1)}%</b><br>Breathing: ${p.breathing === 'room' ? 'local air' : '<b style="color:#ff5a4a">SUIT RESERVE</b>'}`
+  $('room').innerHTML = `${zoneLabel}${wadeLine}<br>O2 <b style="color:${o2 < 15 ? '#ff5a4a' : o2 < 20 ? '#ffc34a' : o2 > CFG.o2rich.warn * 100 ? '#ffd27a' : '#7dffb0'}">${o2.toFixed(1)}%</b> (need 15%)<br>CO2 <b style="color:${co2 > 8 ? '#ff5a4a' : co2 > 4 ? '#ffc34a' : '#bfeaff'}">${co2.toFixed(1)}%</b><br>Breathing: ${p.breathing === 'room' ? 'local air' : '<b style="color:#ff5a4a">SUIT RESERVE</b>'}`
     + (p.pocket ? `<br><span style="color:#ffd27a">Pocket air</span>` : '')
     + (p.zone !== 'base' ? `<br>Base O2 <b>${baseO2}%</b>` : '')
     + (feedPk && !p.pocket ? `<br>Feed → <b>${feedPk.tag}</b>` : '')
@@ -12454,6 +12760,7 @@ function tick(dt, t){
     else if (input.ePress && !build.active && !ui.craftTable && !ui.lucidOpen && (game.hasItem('snare_cage') || game.hasItem('snare_cage_t2'))) tryPlaceTrapInFront(game);   // slice 33
     else if (input.ePress && !build.active && !ui.craftTable && !ui.lucidOpen && game.hasItem('collar_dock')) tryPlaceDockInFront(game);
     else if (input.ePress && !build.active && !ui.craftTable && !ui.lucidOpen && game.hasItem('o2_planter')) tryPlacePlanterInFront(game);
+    else if (input.ePress && !build.active && !ui.craftTable && !ui.lucidOpen && game.hasItem('o2_regulator')) tryPlaceRegulatorInFront(game);   // v0.3.6
     else if (input.ePress && !build.active && !ui.craftTable && !ui.lucidOpen && game.hasItem('mining_drill')){
       // slice 27: place mining drill in front
       tryPlaceMiningDrillInFront(game);
@@ -12475,8 +12782,8 @@ function tick(dt, t){
     }
     // Omni-tool scan: hold F on a ScanFind (faster once the ARK omni is claimed)
     if (!build.active && !ui.craftTable){
-      if (input.keys['KeyF'] && (aimed instanceof ScanFind || aimed instanceof InertOrb)) aimed.tickScan(dt * CFG.timeScale, game);
-      else if (aimed instanceof ScanFind || aimed instanceof InertOrb) aimed.decay(dt);
+      if (input.keys['KeyF'] && (aimed instanceof ScanFind || aimed instanceof InertOrb || aimed instanceof SalvageCache)) aimed.tickScan(dt * CFG.timeScale, game);
+      else if (aimed instanceof ScanFind || aimed instanceof InertOrb || aimed instanceof SalvageCache) aimed.decay(dt);
       // slice 32: omni ground scan — hold [F] on unbroken dig soil to sound for liquid behind it
       if (input.keys['KeyF'] && aimed instanceof DigBlock && !aimed.dug && aimed.zone && game.omni) game.liquids.scanTick(dt * CFG.timeScale, aimed);
       else if (game.liquids.scanP > 0 && !(input.keys['KeyF'] && aimed === game.liquids.scanBlock)) game.liquids.scanP = 0;
@@ -12595,6 +12902,7 @@ function saveStaticTable(){
   return [
     [ScanFind, e => e.scanned ? 1 : 0, (e, v) => { if (v){ e.scanned = true; e.progress = 0; if (e.ring) e.ring.visible = false; } }],
     [ScrapCrate, e => e.stock, (e, v) => { e.stock = v; }],
+    [SalvageCache, e => [e.scanned ? 1 : 0, e.stock], (e, v) => { e.scanned = !!v[0]; e.stock = v[1]; e.progress = 0; e.refresh(); }],   // v0.3.6
     [StorageCrate, e => ({ ...e.stock }), (e, v) => { e.stock = { ...v }; }],
     [OmniToolPickup, e => e.taken ? 1 : 0, (e, v, g) => { if (v && !e.taken){ const o = g.omni; g.omni = false; e.interact(0, g, null, true); g.omni = o || true; } }],
     [InertOrb, e => (e.activated ? 2 : 0) | (e.scanned ? 1 : 0), (e, v, g) => {
@@ -12708,6 +13016,9 @@ function saveCapture(g){
   pl.traps = (g.traps || []).map(t => [sR(t.pos.x), sR(t.pos.z), t.tier, t.state === 'broken' ? 'broken' : 'armed']);
   pl.docks = (g.docks || []).map(k => [k.i, k.k, sR(k.yaw, 3)]);
   pl.planters = (g.planters || []).map(p => [sR(p.pos.x), sR(p.pos.z), sR(p.age, 2), sR(p.water, 2)]);
+  pl.regs = (g.regs || []).map(r => [sR(r.pos.x), sR(r.pos.z), r.setIdx, sR(r.vented, 1)]);   // v0.3.6
+  pl.fires = (g.fires || []).filter(f => !f.out).map(f => [sR(f.pos.x), sR(f.pos.z), sR(f.I, 3)]);
+  d.o2r = [sR(g._o2RichT || 0, 1), g._laborHinted ? 1 : 0];
   d.ik = g.intakes?.[0] ? sR(g.intakes[0].buffer.amount, 3) : 0;
   d.obj = g.objective ? { d: g.objective.done ? 1 : 0, s: g.objective.secs ?? null } : null;
   d.pod = g._slice?.pod ? [g._slice.pod.salvage, g._slice.pod.logRead ? 1 : 0] : null;
@@ -12716,7 +13027,7 @@ function saveCapture(g){
   const placedN = pl.pumps.length + pl.gens.length + pl.bats.length + pl.brks.length + pl.tables.length + pl.belts.length + pl.drills.length + pl.refs.length + pl.torsos.length + pl.consoles.length;
   const sum = { zone: P.zone, scrap: g.scrap, items: Object.values(g.inv).reduce((a, b) => a + (+b || 0), 0), placed: placedN, pipes: pl.pipes.length + pl.lpipes.length, cables: pl.cables.length,
     recipes: d.unlocks.recipes.length, tier: g.unlocks.craftTable, imps: d.imps.filter(i => i.r).length, t: d.time };
-  return { schema: SAVE_SCHEMA, proto: '0.3.5', saved: Date.now(), t: d.time, sum, d };
+  return { schema: SAVE_SCHEMA, proto: '0.3.6', saved: Date.now(), t: d.time, sum, d };
 }
 
 // remove every placed thing (free build: no refunds) so the saved layout can be rebuilt on top of the static world
@@ -12733,6 +13044,8 @@ function saveClearPlaced(g){
   g.torsoChassis = []; g.controlRooms = [];
   for (const s of [...new Set(g.pockets.seals.values())]) g.pockets.takeDown(s);
   for (const e of [...(g.sumps || [])]) removeSump(g, e);   // slice 32
+  for (const e of [...(g.regs || []), ...(g.fires || []), ...(g.scorches || [])]){ g.remove(e); g.scene.remove(e.mesh); }   // v0.3.6
+  g.regs = []; g.fires = []; g.scorches = [];
   for (const e of g.entities.filter(x => x instanceof PocketScrubber)){ g.voxels.clearOcc(e.i, e.j, e.k); g.world.removeRef(e); g.remove(e); g.scene.remove(e.mesh); }
 }
 
@@ -12816,6 +13129,9 @@ function saveApply(g, snap, sl = (typeof slice !== 'undefined' ? slice : null)){
       // slice 33: traps / docks / planters / intake header
       for (const [x, z, tier, st] of pl.traps || []){ const t = g.add(new SnareCage(g, new THREE.Vector3(x, 0, z), tier || 1)); if (st === 'broken') t.state = 'broken'; }
       for (const [i, k, yaw] of pl.docks || []){ if (!placeCollarDock(g, i, k, yaw)) warn.push('collar dock: cell taken'); }
+      for (const [x, z, si, v] of pl.regs || []){ const r = g.add(new O2Regulator(g, new THREE.Vector3(x, 0, z), si | 0)); r.vented = v || 0; (g.regs ||= []).push(r); }   // v0.3.6
+      for (const [x, z, I] of pl.fires || []){ const f = g.add(new SmallFire(g, new THREE.Vector3(x, 0, z), I)); (g.fires ||= []).push(f); }
+      if (d.o2r){ g._o2RichT = d.o2r[0]; g._laborHinted = !!d.o2r[1]; }
       for (const [x, z, age, w] of pl.planters || []){ const p = g.add(new OxygenPlant(g, new THREE.Vector3(x, 0, z))); p.placed = true; p.age = age; p.water = w; (g.planters ||= []).push(p); }
       if (g.intakes?.[0] && d.ik != null) g.intakes[0].buffer.amount = d.ik;
       if (d.pod && g._slice?.pod){ g._slice.pod.salvage = d.pod[0]; g._slice.pod.logRead = !!d.pod[1]; }
@@ -13037,7 +13353,7 @@ const SHOT = new URLSearchParams(location.search).get('shot');
 if (SHOT || /[?&](selftest|preview)\b/.test(location.search)) document.body.classList.remove('pregame');   // slice 31: debug views keep the HUD
 if (!SAVE_RT.loaded && !SHOT && !/[?&](selftest|preview|nocrash)\b/.test(location.search)) { crashStart(game, slice); game._needHose = true; }   // slice 33: a new game starts at the pod (Continue keeps the save)
 // v0.3.2: objective chain + ending run in real play only (selftests / shots / previews drive their own fixtures)
-if (!SHOT && !/[?&](selftest|preview)\b/.test(location.search)){ if (SAVE_RT.loaded && game._objStep == null) game._chainSilent = true; game._chainOn = true; }
+if (!SHOT && !/[?&](selftest|preview)\b/.test(location.search)){ if (SAVE_RT.loaded && game._objStep == null) game._chainSilent = true; game._chainOn = true; game.o2RiskOn = true; }
 function showWin(st){
   const m = Math.floor(st.secs / 60), h = Math.floor(m / 60);
   $('winstats').innerHTML = `time alive ${h ? h + ' h ' : ''}${m % 60} min · crew ${st.crew} · ARKs reached ${st.arks}/3<br>crises logged ${st.crises} · collar relapses ${st.relapses}`;
@@ -13049,28 +13365,7 @@ $('btnKeep').addEventListener('click', ev => { ev.stopPropagation(); $('win').st
 $('btnWinNew').addEventListener('click', ev => { ev.stopPropagation(); saveClear(); location.reload(); });
 if (SHOT) runShot(SHOT);
 if (/[?&]playthrough\b/.test(location.search)) setTimeout(runPlaythrough, 400);
-// ---------- v0.3.5: scripted headless playthrough (?playthrough) — new game → BREATHING ROOM with real game actions ----------
-// Walks with held W + steering, cycles doors / hatches through their own interact(), crafts at the real table, traps and collars
-// real ferals. Concessions (counted in the report): teleport when a straight walk is blocked, scrap top-ups, suit top-ups.
-// ---------- v0.3.5: scripted headless playthrough (?playthrough) — new game → BREATHING ROOM with real game actions ----------
-// Walks with held W + steering, cycles doors / hatches through their own interact(), crafts at the real table, traps and collars
-// real ferals. Concessions (counted in the report): teleport when a straight walk is blocked, scrap top-ups, suit top-ups.
-// ---------- v0.3.5: scripted headless playthrough (?playthrough) — new game → BREATHING ROOM with real game actions ----------
-// Walks with held W + steering, cycles doors / hatches through their own interact(), crafts at the real table, traps and collars
-// real ferals. Concessions (counted in the report): teleport when a straight walk is blocked, scrap top-ups, suit top-ups.
-// ---------- v0.3.5: scripted headless playthrough (?playthrough) — new game → BREATHING ROOM with real game actions ----------
-// Walks with held W + steering, cycles doors / hatches through their own interact(), crafts at the real table, traps and collars
-// real ferals. Concessions (counted in the report): teleport when a straight walk is blocked, scrap top-ups, suit top-ups.
-// ---------- v0.3.5: scripted headless playthrough (?playthrough) — new game → BREATHING ROOM with real game actions ----------
-// Walks with held W + steering, cycles doors / hatches through their own interact(), crafts at the real table, traps and collars
-// real ferals. Concessions (counted in the report): teleport when a straight walk is blocked, scrap top-ups, suit top-ups.
-// ---------- v0.3.5: scripted headless playthrough (?playthrough) — new game → BREATHING ROOM with real game actions ----------
-// Walks with held W + steering, cycles doors / hatches through their own interact(), crafts at the real table, traps and collars
-// real ferals. Concessions (counted in the report): teleport when a straight walk is blocked, scrap top-ups, suit top-ups.
-// ---------- v0.3.5: scripted headless playthrough (?playthrough) — new game → BREATHING ROOM with real game actions ----------
-// Walks with held W + steering, cycles doors / hatches through their own interact(), crafts at the real table, traps and collars
-// real ferals. Concessions (counted in the report): teleport when a straight walk is blocked, scrap top-ups, suit top-ups.
-// ---------- v0.3.5: scripted headless playthrough (?playthrough) — new game → BREATHING ROOM with real game actions ----------
+// ---------- v0.3.6: scripted headless playthrough (?playthrough) — new game → BREATHING ROOM with real game actions ----------
 // Walks with held W + steering, cycles doors / hatches through their own interact(), crafts at the real table, traps and collars
 // real ferals. Concessions (counted in the report): teleport when a straight walk is blocked, scrap top-ups, suit top-ups.
 async function runPlaythrough(){
@@ -13129,9 +13424,9 @@ async function runPlaythrough(){
       scrapNeed(r.scrap, id); if (r.ore && !g.hasItem('ore_scrap', r.ore)){ g.giveItem('ore_scrap', r.ore); out.concessions.items.push('ore for ' + id); }
       msg = table().craft(id); }
     return msg; };
-  const scanAll = (zone) => { let n = 0; for (const e of g.entities) if (e instanceof ScanFind && !e.scanned && (!zone || g.zoneAt(posOf(e)) === zone)){ for (let t = 0; t < 10 && !e.scanned; t += .1) e.tickScan(.1, g); if (e.scanned) n++; } return n; };
+  const scanAll = (zone) => { let n = 0; for (const e of g.entities) if ((e instanceof ScanFind || e instanceof SalvageCache) && !e.scanned && (!zone || g.zoneAt(posOf(e)) === zone)){ for (let t = 0; t < 10 && !e.scanned; t += .1) e.tickScan(.1, g); if (e.scanned) n++; } return n; };
   const lootPiles = (zone) => { let n = 0; const items = {};
-    const srcs = [...(g.piles || []), ...g.entities.filter(e => e instanceof ScrapCrate || (e instanceof StorageCrate && e.total() > 0))];
+    const srcs = [...(g.piles || []), ...g.entities.filter(e => e instanceof ScrapCrate || (e instanceof SalvageCache && e.scanned && e.stock > 0) || (e instanceof StorageCrate && e.total() > 0))];
     for (const pl of srcs){ if (zone && g.zoneAt(posOf(pl)) !== zone) continue; if (pl instanceof StorageCrate && zone === 'base') continue;
       goNear(pl, 'loot', 1.1); for (let k = 0; k < 40; k++){ const s0 = g.scrap, i0 = JSON.stringify(g.inv); try { pl.interact(.1, g, null, true); } catch (e){} sim(.05);
         if (g.scrap > s0) n += g.scrap - s0; else if (JSON.stringify(g.inv) !== i0){ for (const id in g.inv) if ((g.inv[id] || 0) > (JSON.parse(i0)[id] || 0)) items[id] = (items[id] || 0) + 1; } else break; } }
@@ -13222,7 +13517,7 @@ async function runPlaythrough(){
     tendBase(); goNear(table(), 'table'); out.scansBase = scanAll('base');
     out.craft3 = { battery: craft('battery', banks), sleeve: craft('cable_sleeve', 2), lock: { battery: g.recipeUnlocked('battery'), sleeve: g.recipeUnlocked('cable_sleeve') } };
     exitBase('to ARK-03');
-    const cr = H3.cradle, fd = H3.feeder; out.scansSurf = scanAll('surface');
+    const cr = H3.cradle, fd = H3.feeder; out.scansSurf = scanAll('surface'); out.lootSurf = lootPiles('surface');
     goNear(cr, 'airlock→ARK-03 cradle', 1.0); for (let i = 0; i < banks; i++) use(cr);
     goNear({ pos: fd.a || posOf(fd) || cr.pos }, 'feeder', 1.0); while (fd.tier < 3 && g.hasItem('cable_sleeve')) use(fd);
     walkTo(H3.hx, H3.hz - 1.4, 'to blast door'); use(H3); sim(6, {}, () => H3.state === 'open'); out.door3 = H3.state + ' · ' + (H3.last || '');
@@ -13283,7 +13578,7 @@ async function runPlaythrough(){
     try { localStorage.removeItem('bl_pt_key'); localStorage.removeItem('bl_pt_prev'); } catch (e){}
   } catch (err){ out.error = String(err?.stack || err).slice(0, 900); }
   delete out._deathTest; out.minSuit = Math.round(minSuit); out.stepEvents = stepEv; out.toastTail = toasts.slice(-12);
-  out.econ = { topups: out.concessions.scrap, labor: g.entities.reduce((a, e) => a + (e.scrapMade || 0), 0), scrapEnd: g.scrap, simSecs: Math.round(g.time) };
+  out.econ = { topups: out.concessions.scrap, labor: g.entities.reduce((a, e) => a + (e.scrapMade || 0), 0), salvage: (S.salvage || []).map(c => c.stock0 - c.stock).reduce((a, b) => a + b, 0) * CFG.salvage.perStrip, scrapEnd: g.scrap, simSecs: Math.round(g.time) };
   out.SUCCESS = !out.error && !!g._won && out.steps.every(s => s.done && s.save.ok) && (out.edge.powerLoss?.bled ?? false) && (out.edge.relapse?.bled ?? false) && !!out.edge.death?.over;
   const el = document.createElement('div'); el.id = 'selftest'; el.style.display = 'none'; el.textContent = JSON.stringify(out); document.body.appendChild(el);
 }
@@ -18849,13 +19144,87 @@ if (location.search.includes('selftest')){
         s37.C_ark3Air = { burn: r2(burn), regen: LS.o2PerS, net: r2(net), starveS: Math.round(starveS), hold: CFG.chain.holdSecs, ok: net > 0 && starveS >= CFG.chain.holdSecs * 3 && LS.o2Cap === A.startO2 }; }
       { const T = game.ark3Turbine, keep = { running: T.running, tripped: T.tripped, fuel: T.fuel }; T.running = false; const off = arkFeedCap(game); Object.assign(T, keep);
         const hints = [1, 2, 3].map(i => HOLD_HINT[i](game)); s37.D_liveFeed = { capWhenStopped: off, hints: hints.map(h => h.slice(0, 40)), ok: off === 0 && hints.every(h => /^Hold slipping/.test(h)) && $('overhint') !== null }; }
-      { const H = CFG.cave.sump, P = CFG.pipe, reel = CFG.craft.recipes.find(r => r.id === 'hose_reel'), over = H.flow / H.hoseTiers[0] - 1, u = (over - P.safeOver) / (P.fastOver - P.safeOver), burstS = P.slowFail[0] + (P.slowFail[1] - P.slowFail[0]) * u;
+      { const H = CFG.cave.sump, P = CFG.pipe, reel = CFG.craft.recipes.find(r => r.id === 'hose_reel'), over = H.flow / H.hoseTiers[0] - 1, u = (over - P.safeOver) / (P.fastOver - P.safeOver), SF = H.hoseSlowFail || P.slowFail, burstS = SF[0] + (SF[1] - SF[0]) * u;   /* v0.3.6: hose slow band */
         const early = CFG.crash.salvage + 8;   // pod locker + starting pack, before any crate
         s37.E_hoseBalance = { reelScrap: reel.scrap, early, over: r2(over), slowBand: over > P.safeOver && over < P.fastOver, t1BurstS: Math.round(burstS), repairScrap: H.hoseRepairScrap, glow: H.bandGlow,
-          ok: reel.scrap * 2 <= early && over > P.safeOver && over < P.fastOver && burstS >= 180 && H.hoseRepairScrap <= 1 && H.bandGlow[0] > 0 && H.bandGlow[0] < .5 }; }
+          ok: reel.scrap * 2 <= early && over > P.safeOver && over < P.fastOver && burstS >= 600 && burstS <= 900 && H.hoseRepairScrap <= 1 && H.bandGlow[0] > 0 && H.bandGlow[0] < .5 }; }
       { const sp = CFG.ark3.spares; s37.F_spares = { spares: sp, crate: !!slice.ark3Spares, zone: slice.ark3Spares ? game.zoneAt(slice.ark3Spares.mesh.position) : null, ok: !!slice.ark3Spares && sp.cable_sleeve >= 8 && slice.ark3Spares.total() <= 24 }; }
       s37.SUCCESS = !!(s37.A_saveOmniTime.ok && s37.B_buildFresh.ok && s37.C_ark3Air.ok && s37.D_liveFeed.ok && s37.E_hoseBalance.ok && s37.F_spares.ok);
     } catch (err){ s37.error = String(err?.stack || err).slice(0, 600); s37.SUCCESS = false; }
+    // slice38 (v0.3.6): starter hose weeps ~12 min, rich-air fire risk + small fires + O2 regulator, salvage caches, crew-labour hint
+    const s38 = out.slice38 = {}; try { const r3 = v => Math.round(v * 1000) / 1000, SV = window.__breathless.save;
+      const mk38 = () => { const g = new Game(new THREE.Scene()); g.player.pos.set(0, 0, 2); g.player.yaw = 0;
+        const pl = g.add(new OxygenPlant(g, new THREE.Vector3(-4.3, 0, -3.5))); pl.age = 100;
+        const s = setupSlice(g); Object.assign(s, setupLiquidDemo(g, pl)); s.plant = pl; s.airlock = g.add(new Airlock(g)); g.airlock = s.airlock; g._slice = s;
+        g.ui = { toasts: 0, last: '', all: [], toast(m){ this.toasts++; this.last = m; this.all.push(String(m)); }, refreshInv(){}, lucidOpen: false, openLucid(){}, closeLucid(){}, lucidToggle(){}, refreshLucid(){}, openCompanion(){} };
+        g._surfacedOnce = true; return [g, s]; };
+      const setO2 = (g, f) => { const r = g.room, oth = r.total() - r.gases.o2; let o = f * r.volume; if (o + oth > r.volume) o = f * oth / (1 - f); r.gases.o2 = o; };
+      let seed = 38; const lcg = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+      // A: unreinforced hose at full sump flow — slow band, ~10-15 min, leak grows first; T2 fully fixes it
+      { const H = CFG.cave.sump, P = CFG.pipe, fk = { hose: { tier: 1, dmg: 0 }, game: { bus: { emit(){} }, lucidLine(){} } };
+        const wear = (dt, f) => SumpPump.prototype.hoseWear.call(fk, dt, f), leak = () => SumpPump.prototype.hoseLeak.call(fk); fk.hoseCap = () => SumpPump.prototype.hoseCap.call(fk);
+        let t = 0, tLeak = null, lk40 = 0, lk80 = 0; const est = (() => { const o = H.flow / H.hoseTiers[0] - 1, u = (o - P.safeOver) / (P.fastOver - P.safeOver); return H.hoseSlowFail[0] + (H.hoseSlowFail[1] - H.hoseSlowFail[0]) * u; })();
+        while (!fk.hose.burst && t < 3600){ wear(1, H.flow); t++; if (tLeak == null && leak() > 0) tLeak = t; if (t === Math.round(est * .4)) lk40 = leak(); if (t === Math.round(est * .8)) lk80 = leak(); }
+        const fk2 = { hose: { tier: 2, dmg: 0 }, game: fk.game }; fk2.hoseCap = () => SumpPump.prototype.hoseCap.call(fk2); for (let q = 0; q < 3600; q++) SumpPump.prototype.hoseWear.call(fk2, 1, H.flow);
+        s38.A_hose = { over: r3(H.flow / H.hoseTiers[0] - 1), burstS: t, burstMin: Math.round(t / 6) / 10, firstLeakS: tLeak, leak40: r3(lk40), leak80: r3(lk80), t2DmgAfter1h: fk2.hose.dmg,
+          ok: fk.hose.burst && t >= 600 && t <= 900 && tLeak != null && tLeak < t * .15 && lk80 > lk40 && lk40 > 0 && fk2.hose.dmg === 0 && !fk2.hose.burst }; }
+      // B: rich air — quiet warnings, no ignition without a spark source, no warning in normal air
+      { const [g] = mk38(); const lines = []; g.lucidLine = (m) => lines.push(m); g.rng = lcg;
+        for (let q = 0; q < 30; q++) o2RichTick(g, 1); const calm = { warned: !!g._o2Warned, lines: lines.length, o2: r3(g.room.frac('o2')) };
+        setO2(g, .34); let pMax = 0; for (let q = 0; q < 1500; q++) pMax = Math.max(pMax, o2RichTick(g, 1));
+        s38.B_rich = { calm, o2: r3(g.room.frac('o2')), warned: !!g._o2Warned, lucid: lines.length, smell: g.ui.all.some(m => /sharp/.test(m)), fires: (g.fires || []).length, pNoSrc: pMax,
+          ok: !calm.warned && calm.lines === 0 && calm.o2 < CFG.o2rich.warn && g._o2Warned && lines.length === 1 && g.ui.all.some(m => /sharp/.test(m)) && !(g.fires || []).length && pMax === 0 }; }
+      // C: a strained cable in 34 % air — risk ramps in over ~10 min, then it sparks a fire (deterministic rng)
+      { const [g] = mk38(); g.lucidLine = () => {}; g.rng = lcg; seed = 7; setO2(g, .34);
+        const cab = { group: { position: new THREE.Vector3(1, 1, -1) }, damage: .3, over: .26, inflow: 200, failed: false }; g.power.cables.set('s38', cab);
+        const p0 = o2RichTick(g, 1); let tI = null, pRamp = 0; for (let q = 1; q < 6000 && tI == null; q++){ const p = o2RichTick(g, 1); if (q === 700) pRamp = p; if ((g.fires || []).length) tI = q; }
+        const f = g.fires?.[0]; g.power.cables.delete('s38');
+        s38.C_ignite = { p0: +p0.toExponential(2), pRamped: +pRamp.toExponential(2), igniteS: tI, src: f?.src === cab, alert: (g.alerts || []).some(a => a.kind === 'fire'), zone: f ? g.zoneAt(f.pos) : null,
+          ok: p0 < pRamp * .01 && Math.abs(pRamp - CFG.o2rich.sparkK * .4) < 1e-6 && tI != null && f?.src === cab && f.zone !== 'x' && (g.alerts || []).some(a => a.kind === 'fire') }; }
+      // D: the fire grows in rich air, burns O2 into CO2, cooks its cable; [E] douses it; a fire in thin air starves
+      { const [g] = mk38(); g.lucidLine = () => {}; setO2(g, .34); const cab = { group: { position: new THREE.Vector3(1, 1, -1) }, damage: .3, failed: false, inflow: 100 };
+        const f = g.add(new SmallFire(g, new THREE.Vector3(1, 0, -1), CFG.o2rich.fire.start, cab)); (g.fires ||= []).push(f); g.power.dirty = false;
+        const o0 = g.room.frac('o2'), c0 = g.room.frac('co2'); for (let q = 0; q < 60; q++) f.update(1, g);
+        const D = s38.D_fire = { I60: r3(f.I), dO2: r3(g.room.frac('o2') - o0), dCO2: r3(g.room.frac('co2') - c0), cabDmg: r3(cab.damage), mesh: f.mesh.children.length, prompt: f.prompt(g).slice(0, 30) };
+        const tk = (g.tanks || [])[0], w0 = tk?.liquid.amount; for (let q = 0; q < 40 && !f.out; q++) f.interact(.1, g); D.doused = f.out && !(g.fires || []).length && !g.entities.includes(f); D.water = tk ? r3(w0 - tk.liquid.amount) : 'canteen';
+        const [g2] = mk38(); setO2(g2, .16); const f2 = g2.add(new SmallFire(g2, new THREE.Vector3(1, 0, -1), .3)); (g2.fires ||= []).push(f2); let ts = 0; while (!f2.out && ts < 60){ f2.update(1, g2); ts++; } D.starveS = ts;
+        D.ok = D.I60 > CFG.o2rich.fire.start && D.dO2 < 0 && D.dCO2 > 0 && D.cabDmg > .3 && D.doused && f2.out && ts < 30 && /FIRE/.test(D.prompt); }
+      // E: O2 regulator — placed in the base, bleeds down to its setpoint, [E] cycles 23/25/28 %
+      { const [g] = mk38(); g.freeBuild = true; const r = tryPlaceRegulatorInFront(g) || g.add(new O2Regulator(g, new THREE.Vector3(0, 0, .8))); g.regs ||= [r];
+        setO2(g, .34); r.update(1, g); const first = r.rate; for (let q = 0; q < 1800; q++){ r.update(1, g); }
+        const at25 = g.room.frac('o2'); r.interact(0, g, null, true); const set2 = r.setpoint(); const parts = r.mesh.children.length;
+        s38.E_reg = { placed: g.regs.includes(r), zone: g.zoneAt(r.pos), firstRate: r3(first), cap: r3(CFG.o2rich.reg.ventFrac * g.room.volume), o2After30m: r3(at25), set: set2, parts, vented: Math.round(r.vented),
+          ok: g.regs.includes(r) && g.zoneAt(r.pos) === 'base' && first <= CFG.o2rich.reg.ventFrac * g.room.volume + 1e-9 && first > 0 && at25 < .255 && at25 >= .249 && set2 === .28 && parts >= 20 && /regulator/i.test(r.prompt()) }; }
+      // F: save / load — regulators + live fires + rich timer + salvage cache state
+      { const [g] = mk38(); g.freeBuild = true; const r = g.add(new O2Regulator(g, new THREE.Vector3(0, 0, .8), 2)); g.regs = [r]; r.vented = 12.3;
+        const f = g.add(new SmallFire(g, new THREE.Vector3(1.5, 0, -1), .42)); g.fires = [f]; g._o2RichT = 321; g._laborHinted = true;
+        const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))); const [g2, s2] = mk38(); SV.saveApply(g2, snap, s2);
+        const T = saveStaticTable().find(x => x[0] === SalvageCache), c1 = g2.add(new SalvageCache(g2, new THREE.Vector3(3, 0, 3))); c1.scanned = true; c1.stock = 1; const v = JSON.parse(JSON.stringify(T[1](c1)));
+        const c2 = g2.add(new SalvageCache(g2, new THREE.Vector3(3, 0, 3))); T[2](c2, v, g2);
+        s38.F_save = { proto: snap.proto, regs: (g2.regs || []).map(x => [x.setIdx, x.vented]), fires: (g2.fires || []).map(x => r3(x.I)), richT: g2._o2RichT, hinted: g2._laborHinted, cache: [c2.scanned, c2.stock, c2.caseG.visible, c2.ring.visible],
+          ok: snap.proto === '0.3.6' && g2.regs?.length === 1 && g2.regs[0].setIdx === 2 && Math.abs(g2.regs[0].vented - 12.3) < .11 && g2.fires?.length === 1 && Math.abs(g2.fires[0].I - .42) < .002 && g2._o2RichT === 321 && g2._laborHinted === true && c2.scanned && c2.stock === 1 && c2.caseG.visible && !c2.ring.visible };
+        SV.saveApply(g2, snap, s2); s38.F_save.reloadNoDup = g2.regs.length === 1 && g2.fires.length === 1; s38.F_save.ok = s38.F_save.ok && s38.F_save.reloadNoDup; }
+      // G: salvage caches in the world — 3 surface + 1 per ARK, clear of colliders / other things; scan → strip
+      { const C = slice.salvage || [], bad = [];
+        for (const c of C){ const z = game.zoneAt(c.pos); if (!z || z === 'base') bad.push(['zone', z]); if (game.world.hit(c.pos.x, c.pos.z, .35)) bad.push(['hit', r3(c.pos.x), r3(c.pos.z)]);
+          for (const e of game.entities){ if (e === c) continue; const p = e.pos || e.mesh?.position; if (!p || !e.interactable) continue; const d = Math.hypot(p.x - c.pos.x, p.z - c.pos.z); if (d < .8) bad.push(['near', e.constructor.name, r3(d)]); } }
+        const zones = C.map(c => game.zoneAt(c.pos)), total = C.reduce((a, c) => a + c.stock0 * CFG.salvage.perStrip, 0);
+        const [g] = mk38(); const c = g.add(new SalvageCache(g, new THREE.Vector3(2, 0, 2))); const s0 = g.scrap; c.interact(0, g, null, true); const pre = g.scrap - s0;
+        let ts = 0; while (!c.scanned && ts < 10){ c.tickScan(.1, g); ts += .1; } for (let q = 0; q < 5; q++) c.interact(0, g, null, true);
+        s38.G_salvage = { n: C.length, zones, total, bad: bad.slice(0, 6), preScan: pre, scanS: r3(ts), got: g.scrap - s0, stockEnd: c.stock, caseShown: c.caseG.visible,
+          ok: C.length === 6 && zones.filter(z => z === 'surface').length === 3 && ['ark', 'ark2', 'ark3'].every(z => zones.includes(z)) && !bad.length && total >= 30 && total <= 40 && pre === 0 && c.scanned && g.scrap - s0 === CFG.salvage.stock * CFG.salvage.perStrip && c.stock === 0 && !c.caseG.visible }; }
+      // H: crew-labour hint — once, after ~45 s with a collared survivor and no one on LABOR / HAUL
+      { const [g] = mk38(); const im = { collar: { dead: false }, state: 'follow', job: 'follow' }; g.imps = [];
+        for (let q = 0; q < 60; q++) laborHintTick(g, 1); const none = g.ui.toasts; g.imps = [im];
+        let tH = null; for (let q = 1; q <= 120; q++){ laborHintTick(g, 1); if (tH == null && g._laborHinted) tH = q; } const n1 = g.ui.toasts, tip1 = laborTip(g);
+        im.job = 'labor'; const tip2 = laborTip(g); im.job = 'follow'; for (let q = 0; q < 200; q++) laborHintTick(g, 1);
+        s38.H_labor = { noCrewToasts: none, hintAt: tH, toasts: n1, tip: tip1.slice(0, 50), tipWhenLabor: tip2, toastsAfter: g.ui.toasts, hasLaborWord: /LABOR/.test(g.ui.last),
+          ok: none === 0 && tH === CFG.salvage.laborHintS && n1 === 1 && !!tip1 && tip2 === '' && g.ui.toasts === 1 }; }
+      // I: gating + recipe — rich-air ignition only runs in real play; regulator is a tier-1 starter recipe
+      { const rec = CFG.craft.recipes.find(r => r.id === 'o2_regulator'); s38.I_gate = { riskOnInTest: !!game.o2RiskOn, recipe: rec ? [rec.tier, rec.scrap, !!rec.startUnlocked] : null, label: CFG.invLabels.o2_regulator,
+          ok: !game.o2RiskOn && !!rec && rec.tier === 1 && rec.scrap <= 6 && rec.startUnlocked && !!CFG.invLabels.o2_regulator }; }
+      s38.SUCCESS = !!(s38.A_hose.ok && s38.B_rich.ok && s38.C_ignite.ok && s38.D_fire.ok && s38.E_reg.ok && s38.F_save.ok && s38.G_salvage.ok && s38.H_labor.ok && s38.I_gate.ok);
+    } catch (err){ s38.error = String(err?.stack || err).slice(0, 600); s38.SUCCESS = false; }
   }
     document.title = 'SELFTEST'; const pre = document.createElement('pre'); pre.id = 'selftest'; pre.textContent = JSON.stringify(out); pre.style.cssText = 'position:fixed;z-index:99;background:#000;color:#0f0;top:0;white-space:pre-wrap;max-width:100%'; document.body.append(pre);
 }

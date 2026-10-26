@@ -1,6 +1,6 @@
 # BREATHLESS - Game Design Brief (from the user, verbatim intent)
 
-**Current version: v0.3.5** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
+**Current version: v0.3.6** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
 
 ## Version history (old labels → v0.x)
 Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those old labels as **v0.X.Y**. The build-log entries below keep their original labels as **history**.
@@ -12,7 +12,7 @@ Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those ol
 | prototype 2.0 - 2.9.1 | v0.2.0 - v0.2.9.1 | 20-31 |
 | v3.0 / v3.1 / v3.1.1 | v0.3.0 / v0.3.1 / v0.3.1.1 | 32-33 + hotfix |
 | v3.2 / v3.3 | v0.3.2 / v0.3.3 | 34 / 35 |
-| (new numbering) | v0.3.4, **v0.3.5 (current)** | 36, 37 |
+| (new numbering) | v0.3.4, v0.3.5, **v0.3.6 (current)** | 36, 37, 38 |
 
 Old saves (any proto string) still load, because loading is gated by `schema` (1).
 
@@ -646,7 +646,7 @@ Builds were labelled "prototype 2.x/3.x". They are now pre-release v0.x: old 3.3
 - **Perf:** label declutter now runs at 20 Hz instead of every frame, and nothing renders while the tab is hidden.
 - Selftest slice36 (A no-hose, B lay and connect, C bands/leak/burst/patch/reinforce, D save and legacy, E audio). Slices 24-36 are green.
 
-## v0.3.5 (slice 37, 2026-10-26): playthrough pass (current)
+## HISTORY — v0.3.5 (slice 37, 2026-10-26): playthrough pass
 - **Versions reconciled.** Title, help, version tag, save `proto`, README and DESIGN all say v0.3.5. Old 2.x/3.x labels are mapped in the version-history table at the top. Old entries are marked HISTORY.
 - **Scripted playthrough** (`?playthrough`, `runPlaythrough`). It runs from a new game at the crashed pod to the BREATHING ROOM ending using real actions: walk, [E] use/hold, craft, place, trap/collar, fuel and restart the turbine. It does a save → reload roundtrip after each of the 10 steps. Edge cases tested: death (over screen, save kept, autosave blocked), power loss during the hold, a collar relapse during the hold (re-cage and re-collar), and a save mid-hold. Result: **SUCCESS** at about 690 s of game time, with no issues logged. Concessions: about 16 teleports on long surface lanes (script navigation, not game blockers), 77 scrap of top-ups (no crew labour assigned) and 2 suit top-ups.
 - **Fixes found by the playthrough:**
@@ -658,3 +658,18 @@ Builds were labelled "prototype 2.x/3.x". They are now pre-release v0.x: old 3.3
 - **Hose polish:** the reinforce bands now glow subtly (emissive amber, intensity 0.22). They breathe faster and brighter (up to 0.9) as the hose overloads past the safe band. Reel balance: 3 scrap per 25 m reel against a 12-scrap early game is fine. A T1 hose at full flow (23% over, slow band) bursts after about 203 s, a patch costs 1 scrap, and T5 reinforce collars stop it.
 - **Tests:** new selftest slice37 (A save omni/time, B fresh build flag, C ARK-03 air budget, D live feed + hints + death text, E hose balance + glow, F spares). The slice34 mock gained a turbine and pylons. Full selftest ran 3× back to back: all green each time (about 15 s per run, 157 boolean checks; the only false one is `slice8.A_noLink.remoteOk`, which the test expects to be false).
 - **Open / for the user:** scrap is still tight without crew labour. Base O2 drifts to about 39% with planters (no cap or venting). A T1 hose on full sump flow bursts about every 3.4 min until it is reinforced. After the win, a continuous ARK-03 burn starves the hall in about 17 min.
+
+## v0.3.6 (slice 38, 2026-10-26): rich air & salvage (current)
+User decisions on the five v0.3.5 open questions:
+- **Scrap: crew labour is the main source, plus modest salvage.** There are 6 scannable *salvage caches*: 3 on the surface (crash debris), plus 1 each in ARK-01 (records), ARK-02 (servo rack) and ARK-03 (switchgear). Each has a dust mound, hull panel, tool case, conduit, coil and plates. Scan it once ([F], 1.4 s, or faster with omni) to unlock it, then each [E] strip gives +2 scrap. Each cache holds 3 strips, so 36 scrap in total. The playthrough stripped 30 of them and cut its top-ups from 77 to 47 scrap. **Labour hint:** once you have a collared survivor and nobody has been on LABOR for 45 s, you get one toast. The chain strip also shows a short tip until a survivor is set to LABOR.
+- **O2 overshoot is realistic, with no hard cap.**
+  - Above 30% base O2 there is one quiet, missable LUCID line plus a "sharp, metallic" smell toast. It re-arms after the level falls 1.5% below the threshold.
+  - Fire risk grows with excess O2 (ex = (O2 − 30%) / 10%). It also ramps over 10 min of sustained rich air and needs a spark source in the base: a strained cable (weight 1), a shorted cable (0.35), a burst pipe (0.5) or a running generator (0.25). Ignition rate λ = 0.004 × weight × ex × ramp per second. For example, one strained cable at 34% after the ramp gives 0.0016/s, so a fire comes on average about 10 min later. With no source there is no fire.
+  - A *small fire* starts above 15% O2. It grows above 24% and starves below 17%. At full size it burns 0.04% of base volume per second, turning O2 into CO2. It damages the source cable, and a cable that reaches full damage fails with a quiet note. Hold [E] for 2.5 s to douse it, which uses 15 L of water from a tank if one is present. It leaves a scorch mark (max 6). At most 3 fires burn at once.
+  - New craftable **O2 regulator** (tier 1, 5 scrap, unlocked from the start). It has a floor plate, body, gauge with a moving needle, red handwheel, LED and a vent riser to the ceiling with brass collars (22 parts). It vents base air above its setpoint, and [E] cycles the setpoint between 23%, 25% (default) and 28%. The vent rate is capped at 0.08% of volume per second. In the test it settled at 25.0% after 30 min. The monitor O2 line turns amber with "RICH" and the HUD O2 turns amber above 30%.
+- **Starter hose:** an unreinforced (T1) hose on full sump flow (23% over, slow band) now bursts after **about 711 s (11.9 min)** instead of 203 s (`CFG.cave.sump.hoseSlowFail`). It starts leaking at about 36 s, and the leak grows (16% at 40% of its life, 29% at 80%). Drips, hiss and creak grow with the leak, and it sprays once burst. T2+ reinforcement still fixes it fully: zero damage over 1 h.
+- **Post-win:** the ARK-03 hall starving about 17 min after the BREATHING ROOM win under a continuous turbine burn is **intended**. It is a slow, quiet follow-on crisis for the free-play epilogue. Don't "fix" it.
+- **README:** removed the link to the old public build. breathless-play was not touched.
+- **Save:** proto `0.3.6` stores regulators (position, setpoint, vented), fires (position, intensity), cache state (scanned, stock), the rich-air timer and the labour-hint flag. Older saves still load.
+- **Tests:** new selftest slice38 (A hose timing, B rich-air warning, C ignition hazard, D fire grow/burn/douse/starve, E regulator, F save roundtrip with no duplicates, G salvage placement and yield, H labour hint, I gating + recipe). Two ARK caches were moved off colliders. The full selftest ran 3× back to back, all green each time (about 15 s per run, 166 boolean checks; the only false one is the expected `slice8.A_noLink.remoteOk`). The scripted playthrough reached **SUCCESS** (won at 704 s, 794 s simulated, no issues). Economy: 47 scrap of top-ups (was 77), 30 scrap salvaged, 0 labour. Rich-air fire risk only runs in real play (`o2RiskOn`), not in selftest or preview.
+

@@ -10,6 +10,5 @@ First-person survival game (Subnautica-style view, Oxygen Not Included-style sys
 - `.backup/` — snapshots of index.html before each slice.
 
 ## Version history
-Older builds were labelled "prototype X.Y" or "vX.Y". Read them as **v0.X.Y**: prototype 0.1-0.9 = v0.0.x, 1.x = v0.1.x, 2.x (to 2.9.1) = v0.2.x, and v3.0-v3.3 = v0.3.0-v0.3.3. Builds since then are v0.3.4 and v0.3.5 (current). Old saves still load. The full table is in `DESIGN.md`.
+Older builds were labelled "prototype X.Y" or "vX.Y". Read them as **v0.X.Y**: prototype 0.1-0.9 = v0.0.x, 1.x = v0.1.x, 2.x (to 2.9.1) = v0.2.x, and v3.0-v3.3 = v0.3.0-v0.3.3. Builds since then are v0.3.4, v0.3.5 and v0.3.6 (current). Old saves still load. The full table is in `DESIGN.md`.
 
-Older public build (history; not updated with this repo): https://krielherman8-source.github.io/breathless-play/
