@@ -15519,7 +15519,7 @@ async function runPlaythrough(){
     out.edge.death = { over: g.over, why: g.overReason, overShown: $('over').style.display === 'flex', overMsg: $('overmsg').textContent.slice(0, 120), saveOk: sv.ok, step: rd.ok ? rd.snap.d.flags._objStep : null, won: rd.ok ? rd.snap.d.flags._won : null, autosaveBlockedAfterDeath: SAVE_RT.dead === true };
     try { localStorage.removeItem('bl_pt_key'); localStorage.removeItem('bl_pt_prev'); } catch (e){}
   } catch (err){ out.error = String(err?.stack || err).slice(0, 900); }
-  delete out._deathTest; out.minSuit = Math.round(minSuit); out.stepEvents = stepEv; out.toastTail = toasts.slice(-12);
+  delete out._deathTest; out.minSuit = Math.round(minSuit); out.rock = { st: { ...(game.rock?.st || {}) }, stressed: game.rock?.stress?.size || 0 }; /* v0.4.1: a clean run never caves in */ out.stepEvents = stepEv; out.toastTail = toasts.slice(-12);
   out.econ = { topups: out.concessions.scrap, labor: g.entities.reduce((a, e) => a + (e.scrapMade || 0), 0), salvage: (S.salvage || []).map(c => c.stock0 - c.stock).reduce((a, b) => a + b, 0) * CFG.salvage.perStrip, scrapEnd: g.scrap, simSecs: Math.round(g.time) };
   out.SUCCESS = !out.error && !!g._won && out.steps.every(s => s.done && s.save.ok) && (out.edge.powerLoss?.bled ?? false) && (out.edge.relapse?.bled ?? false) && !!out.edge.death?.over && !!out.edge.saveMidFireReg?.ok;
   const el = document.createElement('div'); el.id = 'selftest'; el.style.display = 'none'; el.textContent = JSON.stringify(out); document.body.appendChild(el);
@@ -16660,6 +16660,38 @@ function runShot(name){
     }
     // ---- slice 25: polish shots (1280×800) ----
     // ---- v0.3.6/7: rich air, fire, regulator, salvage caches ----
+    case 's43_cavein': case 's43_prop': case 's43_breach': {   // v0.4.1: a fallen roof with rubble + creaking span, a T2 shoring prop, an open hissing hull breach
+      try {
+      P.suit = 100; P.breath = 100; const V = game.voxels, Rk = game.rock, c = GRID.c;
+      if (name === 's43_breach'){
+        const hd = (li, j, lk) => V.get(600 + li, j, 600 + lk)?.entity;
+        for (const li of [2, 1, 0]) { const b = hd(li, 2, 2); if (b && !b.dug) b.finish(game); }
+        const br = Rk.breaches[Rk.breaches.length - 1];
+        for (let i = 0; i < 40; i++){ P.suit = 100; pre(.05); }
+        if (br) look(br.pos.x - 2.1, br.pos.z - .9, br.pos.x, br.pos.y, br.pos.z); pre(.05); break;
+      }
+      // a crew-height drift (4.5 x 5 m, 2 m tall, rock-soil roof) on open ground east of the lane, open to the south for daylight
+      const ox = 1.0, oz = 14.4, i0 = 780;
+      const zone = makeDigZone({ id: 'shot43', i0, j0: 0, k0: i0, ni: 9, nj: 5, nk: 10, ox, oy: 0, oz, label: 'Drift', walkIn: true }); V.registerZone(zone);
+      const cells = {};
+      for (let li = 0; li < 9; li++) for (let lj = 0; lj < 5; lj++) for (let lk = 0; lk < 10; lk++)
+        cells[li + ',' + lj + ',' + lk] = game.add(new DigBlock(game, { i: i0 + li, j: lj, k: i0 + lk, mat: (li + lk + lj) % 5 === 0 ? 'rock' : 'soil', zone, plain: true, size: c * .985, berm: true, pos: new THREE.Vector3(ox + (li + .5) * c, (lj + .5) * c, oz + (lk + .5) * c) }));
+      for (let li = 1; li <= 7; li++) for (let lk = 1; lk <= 8; lk++) for (let lj = 0; lj <= 3; lj++) cells[li + ',' + lj + ',' + lk].finish(game);
+      for (let li = 3; li <= 5; li++) for (let lj = 0; lj <= 3; lj++) cells[li + ',' + lj + ',0'].finish(game);
+      Rk.recompute();
+      if (name === 's43_cavein'){
+        Rk.collapse(V.key(i0 + 4, 3, i0 + 5));
+        Rk.stress.set(V.key(i0 + 3, 3, i0 + 3), .86); Rk.stress.set(V.key(i0 + 4, 3, i0 + 3), .8); Rk.stress.set(V.key(i0 + 5, 3, i0 + 3), .7);
+        for (let i = 0; i < 30; i++){ P.suit = 100; for (const k of ['3,3', '4,3', '5,3']){ const [a, b] = k.split(','); Rk.stress.set(V.key(i0 + +a, 3, i0 + +b), .86); } pre(.05); }
+        // cutaway: lift the roof layer and the south wall off (meshes only) so the fallen span reads in daylight
+        for (const k in cells){ const [li, lj, lk] = k.split(',').map(Number), b = cells[k]; if (!b.dug && !b.rubble && (lj === 4 || lk === 0) && b.mesh) b.mesh.visible = false; }
+        look(ox + 1.7 * c, oz - .7, ox + 4.6 * c, .55, oz + 5.2 * c); pre(.05); break;
+      }
+      const pc = Rk.placeProp(i0 + 4, 0, i0 + 4, zone, 2);
+      for (let i = 0; i < 20; i++){ P.suit = 100; pre(.05); }
+      look(ox + 2.4 * c, oz + 1.4 * c, ox + 4.5 * c, 1.1, oz + 4.5 * c); pre(.05);
+      } catch (e){ setTimeout(() => ui.toast('SHOTERR ' + String(e?.stack || e).slice(0, 300), 60000), 300); } break;
+    }
     case 's42_airlock': case 's42_route': {   // v0.4.0: crew cycle the airlock themselves and walk the lane to the ARK-02 bench
       try {
       P.suit = 100; P.breath = 100; const al = game.airlock, h2 = game.ark2Hatch; game._surfacedOnce = true;

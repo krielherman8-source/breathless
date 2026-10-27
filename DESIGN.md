@@ -733,7 +733,7 @@ User decisions on the five v0.3.5 open questions:
 - **Tests (selftest slice41)**: A_rate, B_queue, C_toast, D_save, E_lf, F_help. Selftest 3×: 190 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
 - **Screenshots**: `play/v039_s41_bench.png` (two crew on LABOR, the job board filling the reinforced cage) and `play/v039_s41_ui.png` (the craft window with its QUEUE section).
 
-## v0.4.0 (slice 42, 2026-10-27): crew routes between sealed zones (current)
+## v0.4.0 (slice 42, 2026-10-27): crew routes between sealed zones
 - **Goal**: collared survivors (the crew) walk between the base, the airlock, the surface lanes and ARK-01/02/03 on their own. They work the doors safely and only go outside when their air reserve covers the trip. No snapping, no warps.
 - **Zone and door graph** (`CrewNav`): there is a walk grid per zone (0.4 m cells, A* around world colliders). Zones are joined by portals: the airlock's inner and outer doors and each ARK hatch. A plan is a list of steps: `walk`, `door`, `lock` (in or out), and `breath` (wait in good air until the reserve covers the next leg). On the surface the planner runs Dijkstra from the start hub to the goal hub. It can stop in an open, breathable ARK to catch breath; each stop costs 8 s.
 - **FOLLOW walks with you.** The crew member rides the airlock with you (it joins the chamber while the door on its side is open), walks out after you, and crosses into ARK hatches beside you. Left behind, it walks home itself. The old warp to base is gone (selftest s16 now measures the walk, about 18 to 32 s).
@@ -765,3 +765,37 @@ User decisions on the five v0.3.5 open questions:
   - E_help: v0.4.0, no v1.0.
   - Selftest 3×: 196 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
 - **Screenshots**: `play/v040_s42_airlock.png` and `play/v040_s42_route.png`.
+
+## v0.4.1 (slice 43, 2026-10-28): rock stress, cave-ins, shoring and dig breaches (current)
+- **Goal**: digging now has structural consequences that come from neglect and never from chance. A tunnel roof spanning too wide builds stress quietly, gives a missable tell, and then falls. Digging into a sealed hull opens a breach that equalises air until you patch it.
+- **Rock stress** (`RockNet`, `CFG.rock`): every roofed, dug soil cell has a span, meaning its distance in cells to the nearest wall, support or prop. A span of `safeSpan` 2 or less never moves, so 2-wide tunnels are always safe. Each cell past that adds `rate` 0.02/s of stress, capped at `maxEx` 3. Supported cells relax at 0.05/s. **Rock roofs and open sky never fall.**
+- **Tells, quiet by design**: at stress 0.3 (about 15 s at span 3) dust sifts from the roof. At 0.6 (about 30 s) there are creaks, pebbles and **one** LUCID/monitor line. The roof falls at 1.0 (about 50 s at span 3, about 25 s at span 4). There is no toast or beep before the fall.
+- **Collapse**: a 3×3 column footprint (`fallR` 1) around the failing cell. Dug cells refill as **rubble** from the roof down. Anyone under it takes it instead of that column filling: the player loses 30 % of the suit reserve, and crew go DOWN. If all four sides are closed, the player is told "Trapped: dig out [V]". A column holding a machine or prop does not fill, and a seal frame braces its own column. Pipes, sump hoses and cables in the fall are crushed. Pipes and hoses pinch shut until their cells are dug clear, and **a crushed cable stays failed until repaired**.
+- **Crew**: a fall makes every walking crew member re-plan (`replan`). If the only way is buried, the order is refused cleanly ("a cave-in blocks the way"), with no stuck walking.
+- **Shoring prop** (recipe `shoring`, 2 scrap): aim at a soft roof (or the dug floor under it) and press [E]. T1 holds every layer within 1 cell. Pressing [E] on the prop with 3 more scrap adds a header beam and braces (T2, radius 2), and the visible parts go from 6 to 12. The prop is a thin post (`walk:false` collider), so crew still path past it.
+- **Rubble** digs in 0.6× the normal time and yields scrap or ore like the ground it came from. Digging it clears the pinch on any crushed pipe or hose.
+- **Dig breaches** (`HullBreach`): only zones flagged `hull` can breach, which today means the soil drift banked against ARK-01's east hull (`drift`, 3×5×4 cells). Digging the cell against the hull opens a hole. Gas flows `q`·3 per unit density gap between the ARK and the drift pocket (the pocket model), and liquid flows at 2 L/s. The hiss is louder the bigger the gap. Rubble over the hole cuts flow to 10 %. Undisturbed, ARK-01 drains to the pocket's level in about 70 s. **Patch** by holding [E]: a `wall_patch` (4 scrap) welds in 1.5 s, or bare scrap (3) takes 4 s. Scorched petals stay on the hull as a scar.
+- **One missable hint**: the first time you work on a soil cell packed against the hull, LUCID notes once (in the hint queue, never repeated) that digging it out will tear the plate open.
+- **Save rows**: proto `0.4.1` saves rubble cells, props (with tier), breaches (open or patched) and stress. **Legacy saves** grandfather the spans they had at load, so an old wide room never comes down on you after an update. New digging is judged normally.
+- **Judgement calls**:
+  - **No random collapses.** A fall is always a span you dug and left unshored. The playthroughs, which never dig wide, record 0 stressed cells and 0 collapses.
+  - **Warnings stay missable.** Dust, then one creak line; the fall itself is the loud part.
+  - **Breaches only where there is a hull.** The base has no exterior soil to breach into, so breaching it would be a fake mechanic.
+  - **Occupants are hurt, not entombed.** Filling a cell with someone in it would trap them inside geometry. A crushed cable needs a repair because power lines shouldn't heal themselves, while pipes and hoses just resume once they are dug clear.
+  - **Nothing is free.** Props, upgrades and patches all cost scrap, and rubble pays out again only because it is real material.
+  - **Tunnels for crew need about 1.5 m width** (nav clearance), so a 1-cell crawl is player-only. This is unchanged and noted for level layouts.
+- **Numbers**:
+  - `?playthrough`: won at sim **736 s**, econ **824 s** (v0.4.0: 827 s), 2 crew, 3 ARKs, 4 crises.
+  - `?playthrough&labor`: won at sim **1098 s**, econ **1111 s** (v0.4.0: 1118 s).
+  - Both runs: rock `st` all 0 (no collapses, breaches or stressed cells).
+- **Tests (selftest slice43)**:
+  - A_stress: span 3, monotonic, dust at 15 s, creak at 30 s (one tell), fall at 50 s, 9 cells.
+  - C_prop: T2 brings span to ≤ 1, parts go 6→12, costs scrap.
+  - B_hurt: fill 7, player suit −30, crew DOWN, not trapped.
+  - D_rubble: pipe crushed and pinched, re-dug, ore gained, flow freed.
+  - E_crew: a planned route via the corridor, 1 re-plan, then a clean refusal "a cave-in blocks the way".
+  - F_breach: hint shown once, flow 0.678, O2 55→52.9 in 3 s, hiss, patched with 4 scrap.
+  - G_save: rubble, props and breaches round-trip, and an old save keeps its spans grandfathered (0 falls).
+  - H_help: v0.4.1 lines present, no v1.0.
+  - Full selftest 3×: 206 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
+- **Screenshots**: `play/v041_s43_cavein.png` (roof cutaway over a fallen span), `play/v041_s43_prop.png` (a T2 prop holding a 7-wide drift) and `play/v041_s43_breach.png` (an open hull breach from inside ARK-01 with the patch prompt).
