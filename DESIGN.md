@@ -1,6 +1,6 @@
 # BREATHLESS - Game Design Brief (from the user, verbatim intent)
 
-**Current version: v0.3.7** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
+**Current version: v0.3.8** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
 
 ## Version history (old labels → v0.x)
 Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those old labels as **v0.X.Y**. The build-log entries below keep their original labels as **history**.
@@ -12,7 +12,7 @@ Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those ol
 | prototype 2.0 - 2.9.1 | v0.2.0 - v0.2.9.1 | 20-31 |
 | v3.0 / v3.1 / v3.1.1 | v0.3.0 / v0.3.1 / v0.3.1.1 | 32-33 + hotfix |
 | v3.2 / v3.3 | v0.3.2 / v0.3.3 | 34 / 35 |
-| (new numbering) | v0.3.4, v0.3.5, v0.3.6, **v0.3.7 (current)** | 36, 37, 38, 39 |
+| (new numbering) | v0.3.4, v0.3.5, v0.3.6, v0.3.7, **v0.3.8 (current)** | 36, 37, 38, 39, 40 |
 
 Old saves (any proto string) still load, because loading is gated by `schema` (1).
 
@@ -675,7 +675,7 @@ User decisions on the five v0.3.5 open questions:
 
 
 
-## v0.3.7 (slice 39, 2026-10-27): air-safety polish (current)
+## v0.3.7 (slice 39, 2026-10-27): air-safety polish
 - **Fire FX visible**: the label-declutter pass was hiding the flame/smoke sprites (it treated every textured sprite as a label). It now skips sprites tagged `userData.fx` and additive sprites, so fires show clearly again.
 - **O2 regulator gauge readable**: the gauge head (dial, boss, glass, LCD) is now one tilted `gaugeHead` group at chest height, facing the player. The SET/VENT LCD sits above the dial, and the LED moved to the side.
 - **Crash-walk save**: saving before you reach shelter used to mark FIND SHELTER as done on load. The save now stores elapsed time for an open objective, and load keeps it open (selftest `slice39.G_crashSave`).
@@ -698,3 +698,14 @@ User decisions on the five v0.3.5 open questions:
 - **Observations**:
   - Without a regulator, base O2 sits around 38% during the hold.
   - The "New seedling planted" toast can repeat.
+
+## v0.3.8 (slice 40, 2026-10-27): Cell 4 landfill gas (current)
+- **Site**: Northfield Landfill Cell 4 sits on the surface north of ARK-03 (outdoor area 50→66 m deep). It is a capped mound (rx 7.2, rz 5.5, h 3) with gas vents, debris, a leachate pond and a hazard sign. It is an optional side job (+8 scrap the first time it pays off).
+- **Methane (CH4)** is a real gas in the room model. It is light, so it pools at the ceiling (the roof intake reads about 4× the floor). It burns only between 5 and 15 % (LEL/UEL); a rich mix above 15 % does not ignite. It is not breathable: it displaces O2 and asphyxiates above about 30 %. The monitor shows CH4, and LUCID gives one quiet warning line. The warning is missable.
+- **Scan to unlock**: scanning a vent unlocks the gas family. Wellhead tiers have visible add-ons: T1 wellhead 0.5 L/s, T2 + blower 0.9 L/s, T3 + laterals 1.4 L/s. The flare stack burns off excess gas. The gas filter/trap catches condensate. Without a flare, a pressed main weeps back.
+- **Finite field**: about 9000 L. Yield scales with √(remaining). At 250 J/L that is about 2.25 MJ (≈625 Wh). At continuous draw it lasts about 10 h at T1, 5.6 h at T2 and 3.6 h at T3.
+- **Power**: gas pipes run from the inlet to a generator fitted with the burner kit. It gives 125 W at T1, 225 W at T2 (the bench generator caps at its rated 200 W) and 350 W at T3 (needs the 400 W manifold and a T2 gas pipe). The pipe overload bands are unchanged.
+- **Risk**: an open inlet with no pipe leaks gas into the room (about 21 L in 20 s). A spark from a generator, fire or tool in the 5-15 % band causes a flash (suit −14). A larger or confined mix causes a blast (suit −45). Digging the mound gives scrap and metal, with gas pockets that can flash when in band.
+- **Save**: row `d.lf` holds the well tier, add-ons, field remaining, main pressure, flare and inlet, plus the CH4 event log.
+- **Tests (selftest slice40)**: A_gas, B_extract, C_gen, D_risk, E_save, F_scan, G_dig, H_help. Selftest 3×: 183 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
+- **Screenshots**: `play/v038_s40_landfill.png`, `play/v038_s40_well.png`, `play/v038_s40_gen.png`.

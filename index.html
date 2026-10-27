@@ -15663,6 +15663,21 @@ function runShot(name){
     }
     // ---- slice 25: polish shots (1280×800) ----
     // ---- v0.3.6/7: rich air, fire, regulator, salvage caches ----
+    case 's40_landfill': case 's40_well': case 's40_gen': case 's40_flash': {   // v0.3.8: Cell 4 landfill, the wellhead, a generator on methane
+      P.suit = 100; P.breath = 100; game.omni = true; const lf = game.landfill, w = lf.well, inl = lf.inlet, z0 = lf.z0;
+      if (name === 's40_gen' || name === 's40_flash'){
+        pump.power = true; const gen = quickGrid(game, slice, 0); fitGasKit(game, gen, { free: true }); const sk = gen.gasSink;
+        let cells = cellPath([inl.i, inl.j, inl.k], [sk.i, sk.j, sk.k], 'xzy'); if (cells.slice(1).some(([i, j, k]) => game.pipes.pipes.has(GRID.key(i, j, k)))) cells = cellPath([inl.i, inl.j, inl.k], [sk.i, sk.j, sk.k], 'zxy');
+        game.freeBuild = true; game.builder.buildRun(cells); w.fit(game, 'gas_well'); w.fit(game, 'well_blower'); w.fit(game, 'flare_stack'); game.freeBuild = false; w.main = 60; inl.open = true; inl.filter = CFG.landfill.filterL;
+        game.unlockRecipe('gas_well', 'shot'); pre(6);
+        if (name === 's40_flash'){ game.room.gases.ch4 = .018 * game.room.volume; ch4Ignite(game, { p: gen.mesh.position.clone(), why: 'the generator exhaust' }, 'flash'); for (let i = 0; i < 5; i++){ game.step(.05, { keys: {} }); visuals(.05, game.time); } look(gen.cx + 2.6, gen.cz + 2.4, gen.cx, 2.1, gen.cz); break; }
+        look(gen.cx - 1.3, gen.cz + 1.9, gen.cx + .25, .5, gen.cz); break;
+      }
+      const al = slice.airlock; al.innerOpen = 0; al.outerOpen = 1; al.state = 'surface'; al.syncColliders(); game._surfacedOnce = true;
+      if (name === 's40_well'){ game.freeBuild = true; w.fit(game, 'gas_well'); w.fit(game, 'well_blower'); w.fit(game, 'well_laterals'); w.fit(game, 'flare_stack'); game.freeBuild = false; w.main = CFG.landfill.mainCap; pre(3);
+        look(w.pos.x - 3.0, w.pos.z - 3.1, w.pos.x + .1, 1.55, w.pos.z + .3); break; }
+      pre(2); look(w.pos.x + 3.6, w.pos.z + 1.2, w.pos.x - 4.4, 1.1, w.pos.z + 6.7); break;
+    }
     case 's38_reg': case 's38_gauge': case 's38_fire': case 's38_rich': case 's38_cache': case 's38_scan': case 's38_loot': case 's38_stripped': {
       P.suit = 100; P.breath = 100; const r = game.room, setO2 = f => { r.gases.o2 = f * Math.max(r.volume, r.total()); };
       if (name === 's38_reg' || name === 's38_gauge' || name === 's38_rich' || name === 's38_fire'){
