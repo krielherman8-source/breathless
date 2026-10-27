@@ -9980,7 +9980,9 @@ class Imp extends Entity {
     const O = out ? 'base' : 'surface', T = out ? 'surface' : 'base', z = this.zone();
     const oPt = out ? L.base : L.surf, tPt = out ? L.surf : L.base, slot = { x: this.side >= 0 ? .55 : -.55, z: al.zMid };
     const pIn = g.zoneAt(g.player.pos) === 'airlock';
-    const crewIn = (g.imps || []).some(o => o !== this && !o.carried && o.zone() === 'airlock' && !(o.state === 'awake' && o.nav?.ok && o.nav.steps[o.nav.si]?.k === 'lock' && o.nav.steps[o.nav.si].dir === st.dir));
+    // crew bound the other way hold the chamber (first in the roster goes first, so two never deadlock); a slumped body or an idle survivor just rides along
+    const me = (g.imps || []).indexOf(this);
+    const crewIn = (g.imps || []).some((o, i) => o !== this && !o.carried && o.state === 'awake' && o.zone() === 'airlock' && o.nav?.ok && o.nav.steps[o.nav.si]?.k === 'lock' && o.nav.steps[o.nav.si].dir !== st.dir && (z !== 'airlock' || i < me));
     if (z === T){ if (this.run(tPt, dt, .3)) n.si++; return 'go'; }
     if (z === 'airlock'){
       if (al.state === T){ this.run(tPt, dt, .3); return 'go'; }
@@ -14961,8 +14963,11 @@ async function runPlaythrough(){
       if (!tr){ out.issues.push(label + ': could not place a cage 1.6 m ahead'); return r; }
       // back off — they will not come while you stand over it
       const bx = P.pos.x + Math.sin(P.yaw) * 5, bz = P.pos.z + Math.cos(P.yaw) * 5; walkTo(bx, bz, label + ' back off');
-      sim(60, {}, () => sv.state === 'trapped'); r.trappedT = Math.round(g.time); r.trapped = sv.state === 'trapped';
-      if (!r.trapped){ out.issues.push(`${label}: feral never took the bait in 60 s (state ${sv.state}, mood ${sv.mood}, dist ${r1(posOf(sv).distanceTo(tr.pos))} m)`); return r; }
+      sim(60, {}, () => sv.state === 'trapped' || (sv.mood !== 'hostile' && posOf(sv).distanceTo(P.pos) < CFG.survivor.feral.skittishR + .5 && sv.zone() === 'base' && g.zoneAt(P.pos) === 'base'));
+      if (sv.state !== 'trapped' && sv.zone() === 'base' && g.zoneAt(P.pos) === 'base'){   // v0.4.0: a skittish one in the one-room base always sees you — step into the airlock out of sight
+        const back = P.pos.clone(); lockTo('base'); walkTo(0, al.zMid, label + ' wait in the airlock'); sim(60, {}, () => sv.state === 'trapped'); r.lockWait = true; walkTo(back.x, back.z, label + ' back from the airlock'); }
+      r.trappedT = Math.round(g.time); r.trapped = sv.state === 'trapped';
+      if (!r.trapped){ out.issues.push(`${label}: feral never took the bait in 60 s (state ${sv.state}, mood ${sv.mood}, dist ${r1(posOf(sv).distanceTo(tr.pos))} m)`); r.dbg = { pT: r1(P.pos.distanceTo(tr.pos)), pF: r1(P.pos.distanceTo(posOf(sv))), lured: !!sv.lured, mv: sv.feralMove, fz: sv.zone(), tz: g.zoneAt(tr.pos), pz: g.zoneAt(P.pos), tst: tr.state, wz: sv.workZone || null, nav: !!sv.nav, job: sv.job, fleeT: r1(sv.fleeT || 0), fp: [r1(sv.pos.x), r1(sv.pos.z)], tp: [r1(tr.pos.x), r1(tr.pos.z)], pp: [r1(P.pos.x), r1(P.pos.z)], carried: !!sv.carried }; return r; }
       const tier = CFG.survivor.trap.tiers[tr.tier - 1 || 0]; sim(tier.thrash + .3);
       goNear(sv, label + ' to cage', 1.0); g.rng = () => .99; let held = 0;
       while (sv.state === 'trapped' && held < 8){ sv.interact(.1, g, null, held === 0); sim(.1); held += .1; } g.rng = null; delete g.rng;
@@ -16203,6 +16208,31 @@ function runShot(name){
     }
     // ---- slice 25: polish shots (1280×800) ----
     // ---- v0.3.6/7: rich air, fire, regulator, salvage caches ----
+    case 's42_airlock': case 's42_route': {   // v0.4.0: crew cycle the airlock themselves and walk the lane to the ARK-02 bench
+      try {
+      P.suit = 100; P.breath = 100; const al = game.airlock, h2 = game.ark2Hatch; game._surfacedOnce = true;
+      const airUp = () => { for (const v of [game.room, game.growLab, game.robotLab]) if (v){ const G = v.gases; G.co2 = Math.min(G.co2 || 0, 1); let o = 0; for (const k in G) if (k !== 'o2') o += G[k] || 0; G.o2 = Math.max(G.o2 || 0, .26 * o / .74, .26 * v.volume); } P.suit = 100; };
+      for (const b of h2.plugs || []) if (!b.dug) b.finish(game); if (h2.state !== 'open') h2.interact(0, game, 'door', true);
+      const t2 = game.builder.craftCandidate(-6, 38.5, 0, 1); if (t2.valid) game.builder.placeCraft(t2);
+      game.lucid.online = true; game.lucid.orbActive = true; airUp();
+      const a = spawnImp(game, new THREE.Vector3(-1, 0, 0)); a.wake(game, true); a.recruited = true;
+      const b = spawnImp(game, new THREE.Vector3(-1.4, 0, .9)); b.wake(game, true); b.recruited = true;
+      P.pos.set(2.2, 0, 12); pre(.3);
+      game.lucidNet._crewOrder({ op: 'imp_job', target: a.tag, job: 'labor', via: 'panel', zone: 'ark2' });
+      let n = 0;
+      if (name === 's42_airlock'){
+        for (; n < 1200 && !(a.zone() === 'airlock' && al.outerOpen > .7); n++){ airUp(); pre(.05); }
+        for (let i = 0; i < 6; i++){ airUp(); pre(.05); }
+        game.lucidNet._crewOrder({ op: 'imp_job', target: b.tag, job: 'labor', via: 'panel', zone: 'ark2' });
+        look(2.3, al.zOuter + 3.6, 0, 1.05, al.zMid + .4);
+      } else {
+        for (; n < 400; n++){ airUp(); pre(.05); }
+        game.lucidNet._crewOrder({ op: 'imp_job', target: b.tag, job: 'labor', via: 'panel', zone: 'ark2' });
+        for (; n < 2400 && !(a.zone() === 'surface' && a.pos.z > 25); n++){ airUp(); pre(.05); }
+        look(a.pos.x + 3.2, a.pos.z - 5.2, a.pos.x - .6, 1.0, a.pos.z + 3.5);
+      }
+      } catch (e){ setTimeout(() => ui.toast('SHOTERR ' + String(e?.stack || e).slice(0, 300), 60000), 300); } break;
+    }
     case 's41_bench': case 's41_ui': {   // v0.3.9: two crew on LABOR at the bench, a queued item filling on the job board
       try {
       P.suit = 100; P.breath = 100; game.room.gases.o2 = Math.max(game.room.gases.o2, 300 * GASV); const t = slice.table; t.setTier(3); game.unlocks.craftTable = 3;
@@ -20925,6 +20955,62 @@ if (location.search.includes('selftest')){
       s38.SUCCESS = !!(s38.A_hose.ok && s38.B_rich.ok && s38.C_ignite.ok && s38.D_fire.ok && s38.E_reg.ok && s38.F_save.ok && s38.G_salvage.ok && s38.H_labor.ok && s38.I_gate.ok);
     } catch (err){ s38.error = String(err?.stack || err).slice(0, 600); s38.SUCCESS = false; }
   }
+    // ---- slice42 (v0.4.0): crew routes between sealed zones — door cycling, airlock safety, cross-zone orders, save mid-path ----
+    { const s42 = out.slice42 = {}; try {
+      const g = game, P = g.player, al = g.airlock, S = window.__breathless.survivors, SV = window.__breathless.save, net = g.lucidNet, r1 = v => Math.round(v * 10) / 10;
+      const orig = SV.saveCapture(g), ui0 = g.ui, luc0 = { on: g.lucid.online, orb: g.lucid.orbActive }, imps0 = g.imps.slice();
+      const h1 = g.arkHatch, h2 = g.ark2Hatch, h3 = g.ark3Hatch, h3s = h3?.state;
+      if (h1.state !== 'open') h1.interact(0, g, 'door', true);
+      for (const b of h2.plugs || []) if (!b.dug) b.finish(g); if (h2.state !== 'open') h2.interact(0, g, 'door', true);
+      g.lucid.online = true; g.lucid.orbActive = true;
+      for (const o of imps0) if (o.state === 'awake'){ o._s42job = o.job; o.setJob?.('wander'); }   // the old crew stand aside
+      const top = () => { for (const v of [g.room, g.growLab, g.robotLab]) if (v){ const G = v.gases; G.co2 = Math.min(G.co2 || 0, 1); let o = 0; for (const k in G) if (k !== 'o2') o += G[k] || 0; G.o2 = Math.max(G.o2 || 0, .26 * o / .74, .26 * v.volume); } P.suit = 100; };
+      const B = { both: 0, steps: 0, minBase: 1, ventBase: 0 };
+      const run = (T, until) => { for (let t = 0; t < T; t += .05){ top(); g.step(.05, { keys: {} }); B.steps++; if (al.innerOpen > .05 && al.outerOpen > .05) B.both++; if (until && until()) return r1(t); } return null; };
+      const cyc0 = al.crewCycles || 0, holds0 = al.holds || 0;
+      // A: door cycling on FOLLOW — out through the airlock, across into ARK-01, back home. No warps.
+      P.pos.set(0, 0, 1.2); run(.2); top(); const im = S.spawnImp(g, new THREE.Vector3(-1, 0, 0)), wk = im.wake(g, true); s42.wake = { woke: wk?.ok, msg: wk?.msg, st: im.state, tag: im.tag, o2: r1(g.room.frac('o2') * 100) }; im.recruited = true; im.setJob('follow');
+      run(1.5);
+      // FOLLOW rides the lock with you: step in, it joins, cycle, step out — it walks out after you
+      run(20, () => al.state === 'base' && al.innerOpen > .95); P.pos.set(-.5, 0, al.zMid); const tJoin = run(20, () => im.zone() === 'airlock');
+      al.interact(0, g, 'panel', true); const tCyc = run(30, () => al.state === 'surface' && al.outerOpen > .95);
+      P.pos.set(.4, 0, al.zOuter + 2.2); const tOut = run(60, () => im.zone() === 'surface' && im.pos.distanceTo(P.pos) < 2.6);
+      P.pos.set(3.5, 0, 24.2); const tArk = run(60, () => im.zone() === 'ark' && im.pos.distanceTo(P.pos) < 2.6);
+      P.pos.set(0, 0, 1.2); const trH = []; let kH = 0; const tHome = run(90, () => { if (kH++ % 40 === 0) trH.push([im.zone(), r1(im.pos.x), r1(im.pos.z), r1(im.reserve), im.nav ? (im.nav.ok ? im.nav.kind + ':' + (im.nav.steps[im.nav.si]?.k || '?') + im.nav.si + (im.nav.wait ? '(' + im.nav.wait + ')' : '') : 'F:' + im.nav.why) : '-', al.state, al.phase, im.state].join(' ')); return im.zone() === 'base'; });
+      s42.A_doors = { tJoin, tCyc, tOut, tArk, tHome, crewCycles: (al.crewCycles || 0) - cyc0, warps: im.warps || 0, turnBacks: im.turnBacks || 0, state: im.state,
+        ok: tJoin != null && tCyc != null && tOut != null && tArk != null && tHome != null && (al.crewCycles || 0) - cyc0 >= 1 && !(im.warps > 0) && im.state === 'awake' };
+      // C: cross-zone LABOR order to the ARK-02 bench (the crew walks it: lock, lane, hatch) + refusals that leave the job alone
+      const t2 = g.builder.craftCandidate(-6, 38.5, 0, 1), bench = t2.valid ? g.builder.placeCraft(t2) : null;
+      im.reserve = CFG.imp.reserve * im.lungs; const made0 = im.scrapMade || 0, cyc1 = al.crewCycles || 0;
+      const o1 = net._crewOrder({ op: 'imp_job', target: im.tag, job: 'labor', via: 'panel', zone: 'ark2' });
+      const label = o1.status?.jobLabel; let sawSurf = false;
+      const tArr = run(80, () => { if (im.zone() === 'surface') sawSurf = true; return im.zone() === 'ark2' && im.working; });
+      run(25); const made = (im.scrapMade || 0) - made0;
+      const lungs = im.lungs; im.lungs = .15; const jb = im.job, wz = im.workZone;
+      P.pos.set(0, 0, 1.2); top(); const im3 = S.spawnImp(g, new THREE.Vector3(-1.4, 0, .9)); im3.wake(g, true); im3.recruited = true; im3.setJob('wander'); im3.lungs = .15; run(.5); const j3 = im3.job, z3 = im3.workZone || null;
+      const rAir = net._crewOrder({ op: 'imp_job', target: im3.tag, job: 'labor', via: 'panel', zone: 'ark2' }); im3.lungs = 1; im3.reserve = CFG.imp.reserve;
+      const hs = h3?.state; if (h3) h3.state = 'sealed';
+      const rSeal = net._crewOrder({ op: 'imp_job', target: im3.tag, job: 'labor', via: 'panel', zone: 'ark3' }); if (h3) h3.state = hs;
+      im.lungs = lungs;
+      s42.C_order = { bench: !!bench, msg: o1.msg, label, wz, sawSurf, tArr, made, cycles: (al.crewCycles || 0) - cyc1, air: rAir.msg, sealed: rSeal.msg, jobKept: im3.job === j3 && (im3.workZone || null) === z3,
+        ok: !!bench && o1.ok && /ARK-02/.test(o1.msg) && /ARK-02/.test(label || '') && wz === 'ark2' && sawSurf && tArr != null && made >= 1 && (al.crewCycles || 0) - cyc1 >= 1
+          && !rAir.ok && /no air/.test(rAir.msg) && !rSeal.ok && /sealed/.test(rSeal.msg) && im3.job === j3 && (im3.workZone || null) === z3 && jb === im.job && wz === im.workZone };
+      // D: save mid-trip (out on the lane), load, the survivor re-plans and still arrives
+      const o2 = net._crewOrder({ op: 'imp_job', target: im3.tag, job: 'labor', via: 'panel', zone: 'ark2' });
+      const trD = []; let kD = 0; const tMid = run(40, () => { if (kD++ % 40 === 0) trD.push([im3.zone(), r1(im3.pos.x), r1(im3.pos.z), r1(im3.reserve), im3.nav ? (im3.nav.ok ? im3.nav.kind + ':' + (im3.nav.steps[im3.nav.si]?.k || '?') + im3.nav.si + (im3.nav.wait ? '(' + im3.nav.wait + ')' : '') : 'F:' + im3.nav.why) : '-', im3.state, im3.job, im3.moving, im3.stuck|0, im3.jobNote?.()].join(' ')); return im3.zone() === 'surface' && im3.pos.z > 12; });
+      const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))), row = (snap.d?.imps || snap.imps || []).find?.(r => r.t === im3.tag) || null;
+      SV.saveApply(g, snap); const im4 = g.imps.find(i => i.tag === im3.tag);
+      const resumed = !!im4?.nav && im4.nav.kind === 'job' && im4.workZone === 'ark2', at = im4 ? { z: im4.zone(), x: r1(im4.pos.x), zz: r1(im4.pos.z) } : null;
+      const tArr2 = im4 ? run(60, () => im4.zone() === 'ark2') : null;
+      s42.D_save = { o2: o2.ok, tMid, row: !!row, nv: row?.nv || null, wz: row?.wz, resumed, at, tArr2,
+        ok: o2.ok && tMid != null && !!row?.nv && row.nv.k === 'job' && row.wz === 'ark2' && resumed && at?.z === 'surface' && tArr2 != null };
+      // B: airlock safety over every step above
+      s42.B_lock = { steps: B.steps, both: B.both, crewCycles: (al.crewCycles || 0) - cyc0, holds: (al.holds || 0) - holds0, ok: B.steps > 1000 && B.both === 0 && (al.crewCycles || 0) - cyc0 >= 3 };
+      { const h = $('help')?.textContent || ''; s42.E_help = { ver: /v0\.4\.0/.test(h), routes: /Crew routes/.test(h), site: /Z picks the order site/.test(h), noOne: !/v1\.0/.test(h) && !/v1\.0/.test(document.querySelector('.ver')?.textContent || ''), proto: snap.proto };
+        s42.E_help.ok = s42.E_help.ver && s42.E_help.routes && s42.E_help.site && s42.E_help.noOne && /^0\.4\.\d$/.test(snap.proto); }
+      SV.saveApply(g, orig); g.ui = ui0; g.lucid.online = luc0.on; g.lucid.orbActive = luc0.orb; if (h3 && h3s) h3.state = h3s;
+      s42.SUCCESS = !!(s42.A_doors.ok && s42.B_lock.ok && s42.C_order.ok && s42.D_save.ok && s42.E_help.ok);
+    } catch (err){ s42.error = String(err?.stack || err).slice(0, 600); s42.SUCCESS = false; } }
     document.title = 'SELFTEST'; const pre = document.createElement('pre'); pre.id = 'selftest'; pre.textContent = JSON.stringify(out); pre.style.cssText = 'position:fixed;z-index:99;background:#000;color:#0f0;top:0;white-space:pre-wrap;max-width:100%'; document.body.append(pre);
 }
 </script>
