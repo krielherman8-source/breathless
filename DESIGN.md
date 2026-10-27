@@ -1,6 +1,6 @@
 # BREATHLESS - Game Design Brief (from the user, verbatim intent)
 
-**Current version: v0.3.9** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
+**Current version: v0.4.0** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
 
 ## Version history (old labels → v0.x)
 Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those old labels as **v0.X.Y**. The build-log entries below keep their original labels as **history**.
@@ -12,7 +12,7 @@ Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those ol
 | prototype 2.0 - 2.9.1 | v0.2.0 - v0.2.9.1 | 20-31 |
 | v3.0 / v3.1 / v3.1.1 | v0.3.0 / v0.3.1 / v0.3.1.1 | 32-33 + hotfix |
 | v3.2 / v3.3 | v0.3.2 / v0.3.3 | 34 / 35 |
-| (new numbering) | v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8, **v0.3.9 (current)** | 36, 37, 38, 39, 40, 41 |
+| (new numbering) | v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8, v0.3.9, **v0.4.0 (current)** | 36, 37, 38, 39, 40, 41, 42 |
 
 Old saves (any proto string) still load, because loading is gated by `schema` (1).
 
@@ -710,7 +710,7 @@ User decisions on the five v0.3.5 open questions:
 - **Tests (selftest slice40)**: A_gas, B_extract, C_gen, D_risk, E_save, F_scan, G_dig, H_help. Selftest 3×: 183 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
 - **Screenshots**: `play/v038_s40_landfill.png`, `play/v038_s40_well.png`, `play/v038_s40_gen.png`.
 
-## v0.3.9 (slice 41, 2026-10-27): crew-labour pacing (current)
+## v0.3.9 (slice 41, 2026-10-27): crew-labour pacing
 - **Goal**: less dead waiting at the bench when crew labour pays for crafting, without making scrap free.
 - **Labour rate** (`CFG.labor`): each worker on LABOR makes 1 scrap per 20 s at T1. Each bench tier above T1 adds +10 %. Each extra worker adds +25 % to the team, capped at 4 workers (×1.75). Examples: 1 worker at T1 = 1 scrap / 20 s; 2 workers at T3 = 1 scrap / ~7 s; 3 workers at T1 make 45 scrap in 200 s (vs 10 for one).
 - **Bench queue** (up to 4 items): "+ queue" on any unlocked recipe. Crew labour pays into the head of the queue and finishes the item while you are away (toast plus delivery; overflow goes to the pocket). Cancel refunds everything paid in. A locked recipe cannot be queued.
@@ -732,3 +732,36 @@ User decisions on the five v0.3.5 open questions:
   - Normal `?playthrough`: won at sim 823 s with 47 top-ups (v0.3.7: 789 s, 47).
 - **Tests (selftest slice41)**: A_rate, B_queue, C_toast, D_save, E_lf, F_help. Selftest 3×: 190 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
 - **Screenshots**: `play/v039_s41_bench.png` (two crew on LABOR, the job board filling the reinforced cage) and `play/v039_s41_ui.png` (the craft window with its QUEUE section).
+
+## v0.4.0 (slice 42, 2026-10-27): crew routes between sealed zones (current)
+- **Goal**: collared survivors (the crew) walk between the base, the airlock, the surface lanes and ARK-01/02/03 on their own. They work the doors safely and only go outside when their air reserve covers the trip. No snapping, no warps.
+- **Zone and door graph** (`CrewNav`): there is a walk grid per zone (0.4 m cells, A* around world colliders). Zones are joined by portals: the airlock's inner and outer doors and each ARK hatch. A plan is a list of steps: `walk`, `door`, `lock` (in or out), and `breath` (wait in good air until the reserve covers the next leg). On the surface the planner runs Dijkstra from the start hub to the goal hub. It can stop in an open, breathable ARK to catch breath; each stop costs 8 s.
+- **FOLLOW walks with you.** The crew member rides the airlock with you (it joins the chamber while the door on its side is open), walks out after you, and crosses into ARK hatches beside you. Left behind, it walks home itself. The old warp to base is gone (selftest s16 now measures the walk, about 18 to 32 s).
+- **Crew work the airlock themselves** (`lockTick`, stateless, so it survives a save mid-cycle). On the origin side it calls the lock over, but only when the chamber is empty. In the chamber it rides a cycle that is already running, or starts its own once it is clear of both doors. The lock never opens both doors at once (`beginCycle` closes one door before the other opens). A closing door holds for a survivor standing in it (up to 4 s) and then shoves it clear. Crew never take you outside: when you are in the chamber, the cycle is yours. Two crew going opposite ways take turns in roster order, so neither waits forever. A slumped body or an idle survivor in the chamber does not block a cycle; it rides along. Crew cycles are quiet (no toast or beep) and still cost lock air, the same as yours.
+- **Air reserve gate**: each surface leg must fit in the reserve: time × 1.15 + 3 s, at 0.8 × walk speed. From good air the reserve counts as full; out on the lane it is the current reserve. If no plan fits, the order is refused with the reason, for example "CREW-4 can't reach ARK-02: no air (needs 32s, has 6s)" or "ARK-03 hatch sealed". A refused order leaves the job as it was. FOLLOW turns back instead of following you out with too little air.
+- **Turning back for air**: out on the surface, the crew member checks every 0.5 s whether its reserve still covers the rest of the leg. If it does not (held up at a busy lock, pushed off the lane, stuck) and a nearer refuge exists (the base or an open, breathable ARK), it turns back there. This gives one quiet monitor line. It finishes reaching the refuge before re-planning the job.
+- **Orders to another zone**: LUCID and the base monitor take a site. `[Z]` cycles HERE / BASE / ARK-01 / ARK-02 / ARK-03 (Shift+Z goes backwards). The crew box shows `@ARK-02 · …`. For example, "CREW-3 → LABOR @ ARK-02" sends the crew member through the airlock and across the lane to the ARK-02 bench, where it starts making scrap. Status shows `LABOR→ARK-02` and "on its way to ARK-02 (cycling the airlock)". Same-room jobs keep the old straight steering. The planner is used only across zones or when the straight line is blocked.
+- **Save mid-trip**: each crew row saves `wz` (work zone), `fw` (follow-why) and `nv` (goal, zone, kind, step index). On load it re-plans from where the crew member stands, so a survivor saved halfway along the lane carries on to ARK-02.
+- **Side fixes**:
+  - The ARK-01 grow lab accepts planters once its hatch is open. They breathe the lab's air and use your water.
+  - Benches placed inside an ARK are not clamped to the base grid.
+  - The harness waits for the airlock to come to its side before using it.
+  - Playthrough harness: a relapsed survivor that bolts (not hostile) stays skittish and will not take the bait while it can see you. In the one-room base it always can, so the harness now waits in the airlock out of sight. This showed up as 2 failed runs out of 3 once crew positions changed. It is a harness fix; the game rule is unchanged.
+- **Judgement calls**:
+  - **Crew never cycle you outside.** With you in the chamber, the lock is yours to work. Crew pulling the player out unasked would be a nasty surprise.
+  - **The reserve rule is strict but not free.** The 15 % + 3 s margin rules out the far ARK-03 run on a cold reserve unless an open ARK on the way gives a breath stop. Crew still spend reserve and lock air, and nothing gets cheaper.
+  - **Bodies ride along.** A downed survivor left in the chamber used to block the lock forever. Now only awake crew going the other way hold it.
+  - **Refusals stay quiet.** "Can't reach" goes to the monitor log and the order result. There is no toast or beep, so the warnings stay missable.
+  - **ARK air is finite.** ARK-02 air is not topped up for crew. A survivor working there uses the room's O2 like anywhere else, and the old "air thinning" note covers it.
+  - **Same-room steering stays the same**, so v0.3.9 bench teams and haul loops are unchanged.
+- **Numbers**:
+  - `?playthrough`: won at sim **827 s** (v0.3.9: 823 s), 47 top-ups as before.
+  - `?playthrough&labor`: won at sim **1118 s** (v0.3.9: 1050 s), 0 top-ups, 57 scrap from labour. The ~68 s difference is crew walking the airlock and lanes where they used to warp.
+- **Tests (selftest slice42)**:
+  - A_doors: FOLLOW joins the lock, cycles out, crosses into ARK-01, walks home and cycles in. No warps.
+  - B_lock: never both doors open over about 2,500 sim steps, with ≥ 2 crew cycles.
+  - C_order: LABOR @ ARK-02 arrives in about 30 s and makes scrap. The "no air" and "hatch sealed" refusals leave the job unchanged.
+  - D_save: saved halfway along the lane, loaded, re-planned and arrived.
+  - E_help: v0.4.0, no v1.0.
+  - Selftest 3×: 196 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
+- **Screenshots**: `play/v040_s42_airlock.png` and `play/v040_s42_route.png`.

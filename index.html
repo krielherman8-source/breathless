@@ -16224,7 +16224,7 @@ function runShot(name){
         for (; n < 1200 && !(a.zone() === 'airlock' && al.outerOpen > .7); n++){ airUp(); pre(.05); }
         for (let i = 0; i < 6; i++){ airUp(); pre(.05); }
         game.lucidNet._crewOrder({ op: 'imp_job', target: b.tag, job: 'labor', via: 'panel', zone: 'ark2' });
-        look(2.3, al.zOuter + 3.6, 0, 1.05, al.zMid + .4);
+        look(-1.7, al.zOuter + 3.3, .2, 1.05, al.zMid + .4);
       } else {
         for (; n < 400; n++){ airUp(); pre(.05); }
         game.lucidNet._crewOrder({ op: 'imp_job', target: b.tag, job: 'labor', via: 'panel', zone: 'ark2' });
