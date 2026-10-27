@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>BREATHLESS - v0.3.7 (air safety polish)</title>
+<title>BREATHLESS - v0.3.8 (landfill gas)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   /* slice 25: shared UI tokens — every panel / HUD box / button pulls from these */
@@ -167,7 +167,7 @@
   <div id="lucidui" class="panel"><span class="close">[Esc] close</span><h2 id="lucidtitle">LUCID LINK</h2><div class="meta" id="lucidmeta"></div><div class="ctrlcmds" id="ctrlcmds" style="display:none"></div><div id="lucidlist"></div><div class="crew sect" id="crewlist" style="display:none"></div><div class="orbcmds" id="orbcmds" style="display:none"></div><div class="last" id="lucidlast"></div></div>
   <div id="hint"><kbd>H</kbd> controls &nbsp; <kbd>B</kbd> build &nbsp; <kbd>Esc</kbd> pause</div>
   <div id="help">
-    <div class="ttl">CONTROLS<span>[H] close · v0.3.7</span></div>
+    <div class="ttl">CONTROLS<span>[H] close · v0.3.8</span></div>
     <div class="hcols">
     <div class="sec"><h4>MOVE &amp; ACT</h4>
       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>Esc</kbd> pause<br>
@@ -219,6 +219,11 @@
       <b>Fire</b>: rich air (30 %+) plus a spark — strained or shorted cable, burst pipe, running generator — can light one. Hold <kbd>E</kbd> to douse it (base tank water, else your canteen). Below 17 % O2 it starves; above 24 % it grows and cooks the cable it sits on.<br>
       <b>Salvage caches</b>: half-buried debris (orange beacon) on the surface and in the ARKs. Hold <kbd>F</kbd> once to scan, then <kbd>E</kbd> strips +2 scrap until it is bare. Crew on LABOR stay the main scrap source.<br>
       <b>Sump hose reel</b> (3 scrap): <kbd>E</kbd> the sump pump to clip on, walk it home, <kbd>E</kbd> the base surface intake. T1 runs ~28 % over — it weeps before it bursts: hold <kbd>E</kbd> to patch, <kbd>G</kbd> to collar it up a tier.</div>
+    <div class="sec"><h4>LANDFILL GAS (CELL 4)</h4>
+      South of the crash site, past the sign, is a capped landfill mound. Hold <kbd>F</kbd> on the <b>Cell 4 vent stack</b> once: it unlocks the wellhead family. On the drill pad, <kbd>E</kbd> fits the <b>gas wellhead</b> (T1 0.5 L/s ≈ 125 W of burner fuel), then the <b>blower skid</b> (T2 0.9 L/s) and the <b>lateral headers</b> (T3 1.4 L/s, needs a T2 gas pipe). The field is finite — about 9000 L — and the yield falls as it empties.<br>
+      Fit a <b>gas burner</b> on a generator, open the <b>base gas inlet</b> (+x wall, high) and pipe it to the yellow gas train: the generator burns methane first, briquettes only as backup.<br>
+      <b>Methane</b> is light and unbreathable. Loose in the base it pools under the ceiling; it burns between 5 and 15 % — a running generator, a strained cable or a burst pipe can light the layer (flash), and a whole room in that band goes up at once. The monitor shows CH4. A <b>flare stack</b> burns surplus at the pad; without one a pressed main weeps through the inlet — a <b>gas trap cartridge</b> soaks that up.<br>
+      Dig the refuse face with <kbd>V</kbd> for scrap and salvage, but gas pockets are buried in it: buried steel or the laser can spark them.</div>
     <div class="sec"><h4>NOW</h4><div id="helpObj">—</div></div>
     <div class="sec"><h4>FLIGHT LOG</h4><div id="helpLog">No logs recovered yet. Read the pod log and the ARK records terminals.</div></div>
     <div class="sec"><h4>INTRO</h4>
@@ -246,7 +251,7 @@
   <p id="starthint"><b>Click to begin</b> &nbsp; <span style="opacity:.6">(<kbd>Shift</kbd>+click replays the intro · <kbd>Space</kbd> skips it)</span></p>
   <div id="savebox" style="display:none"><div class="row"><button id="btnContinue" class="sbtn main">Continue</button><button id="btnNew" class="sbtn">New game</button></div><div class="row"><button id="btnSetT" class="sbtn small">Settings</button></div><div id="saveinfo"></div></div>
   <div id="savenote" style="display:none"></div>
-  <div class="ver">v0.3.7 · BREATHING ROOM</div>
+  <div class="ver">v0.3.8 · BREATHING ROOM</div>
 </div>
 <div id="settings"><div class="card"><h3>SETTINGS</h3>
 <label>Mouse sensitivity <input id="setSens" type="range" min="0.25" max="3" step="0.05"></label>
@@ -265,7 +270,7 @@
 import * as THREE from './lib/three.module.js';
 
 /* =====================================================================
-   BREATHLESS v0.3.7  (v0.3.7: visible fire FX, readable regulator gauge, flight-log continuity, hint gate, crash-walk saves; versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.6: rich air is a
+   BREATHLESS v0.3.8  (v0.3.8: Cell 4 landfill — methane wellhead T1-T3 + flare, gas burner on generators, CH4 ceiling layer / flash / blast, refuse dig with gas pockets; v0.3.7: visible fire FX, readable regulator gauge, flight-log continuity, hint gate, crash-walk saves; versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.6: rich air is a
    fire risk (O2 > 30 %: quiet RICH tell, sparks from strained cables / burst pipes / generators can start a small fire; O2 regulator bleeds
    the excess), starter hose weeps ~12 min before it bursts (drips, hiss, creaks), scannable salvage caches (surface + ARKs), crew-labour hint;
    HISTORY — v0.3.5: full scripted
@@ -453,6 +458,13 @@ const CFG = {
       { id: 'collar_dock', name: 'Collar dock',             tier: 1, scrap: 6, note: 'Place with [E] on the base floor; cable it (60 W while charging). Crew below 30% walk over and recharge (empty → full in 2 min)', startUnlocked: true },
       { id: 'o2_planter', name: 'O2 planter',               tier: 1, scrap: 6, note: 'Place with [E] in the base: another oxygen plant (+1.9 O2/s when mature). Each awake survivor breathes 0.9', startUnlocked: true },
       { id: 'o2_regulator', name: 'O2 regulator',           tier: 1, scrap: 5, note: 'Place with [E] in the base: a bleed valve on a ceiling vent riser. Vents base O2 above its setpoint (23/25/28 %, [E] to change). Rich air above 30 % is a fire risk', startUnlocked: true },
+      // v0.3.8: landfill gas (scan the cell-4 vent stack / the wrecked LFG genset)
+      { id: 'gas_well',      name: 'Gas wellhead kit',       tier: 2, scrap: 8,  note: 'Take it to the drill pad on the landfill toe + [E]: casing, valve and gauge on the old borehole. Yields 0.5 L/s of methane into the buried main', scan: 'lf_vent' },
+      { id: 'well_blower',   name: 'Well blower skid',       tier: 2, scrap: 7,  note: 'Bolt onto the wellhead [E]: a gas-driven blower pulls the field harder (0.9 L/s)', scan: 'lf_vent' },
+      { id: 'well_laterals', name: 'Lateral gas headers',    tier: 3, scrap: 10, note: 'Fit to a blown wellhead [E]: two collector laterals up the mound (1.4 L/s). Drains the cell faster', scan: 'lf_vent' },
+      { id: 'flare_stack',   name: 'Flare stack',            tier: 2, scrap: 6,  note: 'Fit beside the wellhead [E]: burns surplus gas when the main is full instead of letting it weep into the base', scan: 'lf_vent' },
+      { id: 'gas_filter',    name: 'Gas trap cartridge',     tier: 1, scrap: 3,  note: 'Fit to the base gas inlet [E]: adsorbs methane weeping through the gland seal (240 L)', scan: 'lf_vent' },
+      { id: 'gas_burner',    name: 'Generator gas burner',   tier: 2, scrap: 6,  note: 'Aim at a generator + [E]: a gas train on its side. Pipe the base gas inlet to the nipple; it burns methane before briquettes', scan: 'lf_genset' },
       { id: 'mining_drill', name: 'Mining drill', tier: 5, scrap: 24, note: 'Place with [E] on floor; cable 150 W; faces diggable cells / berm. Output → loader or ground.', scan: 'drill_head' },
       { id: 'drill_bit', name: 'Hardened drill bit', tier: 3, scrap: 8, note: 'Aim at a placed mining drill + [E]: faster dig, cuts hard rock', scan: 'drill_head' },
       { id: 'control_chip', name: 'LUCID control chip', tier: 5, scrap: 8, note: 'Aim at pump/generator chip bay + [E]: central control + brownout priority (1–9) when LUCID is installed', scan: 'control_schematic' },
@@ -537,7 +549,7 @@ const CFG = {
     returnScrub: 0.88,      // RETURN coupling: fraction of incoming CO2 converted to O2 before dumping to the room
     co2FeedTip: 0.12,       // feed mix CO2 frac that triggers the roof-mount tip
     co2Stick: 0.15,         // CO2 is heavy: it pools in the hole and leaves through openings at 15% of the rate
-    soilCO2: { soil: 0.16, ore: 0.08, rock: 0.03 },   // trapped gas released into the pocket when a cell is dug
+    soilCO2: { soil: 0.16, ore: 0.08, rock: 0.03, refuse: 0.06 },   // trapped gas released into the pocket when a cell is dug
     seep: 0.00055,          // CO2 per exposed soft (soil/ore) face per s — the ground keeps breathing out...
     seepCap: 0.30,          // ...until the pocket is 30% CO2 (world source, like the plant is for O2)
     maxPressure: 1.15,      // a sealed pocket fed past this bleeds the excess out through its seals
@@ -658,7 +670,7 @@ const CFG = {
     cable: 'Power cable', fuel_brick: 'Fuel briquettes', generator: 'Generators', battery: 'Batteries',
     cable_sleeve: 'Cable sleeves', breaker: 'Breakers', gen_manifold: 'Gen manifolds',
     liquid_pipe: 'Liquid pipe', liquid_pump: 'Liquid pumps', liquid_filter: 'Liquid filters',
-    control_link: 'Control links', snare_cage: 'Snare cages', snare_cage_t2: 'Reinforced cages', mood_collar: 'Mood collars', collar_dock: 'Collar docks', o2_planter: 'O2 planters', o2_regulator: 'O2 regulators',
+    control_link: 'Control links', snare_cage: 'Snare cages', snare_cage_t2: 'Reinforced cages', mood_collar: 'Mood collars', collar_dock: 'Collar docks', o2_planter: 'O2 planters', gas_well: 'Wellhead kits', well_blower: 'Blower skids', well_laterals: 'Lateral headers', flare_stack: 'Flare stacks', gas_filter: 'Gas trap cartridges', gas_burner: 'Gas burner kits', o2_regulator: 'O2 regulators',
     soil: 'Soil', ore_scrap: 'Ore scrap', omni_tool: 'Omni-tool',
     conveyor_belt: 'Conveyor belts', conveyor_loader: 'Conveyor loaders', conveyor_unloader: 'Conveyor unloaders',
     orb_arm: 'Orb arm actuators', clearance_chip: 'ARK clearance chips',
@@ -761,7 +773,7 @@ const CFG = {
     closeT: 0.85, ventT: 1.35, pressT: 1.35, openT: 0.85,   // cycle phase timings (s)
   },
   outdoor: {
-    w: 22, d: 50,           // slice 26: 34→50 for the ARK-03 approach (slice 20: 18x24→22x34 for ARK-02)
+    w: 22, d: 66,           // v0.3.8: 50→66 for the landfill beyond ARK-03 (slice 26: 34→50 for the ARK-03 approach (slice 20: 18x24→22x34 for ARK-02)
     h: 4,
     volume: 12000,          // large thin atmosphere (frac O2 << breathable)
     startO2: 12, startCO2: 4,// absolute gas units — quiet lethal outdoors
@@ -792,6 +804,35 @@ const CFG = {
   },
   // v0.3.6: O2 overshoot is realistic, not capped. Above warn the air is quietly flagged; the longer it stays rich the
   // likelier a spark source (strained / shorted cable, burst pipe, running generator) lights a small fire.
+  // v0.3.8 (slice 40): methane — light (pools under the ceiling), flammable 5-15 %, not breathable
+  ch4: {
+    layer: 4,               // roof intakes / the ceiling layer see 4x the room-average CH4 share (floor sees /4)
+    lel: .05, uel: .15,     // flammable band (ceiling layer for a flash, room average for a blast)
+    warnCeil: .025,         // monitor goes amber + one LUCID line (quiet, missable)
+    smellCeil: .04,         // rotten-egg odorant toast (the gas main is stenched)
+    asphyx: .30,            // above 30 % CH4 a volume is not breathable (displaces the air)
+    pocketLift: 2.5,        // light gas leaves an open dig pocket 2.5x faster than the mix (CO2 lingers, CH4 lifts)
+    sparkK: .03,            // ignitions / s per spark source (same sources as the rich-air fire) while in band
+    flash: { suit: 14, pipeDmg: .35, r: 3.4, burn: .75, fires: 1 },   // ceiling flash: burns the layer, singes what is near
+    blast: { suit: 45, pipeDmg: .75, burstP: .45, fires: 2 },         // the whole room in band: deflagration
+    pocket: { suit: 12 },   // a spark (dig-laser / pick on buried steel) in a gassy dig pocket
+  },
+  landfill: {
+    x: -3.2, zOff: 58.4, rx: 7.2, rz: 5.5, h: 3.0,   // Northfield landfill cell 4: capped mound north of ARK-03
+    well: { x: 1.15, zOff: 51.7 },   // drill pad on the south-east toe
+    tiers: [0.5, 0.9, 1.4],          // well yield L/s on a full field: T1 bare casing, T2 +blower skid, T3 +lateral headers
+    reserve: 9000,                   // litres of recoverable gas left in the cell
+    declineExp: .5,                  // yield x (remaining/reserve)^0.5 — a long, slow tail
+    idleDraw: .25,                   // T1 (no blower) only pulls 25 % once the main is pressed full
+    gasJ: 250,                       // J per litre burned (200 W = 0.8 L/s; 350 W manifold = 1.4 L/s)
+    mainCap: 80,                     // litres the buried main to the base holds
+    weep: .06,                       // full main + no flare: 6 % of what the well pulls seeps through the base inlet gland
+    filterL: 240,                    // gas trap cartridge: litres of weep it adsorbs before it is spent
+    inletMax: 2.0,                   // inlet valve throughput cap (L/s) — the pipe tier is the real limit
+    genBuf: 14, genRefill: .25, genFeedCap: 1.6,   // generator burner kit: buffer L, top-up L/s, max draw L/s
+    dig: { i0: 500, k0: 500, ni: 6, nj: 5, nk: 5, cellCH4: .03, pocketCH4: 40, scrapP: .4, metalP: .3 },
+    side: { runS: 120, scrap: 8 },   // optional: run a generator on cell-4 gas for 2 min
+  },
   o2rich: {
     warn: .30, rearm: .015,  // flag above 30 % (re-arms once back under 28.5 %)
     smellS: 240,            // s of rich air before the 'sharp air' toast (second, still quiet warning)
@@ -900,8 +941,9 @@ class EventBus {
 }
 
 // ---------- 3. Gas ----------
+const GAS_KEYS = ['o2', 'co2', 'ch4'];   // v0.3.8: methane is a real gas now (lighter than air, flammable 5-15 %, not breathable)
 class GasContainer {
-  constructor(volume, gases = {}){ this.volume = volume; this.gases = { o2: 0, co2: 0, ...gases }; }
+  constructor(volume, gases = {}){ this.volume = volume; this.gases = { o2: 0, co2: 0, ch4: 0, ...gases }; }   // v0.3.8: + methane
   total(){ return Object.values(this.gases).reduce((a, b) => a + b, 0); }
   frac(g){ return this.gases[g] / Math.max(this.volume, this.total()); }
   pressure(){ return this.total() / this.volume; }
@@ -943,7 +985,7 @@ class PipeNetwork {
   }
   rebuildPorts(){
     this.ports.clear();
-    for (const pump of [...this.g.pumps, ...(this.g.intakes || [])]){ if (pump.medium !== this.medium) continue; pump.ports = pump.portInfo(); for (const po of pump.ports) if (po.state !== 'none') this.ports.set(po.key, po); }
+    for (const pump of [...this.g.pumps, ...(this.g.intakes || []), ...(this.g.gasIntakes || [])]){ if (pump.medium !== this.medium) continue; pump.ports = pump.portInfo(); for (const po of pump.ports) if (po.state !== 'none') this.ports.set(po.key, po); }
     this.refresh();
   }
   refresh(){ for (const p of this.pipes.values()){ const po = this.ports.get(p.key), open = !!(po && po.state === 'open'); p.rebuild(this.conns(p), open, open ? new THREE.Vector3(Math.sin(po.pump.yaw), 0, Math.cos(po.pump.yaw)) : null); } }
@@ -974,7 +1016,7 @@ class PipeNetwork {
     const g = this.g; this.dt = dt;   // sinks get a RATE from route(); liquid sinks deposit rate x this.dt (slice 8 fix)
     for (const p of this.pipes.values()){ p.inflow = p.rated = p.leakRate = p.openSpill = 0; p.ratedBranches = 0; }
     for (const s of this.sinks) s.rate = 0;
-    for (const pump of [...g.pumps, ...(g.intakes || [])]){   // slice 33: + the sump's surface intake
+    for (const pump of [...g.pumps, ...(g.intakes || []), ...(g.gasIntakes || [])]){   // slice 33 (+ v0.3.8 landfill gas inlet): + the sump's surface intake
       if (pump.medium !== this.medium) continue;
       const open = pump.ports.filter(po => po.state === 'open'), n = open.length || 1;
       const rate = pump.flow / n, rated = pump.ratedFlow() / n;
@@ -988,8 +1030,7 @@ class PipeNetwork {
       const back = Math.max(0, pump.flow - vent) * dt;
       if (this.medium === 'gas'){
         const src = pump.srcVol || g.room, out = Math.max(0, vent - this._direct);   // slice 17: blow-back to the pump's own volume
-        src.add('o2', back * pump.mix.o2); src.add('co2', back * pump.mix.co2);
-        g.surface.add('o2', out * dt * pump.mix.o2); g.surface.add('co2', out * dt * pump.mix.co2);
+        for (const gk of GAS_KEYS){ const m = pump.mix[gk] || 0; if (m <= 0) continue; src.add(gk, back * m); g.surface.add(gk, out * dt * m); }   // v0.3.8: every gas (CH4 leaks pool in the room)
       } else {
         // liquid: leaked / open-end spill → puddle (floor wetness); uncoupled outlet / unrouted → return to source
         let leaked = 0;
@@ -1504,6 +1545,7 @@ class ScanFind extends Entity {
   }
   buildMesh(g, kind){
     this.hit = [];
+    if (typeof kind === 'function'){ kind(g, this); return; }   // v0.3.8: bespoke prop builders (landfill)
     const M = {
       dirty: new THREE.MeshStandardMaterial({ color: 0x6a5a3a, roughness: .8, metalness: .2 }),
       steel: new THREE.MeshStandardMaterial({ color: 0x7f8d98, metalness: .7, roughness: .4 }),
@@ -1701,7 +1743,7 @@ class ScrapCrate extends Entity {
 class PocketNet {
   constructor(game){
     this.g = game; this.list = []; this.byCell = new Map(); this.seals = new Map(); this.sealCols = new Map();
-    this.pending = new Map(); this.seq = 0; this.released = 0; this.seeped = 0; this._dugN = 0; this.hazeRoot = null;
+    this.pending = new Map(); this.pendingCH4 = new Map(); this.releasedCH4 = 0; this.seq = 0; this.released = 0; this.seeped = 0; this._dugN = 0; this.hazeRoot = null;
     this.feedSel = null;   // slice 18: explicit FEED target pocket id (null = most recently sealed)
   }
   static parse(k){ return k.split(',').map(Number); }
@@ -1716,6 +1758,7 @@ class PocketNet {
     if (!this.enabled()) return;
     const cell = this.g.voxels.get(d.i, d.j, d.k); if (!cell || !cell.zone) return;   // ARK floor samples: no pocket
     this.pending.set(this.g.voxels.key(d.i, d.j, d.k), CFG.pocket.soilCO2[d.mat] ?? 0);
+    if (cell.entity?.ch4) this.pendingCH4.set(this.g.voxels.key(d.i, d.j, d.k), cell.entity.ch4);   // v0.3.8: landfill refuse breathes methane
     this.rebuild();
   }
   rebuild(){
@@ -1724,7 +1767,7 @@ class PocketNet {
     if (!this.enabled()) return;
     this.g.liquids?.snapshot();   // slice 32: liquid follows its cells through merge / split / seal
     const share = new Map();   // per-cell gas of the old pockets (gas spreads evenly through a pocket)
-    for (const p of this.list){ const n = p.cells.size || 1; for (const k of p.cells) share.set(k, { o2: p.gas.gases.o2 / n, co2: p.gas.gases.co2 / n, p }); }
+    for (const p of this.list){ const n = p.cells.size || 1; for (const k of p.cells) share.set(k, { o2: p.gas.gases.o2 / n, co2: p.gas.gases.co2 / n, ch4: (p.gas.gases.ch4 || 0) / n, p }); }
     const todo = new Set();
     for (const k of V.dug){ const c = V.cells.get(k); if (c && c.zone && !this.seals.has(k)) todo.add(k); }
     const comps = [];
@@ -1748,16 +1791,18 @@ class PocketNet {
       const gas = new GasContainer(cells.size * P.cellVol);
       for (const k of cells){
         const s = share.get(k);
-        if (s){ gas.add('o2', s.o2); gas.add('co2', s.co2); share.delete(k); }
+        if (s){ gas.add('o2', s.o2); gas.add('co2', s.co2); if (s.ch4) gas.add('ch4', s.ch4); share.delete(k); }
         else for (const g of ['o2', 'co2']) gas.add(g, O.take(g, O.gases[g] / O.volume * P.cellVol));   // thin outdoor air rushes in
         const rel = this.pending.get(k); if (rel){ gas.add('co2', rel); this.released += rel; this.pending.delete(k); }
+        const rm = this.pendingCH4?.get(k); if (rm){ gas.add('ch4', rm); this.releasedCH4 = (this.releasedCH4 || 0) + rm; this.pendingCH4.delete(k); }   // v0.3.8: landfill refuse
         by.set(k, pk);
       }
       pk.cells = cells; pk.gas = gas; pk.zone = V.cells.get(cells.values().next().value).zone;
       this.faces(pk); list.push(pk);
     }
-    for (const s of share.values()){ O.add('o2', s.o2); O.add('co2', s.co2); }   // cells that left every pocket (curtained)
+    for (const s of share.values()){ O.add('o2', s.o2); O.add('co2', s.co2); if (s.ch4) O.add('ch4', s.ch4); }   // cells that left every pocket (curtained)
     for (const v of this.pending.values()){ O.add('co2', v); this.released += v; } this.pending.clear();
+    if (this.pendingCH4){ for (const v of this.pendingCH4.values()){ O.add('ch4', v); this.releasedCH4 = (this.releasedCH4 || 0) + v; } this.pendingCH4.clear(); }
     this.list = list; this.byCell = by;
     for (const pk of list){
       const was = pk.sealed; pk.sealed = pk.openFaces === 0;
@@ -1806,16 +1851,16 @@ class PocketNet {
     for (const s of new Set(this.seals.values())) if (s.kind !== 'sealHatch') s.flap = occ.has(s) ? 1 : Math.max(0, (s.flap || 0) - dt * 1.5);
     for (const pk of this.list){
       const gas = pk.gas, k = this.conductance(pk); pk.leak = 0;
-      if (k > 0) for (const g of ['o2', 'co2']){
-        const dp = gas.gases[g] / gas.volume, dout = O.gases[g] / O.volume;
-        const f = Math.min(1, k * ((g === 'co2' && dp > dout) ? P.co2Stick : 1) * dt), amt = (dp - dout) * gas.volume * f;
+      if (k > 0) for (const g of GAS_KEYS){
+        const dp = (gas.gases[g] || 0) / gas.volume, dout = (O.gases[g] || 0) / O.volume; if (g === 'ch4' && dp <= 0 && dout <= 0) continue;
+        const f = Math.min(1, k * ((g === 'co2' && dp > dout) ? P.co2Stick : (g === 'ch4' && dp > dout) ? CFG.ch4.pocketLift : 1) * dt), amt = (dp - dout) * gas.volume * f;   // v0.3.8: CH4 is buoyant — it leaves open faces faster
         if (amt > 0) O.add(g, gas.take(g, amt)); else gas.add(g, O.take(g, -amt));
         pk.leak += Math.abs(amt) / Math.max(dt, 1e-9);
       }
       if (pk.soilFaces && gas.frac('co2') < P.seepCap){ const s = pk.soilFaces * P.seep * dt; gas.add('co2', s); this.seeped += s; }
       const tot = gas.total(), cap = gas.volume * P.maxPressure;
-      if (tot > cap){ const ex = tot - cap; for (const g of ['o2', 'co2']) O.add(g, gas.take(g, gas.gases[g] / tot * ex)); }
-      const good = gas.frac('o2') >= CFG.gas.breathableO2 && gas.frac('co2') < CFG.gas.toxicCO2;
+      if (tot > cap){ const ex = tot - cap; for (const g of GAS_KEYS) if (gas.gases[g] > 0) O.add(g, gas.take(g, gas.gases[g] / tot * ex)); }
+      const good = gas.frac('o2') >= CFG.gas.breathableO2 && gas.frac('co2') < CFG.gas.toxicCO2 && gas.frac('ch4') < CFG.ch4.asphyx;
       if (good !== pk.breathable){ pk.breathable = good; this.g.bus.emit('pocket:air', pk); }
       if (pk.hazeMat) pk.hazeMat.opacity = Math.min(.42, gas.frac('co2') * 1.25);
     }
@@ -2106,7 +2151,7 @@ class PocketReturn extends Entity {
     let o2 = amount * mix.o2, co2 = amount * mix.co2;
     const scrub = Math.min(co2, co2 * CFG.pocket.returnScrub);
     co2 -= scrub; o2 += scrub; this.scrubbed += scrub;
-    this.game.room.add('o2', o2); this.game.room.add('co2', co2);
+    this.game.room.add('o2', o2); this.game.room.add('co2', co2); if (mix.ch4) this.game.room.add('ch4', amount * mix.ch4);   // v0.3.8
     this.total += amount;
   }
   prompt(){
@@ -2137,7 +2182,7 @@ class PocketFeed extends Entity {
   accept(rate){ this.rate += rate; }
   deliver(amount, mix){
     const pk = this.game.pockets.feedTarget(), vol = pk ? pk.gas : this.game.outdoor;
-    vol.add('o2', amount * mix.o2); vol.add('co2', amount * mix.co2); this.delivered += amount;
+    vol.add('o2', amount * mix.o2); vol.add('co2', amount * mix.co2); if (mix.ch4) vol.add('ch4', amount * mix.ch4); this.delivered += amount;   // v0.3.8
     if (pk){ pk.fed = (pk.fed || 0) + amount; this.toPocket += amount; }
     this.target = pk;
     // slice 18: quiet tip when the feed is pumping a CO2-heavy (floor-intake) mix
@@ -2190,7 +2235,7 @@ class Player {
     const pk = this.pocket = this.zone === 'surface' ? this.game.pockets.pocketAt(this.pos) : null;   // slice 17: standing in a dig pocket
     const vol = this.game.volumeAt(this.pos);
     const o2f = vol.frac('o2'), co2f = vol.frac('co2');
-    const good = !this.submerged && o2f >= CFG.gas.breathableO2 && co2f < CFG.gas.toxicCO2 && vol.gases.o2 > 0.01;   // slice 32: no air under the liquid
+    const good = !this.submerged && o2f >= CFG.gas.breathableO2 && co2f < CFG.gas.toxicCO2 && vol.frac('ch4') < CFG.ch4.asphyx && vol.gases.o2 > 0.01;   // slice 32: no air under the liquid
     if (pk && !good && !this.submerged) this.game.pocketWarn(pk);
     if (vol.gases.o2 > 0) { const used = vol.take('o2', P.o2Use * dt); vol.add('co2', used); }
     if (good){
@@ -2550,9 +2595,9 @@ class GasPump extends Entity {
     // slice 17: a pump standing in a dig pocket draws that pocket (or the outdoors); base pumps draw the room as before
     const src = this.srcVol = this.digPlace ? game.volumeAt({ x: this.cx, z: this.cz }) : game.room;
     const mix = game.intakeMix(this.roof, src);         // intake samples its gas layer (floor = heavy CO2)
-    const a = src.take('o2', want * dt * mix.o2), b = src.take('co2', want * dt * mix.co2), moved = a + b;
+    const a = src.take('o2', want * dt * mix.o2), b = src.take('co2', want * dt * mix.co2), m = mix.ch4 > 0 ? src.take('ch4', want * dt * mix.ch4) : 0, moved = a + b + m;   // v0.3.8: + CH4 (a roof intake skims the ceiling layer)
     this.flow = dt > 0 ? moved / dt : 0;
-    this.mix = moved > 0 ? { o2: a / moved, co2: b / moved } : mix;
+    this.mix = moved > 0 ? { o2: a / moved, co2: b / moved, ch4: m / moved } : mix;
     if (this.filter > 0) this.filter = Math.max(0, this.filter - moved / CFG.pump.filterLife * 100);  // wears with throughput
     this.pumped += moved;
   }
@@ -3614,7 +3659,7 @@ class Generator extends Entity {
   starved(g){ return g.room.frac('o2') < CFG.power.generator.minO2; }
   // slice 26: rated watts = base + boost manifold add-on (ARK-03 blueprint). Visible add-on, same object grows.
   ratedW(){ return CFG.power.generator.maxW + (this.manifold ? CFG.ark3.manifoldW : 0); }
-  availW(g){ if (this.fuel <= 0 || this.starved(g)) return 0; return this.ratedW() * this.derate(); }
+  availW(g){ if (this.starved(g)) return 0; const gw = this.gasKit ? genGasW(this) : 0; if (this.fuel <= 0 && gw <= 0) return 0; return (this.fuel > 0 ? this.ratedW() : Math.min(this.ratedW(), gw)) * this.derate(); }   // v0.3.8: methane first
   fitManifold(game){
     if (this.manifold) return { ok: false, msg: 'Boost manifold already fitted.' };
     if (!game.freeBuild && !game.takeItem('gen_manifold')) return { ok: false, msg: 'Need a boost manifold (craft T3 after scanning ARK-03).' };
@@ -3632,11 +3677,12 @@ class Generator extends Entity {
   }
   burn(w, dt, g){   // called by PowerNetwork every tick with the watts actually drawn
     const G = CFG.power.generator; this.out = w;
+    if (this.gasKit) w = genGasBurn(this, w, dt);   // v0.3.8: burner kit takes the joules from the gas buffer first
     if (w > 0){
       this.fuel = Math.max(0, this.fuel - w * dt);
-      const o = g.room.take('o2', G.co2PerW * w * dt); g.room.add('co2', o); this.co2 += o;   // combustion: quiet CO2 cost
     }
-    const load = w / this.ratedW();
+    if (this.out > 0){ const o = g.room.take('o2', G.co2PerW * this.out * dt); g.room.add('co2', o); this.co2 += o; }   // combustion: quiet CO2 cost (CH4 + 2 O2 → CO2 + 2 H2O; same O2→CO2 per W)
+    const load = this.out / this.ratedW();
     if (load > G.heatOver) this.heat = Math.min(100, this.heat + G.heatRise * (load - G.heatOver) / (1 - G.heatOver) * dt);
     else this.heat = Math.max(0, this.heat - G.heatCool * dt);
   }
@@ -3651,24 +3697,26 @@ class Generator extends Entity {
     const c = this.model.cv.getContext('2d'), G = CFG.power.generator, run = this.out > 0;
     c.fillStyle = run ? '#021a26' : '#010609'; c.fillRect(0, 0, 256, 160); c.strokeStyle = '#1d6f8f'; c.lineWidth = 4; c.strokeRect(2, 2, 252, 156);
     c.font = 'bold 18px monospace'; c.fillStyle = run ? '#4dff88' : this.fuel <= 0 ? '#a8893e' : '#4a6470';
-    c.fillText(run ? '\u25CF RUNNING' : this.fuel <= 0 ? '\u25CC NO FUEL' : this.starved(this.game) ? '\u25CC NO O2' : '\u25CB IDLE', 12, 26);
+    c.fillText(run ? (this._gasUse > .01 ? '\u25CF RUNNING CH4' : '\u25CF RUNNING') : this.fuel <= 0 && !(this.gasKit && this.gasBuf > .05) ? '\u25CC NO FUEL' : this.starved(this.game) ? '\u25CC NO O2' : '\u25CB IDLE', 12, 26);
     c.font = '13px monospace'; c.fillStyle = '#7fb3c8'; c.fillText(`${Math.round(this.out)} / ${Math.round(this.ratedW() * this.derate())} W`, 150, 25);
     c.fillStyle = '#7fb3c8'; c.fillText('OUTPUT', 12, 52); bar(c, 80, 40, 164, 16, this.out / this.ratedW(), '#38c8ff');
     c.fillText('FUEL', 12, 84); bar(c, 80, 72, 164, 16, this.fuel / this.tank, this.fuel < G.brickJ * .5 ? '#ffc34a' : '#4dff88', Math.ceil(this.fuel / this.tank * 100) + '%');
     c.fillText('HEAT', 12, 116); bar(c, 80, 104, 164, 16, this.heat / 100, this.heat > G.heatDerate ? '#ff8a2a' : '#5a8fa8', Math.round(this.heat) + '%');
     c.fillStyle = '#4f7f96'; c.font = '11px monospace'; c.fillText(`EXHAUST CO2 ${(G.co2PerW * this.out).toFixed(2)}/s`, 12, 146);
+    if (this.gasKit){ c.fillStyle = this._gasUse > .01 ? '#ffd27a' : '#6a8a96'; c.fillText(`CH4 ${(this._gasUse || 0).toFixed(2)} L/s · ${this.gasBuf.toFixed(1)} L`, 150, 146); }
     this.model.tex.needsUpdate = true;
   }
   prompt(game, part){
     if (part === 'chip') return this.chipPrompt(game);
     const n = game.inv.fuel_brick || 0, pct = Math.ceil(this.fuel / this.tank * 100);
     const act = this.fuel > this.tank - CFG.power.generator.brickJ * .5 ? 'tank full' : n ? `[E] load briquette (${n})` : 'no briquettes (craft T1)';
-    const mf = this.manifold ? ' +manifold' : game.hasItem('gen_manifold') ? ' - [E] bolt boost manifold' : '';
+    const mf = (this.manifold ? ' +manifold' : game.hasItem('gen_manifold') ? ' - [E] bolt boost manifold' : '') + (this.gasKit ? ` +gas burner (CH4 ${(this._gasUse || 0).toFixed(2)} L/s, buffer ${this.gasBuf.toFixed(1)} L)` : game.hasItem('gas_burner') ? ' - [E] fit gas burner' : '');
     return `Small generator${mf} - ${Math.round(this.out)}${this.manifold ? '/' + this.ratedW() : ''} W - fuel ${pct}% - heat ${Math.round(this.heat)}% - ${act}`;
   }
   interact(dt, game, part, first){
     if (!first) return;
     if (part === 'chip'){ this.chipInteract(game); return; }
+    if (!this.gasKit && game.hasItem('gas_burner')){ const r = fitGasKit(game, this); game.ui.toast(r.msg, 4200); if (r.ok) beep(620, .06); return; }   // v0.3.8
     if (!this.manifold && game.hasItem('gen_manifold')){ const r = this.fitManifold(game); game.ui.toast(r.msg, 3000); if (r.ok) beep(660, .06); return; }   // slice 26
     if (this.fuel > this.tank - CFG.power.generator.brickJ * .5){ game.ui.toast('Hopper is full.', 1800); return; }
     if (!game.takeItem('fuel_brick')){ game.ui.toast('No fuel briquettes. Craft them at the table (T1).', 2800); return; }
@@ -4287,7 +4335,7 @@ class Builder {
     if (e instanceof Generator || e instanceof Battery || e instanceof Breaker){
       for (const [i, j, k] of e.cells) g.occ.delete(GRID.key(i, j, k));
       g.world.removeRef(e); g.remove(e); g.scene.remove(e.mesh); g.power.removeNode(e);
-      if (e instanceof Generator){ g.generators = g.generators.filter(x => x !== e); if (!g.freeBuild){ g.giveItem('generator', 1); const b = Math.floor(e.fuel / CFG.power.generator.brickJ); if (b) g.giveItem('fuel_brick', b); } }
+      if (e instanceof Generator){ g.generators = g.generators.filter(x => x !== e); if (e.gasSink) genGasUnhook(g, e); if (!g.freeBuild){ g.giveItem('generator', 1); const b = Math.floor(e.fuel / CFG.power.generator.brickJ); if (b) g.giveItem('fuel_brick', b); } }
       else if (e instanceof Battery){ g.batteries = g.batteries.filter(x => x !== e); if (!g.freeBuild) g.giveItem('battery', 1); }   // stored charge is lost
       else { g.breakers = g.breakers.filter(x => x !== e); if (!g.freeBuild) g.giveItem('breaker', 1); }
       return true;
@@ -5899,6 +5947,632 @@ function carveSeepTunnel(g, zone, depth = 3, opts = {}){
   g.liquids?.update(0); return out;
 }
 function seepSpot(zone, li, lk = 5){ return new THREE.Vector3(zone.ox + (li + .5) * GRID.c, 0, zone.oz + (lk + .0) * GRID.c); }
+
+// ---------- v0.3.8 (slice 40): Northfield landfill — methane as a power supply ----------
+// A capped refuse mound beyond ARK-03. Its old gas-collection field still makes landfill gas (CH4). Scan a vent stack →
+// build a wellhead on the drill pad (T1 casing → T2 blower skid → T3 lateral headers, + a flare stack), the gas runs
+// down the buried main to a +x wall inlet; pipe it (gas pipes, same overload bands) to a generator fitted with a gas
+// burner kit and the base runs on methane. The field is finite and declines (yield ∝ √remaining).
+// Methane is light (pools under the ceiling: roof intakes pull it), flammable 5-15 %, and not breathable. Leaks, an
+// unpiped open inlet, or a full main with no flare (gland weep) build it up quietly; the same spark sources as the
+// rich-air fire light it (ceiling flash or, if the whole room is in band, a blast). Digging the mound gives scrap and
+// salvage but opens gas pockets — a laser or a pick on buried steel can flash a pocket while it is in band.
+function lfZ0(g){ const al = g.airlock; return (al ? al.zOuter : R.d / 2 + CFG.airlock.chamberDepth) + .05; }
+const lfSS = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+function lfHash(a, b){ const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); }
+function lfNoise(x, z){
+  const xi = Math.floor(x), zi = Math.floor(z), xf = x - xi, zf = z - zi, u = xf * xf * (3 - 2 * xf), v = zf * zf * (3 - 2 * zf);
+  return lerp(lerp(lfHash(xi, zi), lfHash(xi + 1, zi), u), lerp(lfHash(xi, zi + 1), lfHash(xi + 1, zi + 1), u), v);
+}
+function lfFbm(x, z){ return lfNoise(x, z) * .55 + lfNoise(x * 2.1 + 7, z * 2.1 - 3) * .3 + lfNoise(x * 4.3 - 11, z * 4.3 + 5) * .15; }
+function lfDigRect(z0){ const D = CFG.landfill.dig, c = GRID.c, x0 = -7.6, zz = z0 + 54.0; return { x0, x1: x0 + D.ni * c, z0: zz, z1: zz + D.nk * c }; }
+function lfWellPos(z0){ const W = CFG.landfill.well; return new THREE.Vector3(W.x, 0, z0 + W.zOff); }
+// mound height (m) at world x,z: a flat cap on ~1:3 side slopes, settlement hollows, a working-face cut and the drill pad
+function lfHeight(x, z, z0){
+  const L = CFG.landfill, cx = L.x, cz = z0 + L.zOff, dx = (x - cx) / L.rx, dz = (z - cz) / L.rz;
+  const r = Math.hypot(dx, dz) + (lfNoise(x * .35 + 3, z * .35) - .5) * .12;
+  const t = lfSS(1.13, .56, r);
+  let h = L.h * t;
+  h += (lfFbm(x * .45, z * .45) - .5) * .42 * t + (lfNoise(x * 1.9, z * 1.9) - .5) * .06 * Math.min(1, t * 4);
+  h -= .32 * Math.exp(-((x - cx + 1.4) ** 2 + (z - cz - 1.0) ** 2) / 2.2) * t;   // settlement hollow on the cap
+  h += .1 * Math.max(0, Math.sin(r * 23)) * lfSS(.9, .7, r) * lfSS(.5, .65, r);   // bench / terrace lip on the flank
+  const D = lfDigRect(z0), s = .55;   // working face: the dig cell plus an access cut toward -z
+  const m = lfSS(D.x0 - .1 - s, D.x0 - .1, x) * (1 - lfSS(D.x1 + .1, D.x1 + .1 + s, x)) * (1 - lfSS(D.z1 - .05, D.z1 + .35, z));
+  h *= 1 - m;
+  const W = lfWellPos(z0), pm = lfSS(2.0, 1.25, Math.hypot(x - W.x, z - W.z));
+  h = lerp(h, Math.min(h, .03), pm);
+  return h;
+}
+function lfCanvas(w, h, draw){ const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const c = cv.getContext('2d'); draw(c, w, h); return cv; }
+function lfTex(cv, rep = 1, srgb = true){ const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); t.anisotropy = 8; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; }
+function lfRnd(seed){ let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+const LFM = {};   // shared landfill materials (built once)
+function lfMats(){
+  if (LFM.ok) return LFM; LFM.ok = true;
+  const rnd = lfRnd(4021);
+  const rustCv = lfCanvas(256, 256, (c, w, h) => {   // rust: streaked, pitted, flaking paint
+    c.fillStyle = '#5a3420'; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 1400; i++){ const v = rnd(); c.fillStyle = v < .35 ? `rgba(120,62,28,${.3 + rnd() * .4})` : v < .6 ? `rgba(40,22,14,${.3 + rnd() * .4})` : v < .8 ? `rgba(160,92,44,${.2 + rnd() * .3})` : `rgba(70,74,70,${.25 + rnd() * .3})`; c.beginPath(); c.arc(rnd() * w, rnd() * h, 1 + rnd() * 5, 0, 7); c.fill(); }
+    for (let i = 0; i < 70; i++){ const x = rnd() * w, y = rnd() * h, l = 20 + rnd() * 90, g = c.createLinearGradient(x, y, x, y + l); g.addColorStop(0, 'rgba(150,70,24,.55)'); g.addColorStop(1, 'rgba(150,70,24,0)'); c.fillStyle = g; c.fillRect(x, y, 1 + rnd() * 3, l); }
+  });
+  const rustT = lfTex(rustCv, 1), rustB = lfTex(rustCv, 1, false);
+  LFM.rust = new THREE.MeshStandardMaterial({ map: rustT, bumpMap: rustB, bumpScale: 1.2, roughness: .88, metalness: .35, color: 0xb08870 });
+  LFM.rustDark = new THREE.MeshStandardMaterial({ map: rustT, bumpMap: rustB, bumpScale: 1.2, roughness: .9, metalness: .3, color: 0x6a5446 });
+  LFM.steel = new THREE.MeshStandardMaterial({ color: 0x7c868c, roughness: .42, metalness: .78 });
+  LFM.galv = new THREE.MeshStandardMaterial({ color: 0x9aa4a6, roughness: .55, metalness: .7 });
+  LFM.dark = new THREE.MeshStandardMaterial({ color: 0x1b1f22, roughness: .6, metalness: .5 });
+  LFM.hdpe = new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: .38, metalness: .02 });
+  LFM.hdpeY = new THREE.MeshStandardMaterial({ color: 0xd8a018, roughness: .45, metalness: .05 });   // yellow gas-main HDPE
+  LFM.pvc = new THREE.MeshStandardMaterial({ color: 0xd9d6cc, roughness: .5, metalness: .02 });
+  LFM.red = new THREE.MeshStandardMaterial({ color: 0xa8231a, roughness: .45, metalness: .35 });
+  LFM.yel = new THREE.MeshStandardMaterial({ color: 0xe0b020, roughness: .5, metalness: .3 });
+  LFM.brass = new THREE.MeshStandardMaterial({ color: 0xb08a48, roughness: .35, metalness: .8 });
+  LFM.rubber = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: .92, metalness: 0 });
+  LFM.concrete = new THREE.MeshStandardMaterial({ map: lfTex(lfCanvas(256, 256, (c, w, h) => {
+    c.fillStyle = '#6c6a64'; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 2600; i++){ c.fillStyle = `rgba(${rnd() < .5 ? '30,30,28' : '150,148,140'},${rnd() * .22})`; c.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 3, 1 + rnd() * 3); }
+    c.strokeStyle = 'rgba(20,20,18,.7)'; c.lineWidth = 1.2; for (let i = 0; i < 7; i++){ c.beginPath(); let x = rnd() * w, y = rnd() * h; c.moveTo(x, y); for (let k = 0; k < 9; k++){ x += (rnd() - .5) * 40; y += (rnd() - .5) * 40; c.lineTo(x, y); } c.stroke(); }
+    const g = c.createRadialGradient(w * .6, h * .4, 10, w * .6, h * .4, 120); g.addColorStop(0, 'rgba(60,40,20,.35)'); g.addColorStop(1, 'rgba(60,40,20,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  })), roughness: .92, metalness: .02 });
+  LFM.paintGreen = new THREE.MeshStandardMaterial({ map: lfTex(lfCanvas(256, 128, (c, w, h) => {
+    c.fillStyle = '#3c5a3a'; c.fillRect(0, 0, w, h);
+    for (let x = 0; x < w; x += 8){ c.fillStyle = x % 16 ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.05)'; c.fillRect(x, 0, 3, h); }   // corrugation
+    for (let i = 0; i < 260; i++){ c.fillStyle = `rgba(${110 + rnd() * 50},${50 + rnd() * 20},20,${.3 + rnd() * .5})`; c.beginPath(); c.arc(rnd() * w, rnd() * h, 1 + rnd() * 6, 0, 7); c.fill(); }
+    for (let i = 0; i < 40; i++){ const x = rnd() * w, g = c.createLinearGradient(0, h * .2, 0, h); g.addColorStop(0, 'rgba(120,58,20,.6)'); g.addColorStop(1, 'rgba(120,58,20,0)'); c.fillStyle = g; c.fillRect(x, h * .2 + rnd() * 30, 2, h); }
+    c.fillStyle = 'rgba(230,220,190,.7)'; c.font = 'bold 18px monospace'; c.fillText('LFG-2 · 400 kW', 18, 34); c.font = '11px monospace'; c.fillText('NORTHFIELD GAS UTIL.', 20, 52);
+  })), roughness: .7, metalness: .35 });
+  const refuseCv = (seed, base) => lfCanvas(128, 128, (c, w, h) => {   // refuse (dig cells): compacted trash in clay
+    const r = lfRnd(seed); c.fillStyle = base; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 520; i++){ const v = r(); c.fillStyle = v < .5 ? `rgba(${30 + r() * 30},${24 + r() * 20},${16 + r() * 14},.8)` : v < .62 ? `rgba(${180 + r() * 60},${180 + r() * 60},${170 + r() * 60},.75)` : v < .7 ? 'rgba(40,80,150,.8)' : v < .76 ? 'rgba(160,30,24,.8)' : v < .82 ? 'rgba(20,20,22,.9)' : v < .9 ? 'rgba(120,70,30,.85)' : 'rgba(90,110,60,.6)';
+      const w2 = 1 + r() * 9, h2 = 1 + r() * 4; c.save(); c.translate(r() * w, r() * h); c.rotate(r() * 3); c.fillRect(-w2 / 2, -h2 / 2, w2, h2); c.restore(); }
+    for (let y = 0; y < h; y += 6 + r() * 10){ c.fillStyle = 'rgba(20,14,8,.35)'; c.fillRect(0, y, w, 1 + r() * 2); }   // compaction lifts
+  });
+  LFM.refuse = [refuseCv(11, '#3e3226'), refuseCv(29, '#4a3a2a'), refuseCv(53, '#302a24')].map(cv => new THREE.MeshStandardMaterial({ map: lfTex(cv), bumpMap: lfTex(cv, 1, false), bumpScale: 2, roughness: .93, metalness: .06 }));
+  LFM.refuseMetal = new THREE.MeshStandardMaterial({ map: rustT, bumpMap: rustB, bumpScale: 2, roughness: .75, metalness: .5, color: 0x8a7060 });
+  LFM.liner = new THREE.MeshStandardMaterial({ color: 0x0e1012, roughness: .32, metalness: 0, side: THREE.DoubleSide, alphaTest: .5,   // torn HDPE liner
+    alphaMap: lfTex(lfCanvas(128, 128, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.beginPath();
+      for (let a = 0; a < 64; a++){ const t = a / 64 * Math.PI * 2, rr = 44 + Math.sin(a * 1.7) * 8 + (rnd() - .5) * 22; c.lineTo(64 + Math.cos(t) * rr, 64 + Math.sin(t) * rr * .85); } c.fill();
+      c.fillStyle = '#000'; for (let i = 0; i < 5; i++){ c.beginPath(); c.arc(30 + rnd() * 70, 30 + rnd() * 70, 2 + rnd() * 7, 0, 7); c.fill(); } }), 1, false) });
+  LFM.wisp = new THREE.SpriteMaterial({ map: FXTEX.dot(), color: 0xb8c4a8, transparent: true, opacity: .1, depthWrite: false });
+  return LFM;
+}
+// mound surface texture: clay cap, dead grass, tyre tracks, erosion rills, exposed refuse, leachate stains
+function lfGroundTex(W, D){
+  const N = 1024, rnd = lfRnd(977);
+  return lfCanvas(N, N, (c) => {
+    const id = c.createImageData(N, N), d = id.data;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
+      const u = x / N * W * .6, v = y / N * D * .6, n = lfFbm(u, v), n2 = lfNoise(u * 6, v * 6), o = (y * N + x) * 4, grass = lfSS(.52, .7, lfNoise(u * 1.3 + 40, v * 1.3));
+      d[o] = lerp(74 + n * 46 + n2 * 14, 118 + n2 * 40, grass * .7); d[o + 1] = lerp(60 + n * 36 + n2 * 10, 100 + n2 * 30, grass * .7); d[o + 2] = lerp(44 + n * 24 + n2 * 8, 58 + n2 * 14, grass * .7); d[o + 3] = 255;
+    }
+    c.putImageData(id, 0, 0);
+    for (let p = 0; p < 34; p++){ const cx = rnd() * N, cy = rnd() * N, rr = 16 + rnd() * 50;   // exposed refuse where the cap eroded
+      for (let i = 0; i < 160; i++){ const a = rnd() * 7, q = Math.sqrt(rnd()) * rr, v = rnd();
+        c.fillStyle = v < .3 ? 'rgba(210,205,190,.85)' : v < .42 ? 'rgba(40,90,160,.85)' : v < .5 ? 'rgba(170,40,30,.85)' : v < .7 ? 'rgba(20,20,22,.85)' : v < .85 ? 'rgba(120,70,36,.85)' : 'rgba(60,120,60,.6)';
+        c.save(); c.translate(cx + Math.cos(a) * q, cy + Math.sin(a) * q); c.rotate(rnd() * 3); c.fillRect(-1 - rnd() * 3, -1, 2 + rnd() * 6, 1 + rnd() * 3); c.restore(); } }
+    for (let i = 0; i < 4200; i++){ const x = rnd() * N, y = rnd() * N; if (lfNoise(x / N * W * .78 + 40, y / N * D * .78) < .5) continue;   // dead grass tufts
+      c.strokeStyle = `rgba(${150 + rnd() * 50},${128 + rnd() * 40},${70 + rnd() * 30},.55)`; c.lineWidth = 1; c.beginPath(); for (let k = 0; k < 4; k++){ c.moveTo(x, y); c.lineTo(x + (rnd() - .5) * 7, y - 2 - rnd() * 6); } c.stroke(); }
+    for (let i = 0; i < 46; i++){ let x = rnd() * N, y = rnd() * N; c.strokeStyle = 'rgba(28,20,14,.5)'; c.lineWidth = 1 + rnd() * 2.2; c.beginPath(); c.moveTo(x, y);   // erosion rills
+      for (let k = 0; k < 24; k++){ x += (rnd() - .5) * 14; y += 6 + rnd() * 9; c.lineTo(x, y); } c.stroke(); }
+    for (let t = 0; t < 4; t++){ const y0 = N * (.2 + t * .17 + rnd() * .05), bend = (rnd() - .5) * 120;   // compactor tyre tracks
+      for (const off of [-11, 11]){ const Y = x => y0 + off + Math.sin(x / N * Math.PI) * bend; c.strokeStyle = 'rgba(30,24,18,.42)'; c.lineWidth = 7; c.beginPath(); for (let x = 0; x <= N; x += 16) x ? c.lineTo(x, Y(x)) : c.moveTo(x, Y(x)); c.stroke();
+        c.strokeStyle = 'rgba(10,8,6,.3)'; c.lineWidth = 2; for (let x = 0; x < N; x += 9){ c.beginPath(); c.moveTo(x, Y(x) - 3); c.lineTo(x + 4, Y(x) + 3); c.stroke(); } } }
+    for (let i = 0; i < 18; i++){ const x = rnd() * N, y = rnd() * N, rr = 14 + rnd() * 40, g = c.createRadialGradient(x, y, 1, x, y, rr); g.addColorStop(0, 'rgba(26,18,8,.75)'); g.addColorStop(.5, 'rgba(120,64,18,.4)'); g.addColorStop(1, 'rgba(120,64,18,0)'); c.fillStyle = g; c.fillRect(x - rr, y - rr, rr * 2, rr * 2); }   // leachate stains
+  });
+}
+function lfMesh(parent, geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0){ const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); parent.add(m); return m; }
+function lfVentStack(h = 1.35, lean = 0){   // gooseneck passive gas vent: concrete collar, rusted riser, 180° hood
+  const M = lfMats(), grp = new THREE.Group();
+  lfMesh(grp, new THREE.CylinderGeometry(.24, .3, .16, 16), M.concrete, 0, .06, 0);
+  const riser = new THREE.Group(); riser.rotation.z = lean; grp.add(riser);
+  lfMesh(riser, new THREE.CylinderGeometry(.075, .075, h, 14), M.rust, 0, h / 2 + .1, 0);
+  lfMesh(riser, new THREE.TorusGeometry(.095, .016, 8, 18), M.rustDark, 0, .32, 0, Math.PI / 2);
+  lfMesh(riser, new THREE.TorusGeometry(.14, .075, 12, 18, Math.PI), M.rust, .14, h + .1, 0);
+  lfMesh(riser, new THREE.CylinderGeometry(.075, .085, .22, 14), M.rust, .28, h - .01, 0);
+  lfMesh(riser, new THREE.CylinderGeometry(.09, .09, .02, 14), M.rustDark, .28, h - .12, 0);
+  lfMesh(riser, new THREE.BoxGeometry(.05, .05, .2), M.steel, 0, .55, 0);   // sample cock
+  return grp;
+}
+function lfTextTex(w, h, draw){ return lfTex(lfCanvas(w, h, draw), 1); }
+function lfWisp(game, p){ const s = new THREE.Sprite(lfMats().wisp.clone()); s.position.copy(p); s.scale.setScalar(.5); s.userData = { base: p.clone(), t: Math.random() * 4 }; game.scene.add(s); return s; }
+// ---- site art + entities ----
+function lfBuildArt(game, site){
+  const L = CFG.landfill, z0 = site.z0, scene = game.scene, M = lfMats(), cx = L.x, cz = z0 + L.zOff, H = (x, z) => lfHeight(x, z, z0);
+  { // heightfield mound
+    const W = 21, D = 15.4, geo = new THREE.PlaneGeometry(W, D, 132, 100); geo.rotateX(-Math.PI / 2);
+    const pos = geo.attributes.position, col = new Float32Array(pos.count * 3);
+    for (let i = 0; i < pos.count; i++){
+      const x = pos.getX(i) + cx, z = pos.getZ(i) + cz, h = H(x, z); pos.setY(i, h > .025 ? h : h - .06);
+      const wet = lfSS(.6, .05, h), top = lfSS(1.6, 2.8, h), n = .9 + lfNoise(x * 2, z * 2) * .2;
+      col[i * 3] = lerp(1, .62, wet) * lerp(1, 1.08, top) * n; col[i * 3 + 1] = lerp(1, .6, wet) * lerp(1, 1.06, top) * n; col[i * 3 + 2] = lerp(1, .58, wet) * n;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.computeVertexNormals();
+    const gcv = lfGroundTex(W, D), mound = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: lfTex(gcv), bumpMap: lfTex(gcv, 1, false), bumpScale: 3, roughness: .96, metalness: .02, vertexColors: true }));
+    mound.position.set(cx, 0, cz); mound.receiveShadow = true; scene.add(mound); site.mound = mound;
+  }
+  const drape = (px, pz, w, d, rot, mat, lift = .03) => {   // liner tears / exposed refuse sheets conforming to the cap
+    const gg = new THREE.PlaneGeometry(w, d, 14, 14); gg.rotateX(-Math.PI / 2); gg.rotateY(rot);
+    const p = gg.attributes.position; for (let i = 0; i < p.count; i++){ const x = p.getX(i) + px, z = p.getZ(i) + pz; p.setY(i, H(x, z) + lift + Math.sin(x * 7 + z * 3) * .015); }
+    gg.computeVertexNormals(); const m = new THREE.Mesh(gg, mat); m.position.set(px, 0, pz); scene.add(m); return m;
+  };
+  for (const [px, pz, w, d, r] of [[-1.2, 54.6, 2.2, 1.4, .4], [-6.0, 61.6, 2.6, 1.6, -.3], [1.6, 59.4, 1.8, 2.2, 1.1], [-8.6, 59.8, 1.6, 1.2, .8]]) drape(px, z0 + pz, w, d, r, M.liner);
+  for (const [px, pz, w, d, r, k] of [[-2.6, 55.2, 1.5, 1.0, .2, 0], [.2, 57.6, 1.2, 1.4, -.5, 1], [-5.0, 63.0, 1.8, 1.0, .1, 2], [-9.2, 57.0, 1.2, 1.6, .6, 1]]) drape(px, z0 + pz, w, d, r, M.refuse[k], .02);
+  { // scattered refuse bits (instanced), half-sunk into the cap
+    const n = 340, im = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ roughness: .7, metalness: .15 }), n), o = new THREE.Object3D(), colr = new THREE.Color(), r = lfRnd(71);
+    let made = 0;
+    for (let i = 0; i < n * 6 && made < n; i++){ const x = cx + (r() - .5) * 17, z = cz + (r() - .5) * 13, h = H(x, z); if (h < .08) continue; const v = r();
+      o.position.set(x, h + .01, z); o.rotation.set((r() - .5) * 1.4, r() * 6, (r() - .5) * 1.4); o.scale.set(.05 + r() * .22, .02 + r() * .07, .04 + r() * .16); o.updateMatrix(); im.setMatrixAt(made, o.matrix);
+      colr.setHex(v < .3 ? 0xcfc8b8 : v < .42 ? 0x2a5a9a : v < .5 ? 0x9a2a20 : v < .72 ? 0x18181a : v < .86 ? 0x6a4a2a : 0x4a6a3a); im.setColorAt(made, colr); made++; }
+    im.count = made; im.instanceMatrix.needsUpdate = true; scene.add(im);
+  }
+  for (const [x, zz, h, lean] of [[-5.3, 59.6, 1.5, 0], [-1.6, 60.4, 1.3, .05], [-3.6, 62.6, 1.2, -.22], [.9, 58.0, 1.4, 0], [-7.4, 61.4, 1.1, .3]]){   // vent stacks on the cap
+    const z = z0 + zz, v = lfVentStack(h, lean), gy = H(x, z) - .03; v.position.set(x, gy, z); v.rotation.y = (x * 1.7 + z) % 6; scene.add(v);
+    site.wisps.push(lfWisp(game, new THREE.Vector3(x + .28 * Math.cos(v.rotation.y), gy + h + .05, z - .28 * Math.sin(v.rotation.y)))); }
+  { // leachate pond: oily iridescent film, mud rim, dead reeds, scum, a sunk drum
+    const px = -9.0, pz = z0 + 51.2, shape = new THREE.Shape();
+    for (let a = 0; a <= 48; a++){ const t = a / 48 * Math.PI * 2, rr = 1 + (lfNoise(Math.cos(t) * 2 + 9, Math.sin(t) * 2) - .5) * .5, x = Math.cos(t) * 1.5 * rr, y = Math.sin(t) * rr; a ? shape.lineTo(x, y) : shape.moveTo(x, y); }
+    const pond = lfMesh(scene, new THREE.ShapeGeometry(shape, 32), new THREE.MeshPhysicalMaterial({ color: 0x1e1608, roughness: .06, metalness: .1, clearcoat: 1, clearcoatRoughness: .05, iridescence: 1, iridescenceIOR: 1.45, iridescenceThicknessRange: [180, 620] }), px, .028, pz, -Math.PI / 2); site.pond = pond;
+    const rim = new THREE.Mesh(new THREE.RingGeometry(1.0, 1.9, 48, 3), new THREE.MeshStandardMaterial({ color: 0x241a10, roughness: .55, metalness: .05 }));
+    { const p = rim.geometry.attributes.position; for (let i = 0; i < p.count; i++){ const x = p.getX(i), y = p.getY(i), k = 1 + (lfNoise(Math.atan2(y, x) * 3, 1) - .5) * .3; p.setX(i, x * 1.45 * k); p.setY(i, y * k); } }
+    rim.rotation.x = -Math.PI / 2; rim.position.set(px, .02, pz); scene.add(rim);
+    const reedM = new THREE.MeshStandardMaterial({ color: 0x4a3e26, roughness: .9 }), r = lfRnd(313);
+    for (let i = 0; i < 46; i++){ const a = r() * 7, rr = 1.45 + r() * .4, h = .35 + r() * .6; lfMesh(scene, new THREE.CylinderGeometry(.004, .009, h, 4), reedM, px + Math.cos(a) * rr * 1.4, h / 2, pz + Math.sin(a) * rr * .95, (r() - .5) * .5, 0, (r() - .5) * .5); }
+    const scum = new THREE.MeshStandardMaterial({ color: 0x8a8060, roughness: .9, transparent: true, opacity: .55 });
+    for (let i = 0; i < 9; i++){ const a = r() * 7, rr = r() * .9; lfMesh(scene, new THREE.CircleGeometry(.05 + r() * .12, 10), scum, px + Math.cos(a) * rr * 1.3, .032, pz + Math.sin(a) * rr * .8, -Math.PI / 2); }
+    lfMesh(scene, new THREE.CylinderGeometry(.29, .29, .88, 20), M.rustDark, px + .6, .14, pz + .2, Math.PI / 2 - .2, .4, 0);
+    game.world.addBox(px, pz, 2.6, 1.6, 0, .4, { walk: true });
+  }
+  { // car shell half-buried in the west flank
+    const car = new THREE.Group(); car.position.set(-9.2, .1, z0 + 58.2); car.rotation.set(.08, .9, -.32); scene.add(car);
+    lfMesh(car, new THREE.BoxGeometry(1.7, .5, .8), M.rust, 0, .25, 0); lfMesh(car, new THREE.BoxGeometry(.9, .36, .74), M.rustDark, -.12, .66, 0);
+    lfMesh(car, new THREE.BoxGeometry(.04, .3, .66), new THREE.MeshStandardMaterial({ color: 0x0a0c0e, roughness: .2, metalness: .6 }), .34, .66, 0, 0, 0, .5);
+    for (const x of [.55, -.55]) lfMesh(car, new THREE.TorusGeometry(.17, .07, 8, 16), M.rubber, x, .08, .41);
+    game.world.addBox(-9.2, z0 + 58.2, 1.6, 1.4, 0, 1);
+  }
+  { const fr = lfMesh(scene, new THREE.BoxGeometry(.62, 1.4, .62), new THREE.MeshStandardMaterial({ color: 0xb8b2a2, roughness: .5, metalness: .25 }), 1.85, .38, z0 + 55.6, .5, .7, .62);   // fridge
+    lfMesh(fr, new THREE.BoxGeometry(.04, .3, .04), M.steel, .33, .3, .2); lfMesh(fr, new THREE.BoxGeometry(.63, .02, .63), M.rustDark, 0, .1, 0); game.world.addBox(1.85, z0 + 55.6, .9, .9, 0, 1); }
+  for (const [x, zz, n] of [[3.0, 52.4, 3], [-.6, 50.2, 2], [-6.6, 52.9, 1], [-2.2, 56.9, 1]]){   // tyres
+    const z = z0 + zz; for (let i = 0; i < n; i++){ const t = lfMesh(scene, new THREE.TorusGeometry(.3, .11, 10, 22), M.rubber, x + i * .05, H(x, z) + .11 + i * .2, z, Math.PI / 2 + (i ? (i - 1.5) * .12 : .05)); if (n === 1) t.rotation.set(1.1, .3, 0); }
+    if (n > 1) game.world.addBox(x, z, .7, .7, 0, .6); }
+  for (const [x, zz, lay, m] of [[3.4, 50.9, 0, 'rust'], [-3.6, 51.4, 1, 'blue'], [-4.3, 52.0, 0, 'rustDark']]){   // drums
+    const z = z0 + zz, d = lfMesh(scene, new THREE.CylinderGeometry(.29, .29, .88, 20), m === 'blue' ? new THREE.MeshStandardMaterial({ color: 0x1e4a8a, roughness: .5, metalness: .3 }) : M[m], x, lay ? .29 : .44, z, lay ? Math.PI / 2 : 0, .6, 0);
+    for (const y of [.2, -.2]) lfMesh(d, new THREE.TorusGeometry(.29, .012, 6, 24), M.rustDark, 0, y, 0, Math.PI / 2);
+    game.world.addBox(x, z, .6, .6, 0, .9); }
+  { // site sign
+    const sg = new THREE.Group(); sg.position.set(2.9, 0, z0 + 49.4); sg.rotation.y = Math.PI + .25; scene.add(sg); const r = lfRnd(88);
+    const tex = lfTextTex(512, 288, (c, w, h) => {
+      c.fillStyle = '#dcd8c8'; c.fillRect(0, 0, w, h); c.fillStyle = '#1e3a2a'; c.fillRect(0, 0, w, 70); c.fillStyle = '#e8e4d4'; c.font = 'bold 40px sans-serif'; c.fillText('NORTHFIELD LANDFILL', 22, 50);
+      c.fillStyle = '#1a1a1a'; c.font = 'bold 30px sans-serif'; c.fillText('CELL 4  ·  CAPPED 2041', 22, 110);
+      for (let x = -40; x < w; x += 40){ c.fillStyle = '#e0b020'; c.beginPath(); c.moveTo(x, 130); c.lineTo(x + 20, 130); c.lineTo(x + 40, 150); c.lineTo(x + 20, 150); c.fill(); c.fillStyle = '#111'; c.beginPath(); c.moveTo(x + 20, 130); c.lineTo(x + 40, 130); c.lineTo(x + 60, 150); c.lineTo(x + 40, 150); c.fill(); }
+      c.fillStyle = '#b02018'; c.font = 'bold 44px sans-serif'; c.fillText('⚠ METHANE', 22, 200); c.font = 'bold 30px sans-serif'; c.fillStyle = '#1a1a1a'; c.fillText('NO NAKED FLAME · NO SMOKING', 22, 242);
+      c.font = '18px sans-serif'; c.fillText('LFG WELL FIELD — AUTHORISED PERSONNEL ONLY', 22, 272);
+      for (let i = 0; i < 90; i++){ const x = r() * w, y = r() * h, l = 10 + r() * 60, g = c.createLinearGradient(x, y, x, y + l); g.addColorStop(0, 'rgba(110,56,20,.55)'); g.addColorStop(1, 'rgba(110,56,20,0)'); c.fillStyle = g; c.fillRect(x, y, 1 + r() * 3, l); }
+      for (let i = 0; i < 14; i++){ c.fillStyle = 'rgba(40,24,12,.8)'; c.beginPath(); c.arc(r() * w, r() * h, 2 + r() * 5, 0, 7); c.fill(); }
+    });
+    lfMesh(sg, new THREE.BoxGeometry(1.7, .96, .03), [M.rustDark, M.rustDark, M.rustDark, M.rustDark, new THREE.MeshStandardMaterial({ map: tex, roughness: .6, metalness: .25 }), M.rust], 0, 1.55, 0, 0, 0, .04);
+    for (const x of [-.7, .7]) lfMesh(sg, new THREE.CylinderGeometry(.035, .04, 2.1, 10), M.galv, x, 1.05, -.03, x > 0 ? .05 : 0);
+    game.world.addBox(2.9, z0 + 49.4, 1.7, .25, 0, 2);
+  }
+  { // fence remnants: galvanised posts, sagging chain-link, a fallen panel
+    const chain = new THREE.MeshStandardMaterial({ color: 0x8c9496, roughness: .5, metalness: .7, side: THREE.DoubleSide, alphaTest: .4,
+      alphaMap: lfTex(lfCanvas(64, 64, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h); c.strokeStyle = '#fff'; c.lineWidth = 3; for (let i = -64; i < 128; i += 16){ c.beginPath(); c.moveTo(i, 0); c.lineTo(i + 64, 64); c.stroke(); c.beginPath(); c.moveTo(i + 64, 0); c.lineTo(i, 64); c.stroke(); } }), 1, false) });
+    chain.alphaMap.repeat.set(6, 4);
+    const posts = [[-10.6, 49.2, 0], [-8.8, 49.4, .06], [-7.0, 49.3, -.1], [-5.2, 49.5, .35], [-3.6, 49.4, 0]];
+    posts.forEach(([x, z, lean], i) => { lfMesh(scene, new THREE.CylinderGeometry(.03, .03, 1.9, 8), M.galv, x, .95, z0 + z, 0, 0, lean);
+      const nx = posts[i + 1]; if (!nx || i === 2) return; const w = Math.hypot(nx[0] - x, nx[1] - z), pg = new THREE.PlaneGeometry(w, 1.5, 10, 3), p = pg.attributes.position;
+      for (let k = 0; k < p.count; k++){ const u = p.getX(k) / w + .5; p.setY(k, p.getY(k) - Math.sin(u * Math.PI) * .28 * (p.getY(k) + .75)); p.setZ(k, Math.sin(u * 9 + p.getY(k) * 3) * .03); }
+      pg.computeVertexNormals(); const m = lfMesh(scene, pg, chain, (x + nx[0]) / 2, .95, z0 + (z + nx[1]) / 2); m.rotation.y = -Math.atan2(nx[1] - z, nx[0] - x); });
+    lfMesh(scene, new THREE.PlaneGeometry(1.8, 1.5), chain, -6.1, .04, z0 + 48.6, -Math.PI / 2 + .06, 0, .2);
+  }
+  { // sodium lamp on a leaning pole + a cold sky fill so the cap silhouette reads
+    const pole = new THREE.Group(); pole.position.set(-1.9, 0, z0 + 50.4); pole.rotation.z = .07; scene.add(pole);
+    lfMesh(pole, new THREE.CylinderGeometry(.06, .08, 4.0, 10), M.galv, 0, 2, 0); lfMesh(pole, new THREE.BoxGeometry(.9, .05, .05), M.galv, .42, 3.92, 0);
+    lfMesh(pole, new THREE.BoxGeometry(.42, .1, .2), M.dark, .82, 3.86, 0); lfMesh(pole, new THREE.BoxGeometry(.34, .03, .14), new THREE.MeshStandardMaterial({ color: 0xffb060, emissive: 0xff9a30, emissiveIntensity: 2.4 }), .82, 3.8, 0);
+    const sl = new THREE.PointLight(0xffa040, 9, 20, 1.5); sl.position.set(-1.1, 3.5, z0 + 50.6); scene.add(sl); site.sodium = sl;
+    const fill = new THREE.PointLight(0x7488a8, 3.2, 22, 1.4); fill.position.set(cx - 1, 6.5, cz + 1.5); scene.add(fill);
+    const rimL = new THREE.PointLight(0xc06030, 2.0, 12, 1.6); rimL.position.set(-9.5, 2.2, z0 + 54.5); scene.add(rimL);
+    game.world.addBox(-1.9, z0 + 50.4, .2, .2, 0, 4);
+  }
+  { // buried gas main: yellow marker posts from the pad back toward the base (x≈0.35, east of the walking lane)
+    const mk = new THREE.MeshStandardMaterial({ map: lfTextTex(64, 256, (c, w, h) => { c.fillStyle = '#e0b020'; c.fillRect(0, 0, w, h); c.fillStyle = '#1a1a1a'; c.font = 'bold 20px sans-serif'; c.save(); c.translate(40, 240); c.rotate(-Math.PI / 2); c.fillText('GAS MAIN ▲', 0, 0); c.restore(); }), roughness: .55 });
+    for (let z = 46.5; z > 4; z -= 6.5) lfMesh(scene, new THREE.BoxGeometry(.07, .7, .07), mk, .35, .35, z0 + z, 0, .4, .04 * Math.sin(z));
+  }
+  { // collision: the mound is not climbable (1 m cells where the cap stands above knee height); dig cut + pad stay open
+    const D = lfDigRect(z0);
+    for (let x = cx - 10; x < cx + 10; x += 1) for (let z = cz - 7.5; z < cz + 7.5; z += 1){
+      const px = x + .5, pz = z + .5, h = H(px, pz); if (h < .45 || Math.abs(px) > CFG.outdoor.w / 2) continue;
+      if (px > D.x0 - .7 && px < D.x1 + .7 && pz < D.z1 + .5) continue;
+      game.world.addBox(px, pz, 1, 1, 0, Math.min(2.6, h), { walk: true }); }
+  }
+}
+function buildLandfill(game, opts = {}){
+  const art = opts.art !== false && !!game.scene, z0 = lfZ0(game);
+  const site = game.landfill = { z0, wisps: [], art };
+  if (art) lfBuildArt(game, site);
+  const M = art ? lfMats() : null, H = (x, z) => art ? lfHeight(x, z, z0) : 0;
+  // scannable vent stack + gasmeter on the toe by the pad → wellhead kit family
+  const vPos = new THREE.Vector3(-.55, 0, z0 + 52.3); vPos.y = Math.max(0, H(vPos.x, vPos.z) - .02);
+  site.ventFind = game.add(new ScanFind(game, { id: 'lf_vent', recipeId: 'gas_well', label: 'Cell 4 gas vent + gasmeter', pos: vPos, yaw: .5,
+    lucidMsg: 'Landfill gas — mostly methane. The cell still breathes it. Patterns archived: wellhead, blower skid, lateral headers, flare stack, gas trap. Methane is light: inside the base it pools under the ceiling.',
+    kind: (g) => { if (!art){ lfMesh(g, new THREE.CylinderGeometry(.08, .08, 1.3), new THREE.MeshBasicMaterial(), 0, .65, 0); return; }
+      g.add(lfVentStack(1.25, 0));
+      const box = lfMesh(g, new THREE.BoxGeometry(.16, .22, .08), M.yel, 0, .78, .09);
+      lfMesh(box, new THREE.PlaneGeometry(.11, .07), new THREE.MeshBasicMaterial({ map: lfTextTex(64, 40, (c) => { c.fillStyle = '#0a1a08'; c.fillRect(0, 0, 64, 40); c.fillStyle = '#7dff70'; c.font = 'bold 15px monospace'; c.fillText('CH4 52%', 2, 16); c.font = '10px monospace'; c.fillText('CO2 41 · O2 1', 2, 32); }) }), 0, .04, .041);
+      lfMesh(g, new THREE.TorusGeometry(.03, .008, 6, 12), M.dark, 0, .62, .1); } }));
+  if (art) site.wisps.push(lfWisp(game, new THREE.Vector3(vPos.x + .28 * Math.cos(.5), vPos.y + 1.3, vPos.z - .28 * Math.sin(.5))));
+  // wrecked LFG genset container → generator gas burner kit
+  const gPos = new THREE.Vector3(-9.7, 0, z0 + 54.8);
+  site.gensetFind = game.add(new ScanFind(game, { id: 'lf_genset', recipeId: 'gas_burner', label: 'Wrecked LFG genset', pos: gPos, yaw: 1.85,
+    lucidMsg: 'The genset that used to burn this gas. Its fuel train is a usable pattern: a gas burner kit for our generator. Pipe the base gas inlet into it and it burns methane before briquettes.',
+    kind: (g) => { if (!art){ lfMesh(g, new THREE.BoxGeometry(2.2, 1, 1), new THREE.MeshBasicMaterial(), 0, .5, 0); return; }
+      const c = new THREE.Group(); c.rotation.z = .05; g.add(c);
+      lfMesh(c, new THREE.BoxGeometry(2.3, 1.05, 1.05), M.paintGreen, 0, .55, 0);
+      for (const x of [-1.15, 1.15]) lfMesh(c, new THREE.BoxGeometry(.06, 1.1, 1.1), M.rustDark, x, .55, 0);
+      lfMesh(c, new THREE.BoxGeometry(.7, .9, .03), M.paintGreen, .67, .52, .82, 0, -.9, 0);   // door hanging open
+      lfMesh(c, new THREE.BoxGeometry(2.0, .8, .02), M.dark, 0, .52, .53);
+      lfMesh(c, new THREE.BoxGeometry(.9, .6, .5), M.rust, .1, .4, .1);
+      lfMesh(c, new THREE.CylinderGeometry(.08, .08, .9, 12), M.rustDark, -.75, 1.45, -.2); lfMesh(c, new THREE.CylinderGeometry(.1, .08, .12, 12), M.rustDark, -.75, 1.92, -.2);
+      lfMesh(c, new THREE.PlaneGeometry(.6, .5), new THREE.MeshStandardMaterial({ color: 0x202020, roughness: .6, metalness: .6, alphaTest: .4, side: THREE.DoubleSide,
+        alphaMap: lfTex(lfCanvas(32, 32, (q) => { q.fillStyle = '#fff'; q.fillRect(0, 0, 32, 32); q.fillStyle = '#000'; for (let y = 2; y < 32; y += 4) q.fillRect(2, y, 28, 2); }), 1, false) }), 1.181, .6, 0, 0, Math.PI / 2, 0);
+      lfMesh(c, new THREE.BoxGeometry(.24, .3, .12), M.yel, -.6, .5, .56); lfMesh(c, new THREE.CylinderGeometry(.03, .03, .5, 8), M.yel, -.85, .3, .58, 0, 0, Math.PI / 2);
+      lfMesh(g, new THREE.BoxGeometry(2.6, .08, 1.3), M.concrete, 0, .02, 0); } }));
+  game.world.addBox(gPos.x, gPos.z, 1.4, 2.5, 0, 1.2);
+  if (!game._lfBusOn){ game._lfBusOn = true;
+    game.bus.on('scan:complete', sf => { if (sf?.scanId !== 'lf_vent') return;   // the vent archives the whole kit family without raising the table past T2
+      for (const id of ['well_blower', 'well_laterals', 'flare_stack', 'gas_filter']) if (!game.unlocks.recipes[id]){ game.unlocks.recipes[id] = true; game.bus.emit('unlock:recipe', { id, via: 'lf_vent', recipe: CFG.craft.recipes.find(x => x.id === id) }); }
+      if (!game._lfSide){ game._lfSide = 1; if (!game._loading) game.ui?.toast?.('SIDE JOB (optional): bring Cell 4 on line — wellhead on the pad, gas burner on a generator, pipe the base gas inlet to it.', 6200); } });
+    game.bus.on('dig:block', d => lfDigFlash(game, d)); }
+  site.well = game.add(new LandfillWell(game, lfWellPos(z0), art));
+  site.inlet = game.add(new LandfillGasInlet(game));
+  const dz = buildLandfillDig(game, z0, art); site.zone = dz.zone; site.digs = dz.digs;
+  return site;
+}
+// the working face: a cut into the refuse (walk-in, mouth toward -z, back into the mound)
+function buildLandfillDig(game, z0, art){
+  const S = CFG.landfill.dig, c = GRID.c, D = lfDigRect(z0);
+  const zone = makeDigZone({ id: 'landfill', i0: S.i0, j0: 0, k0: S.k0, ni: S.ni, nj: S.nj, nk: S.nk, ox: D.x0, oy: 0, oz: D.z0, label: 'Refuse face (Cell 4)', walkIn: true, backWall: 4 });
+  game.voxels.registerZone(zone);
+  const digs = [], r = lfRnd(1234), pockets = new Set(['2,1,2', '4,0,3', '1,2,4', '3,3,4', '5,1,1']);   // gas pockets in the waste (li,lj,lk)
+  for (let li = 0; li < S.ni; li++) for (let lj = 0; lj < S.nj; lj++) for (let lk = 0; lk < S.nk; lk++){
+    if ((lj === 4 && lk < 2) || (lj === 3 && lk < 1)) continue;   // stepped face
+    const metal = r() < S.metalP, scrapN = metal ? 1 + (r() < .35 ? 1 : 0) : r() < S.scrapP * .5 ? 1 : 0, salvage = !metal && r() < .12;
+    digs.push(game.add(new RefuseBlock(game, { i: S.i0 + li, j: lj, k: S.k0 + lk, zone, size: c * .985, art, ch4: pockets.has(li + ',' + lj + ',' + lk) ? S.pocketCH4 : S.cellCH4, metal, scrapN, salvage, variant: (li + lj * 2 + lk) % 3 })));
+  }
+  if (art && game.scene){ const l = new THREE.PointLight(0xb09070, 1.6, 6, 1.7); l.position.set(D.x0 + 1.5, 2.2, D.z0 - 1.2); game.scene.add(l); }
+  return { zone, digs };
+}
+class RefuseBlock extends DigBlock {
+  constructor(game, o){
+    super(game, { ...o, mat: 'refuse', plain: true, berm: true, drop: o.salvage ? 'ore_scrap' : 'soil', dropN: 1 });
+    this.ch4 = o.ch4 || 0; this.metal = !!o.metal; this.scrapN = o.scrapN || 0; this.kind = 'refuse';
+    if (o.art !== false && game.scene){ const M = lfMats(); this.body.material = this.metal ? M.refuseMetal : M.refuse[o.variant || 0];
+      if (this.metal){ const m = lfMesh(this.mesh, new THREE.CylinderGeometry(.025, .025, this.size * .9, 6), M.rust, 0, 0, -this.size * .5, .4, 0, 1.1); m.userData.entity = this; this.hit.push(m); } }
+  }
+  prompt(game){ const p = super.prompt(game); return p && !this.dug ? p.replace(/Soft refuse/, this.metal ? 'Compacted refuse (buried steel — sparks)' : 'Compacted refuse') : p; }
+  finish(game){
+    if (this.dug) return;
+    if (this.scrapN){ game.scrap += this.scrapN; game.ui.refreshInv?.(); }
+    super.finish(game);
+    if (this.scrapN) game.ui.toast?.(`Dug refuse: +${this.scrapN} scrap${this.metal ? ' (buried steel)' : ''}${this.drop === 'ore_scrap' ? ' + salvage' : ''}.`, 2400);
+  }
+}
+// a spark in a gas pocket while it sits inside the flammable band (laser cut, or the pick striking buried steel)
+function lfDigFlash(g, d){
+  if (d.mat !== 'refuse' || !g.pockets) return null;
+  const blk = g.voxels.get(d.i, d.j, d.k)?.entity, spark = d.laser || blk?.metal; if (!spark) return null;
+  const pk = g.pockets.byCell.get(g.voxels.key(d.i, d.j, d.k)); if (!pk) return null;
+  const C = CFG.ch4, f = pk.gas.frac('ch4'); if (f < C.lel || f > C.uel) return null;
+  const burn = Math.min(pk.gas.gases.ch4, pk.gas.gases.o2 / 2); pk.gas.take('ch4', burn); pk.gas.take('o2', burn * 2); pk.gas.add('co2', burn);
+  const P = g.player, near = Math.hypot(P.pos.x - d.wx, P.pos.z - d.wz) < 3; if (near) P.suit = Math.max(0, P.suit - C.pocket.suit);
+  g.ch4Events = (g.ch4Events || 0) + 1; g._lfPocketFlashes = (g._lfPocketFlashes || 0) + 1;
+  if (!g._loading){ ch4Fx(g, new THREE.Vector3(d.wx, (d.j + .5) * GRID.c, d.wz), .8, false); if (!SAVEQ.quiet) AUDIO.whoomp?.(.6);
+    g.ui?.toast?.(near ? `Gas pocket flashed — ${d.laser ? 'the laser' : 'steel on steel'} lit it. Suit −${C.pocket.suit}.` : 'A gas pocket flashed in the refuse face.', 3200);
+    if (!g._lucidPocketFlashSaid){ g._lucidPocketFlashSaid = true; g.lucidLine?.('That was a methane pocket in the waste. It burns between five and fifteen percent — let a fresh cut breathe before you put steel or the laser into it.', false); } }
+  g.bus.emit('ch4:pocket', { pk, burn }); return { burn, near };
+}
+// ---- the wellhead on the drill pad (static; kits bolt on as visible add-ons) ----
+class LandfillWell extends Entity {
+  constructor(game, pos, art = true){
+    super(); this.game = game; this.interactable = true; this.kind = 'landfillWell'; this.pos = pos.clone(); this.art = art && !!game.scene;
+    this.tier = 0; this.blower = false; this.laterals = false; this.flare = false; this.open = true;
+    this.rem = CFG.landfill.reserve; this.main = 0; this.pulled = 0; this.flared = 0; this.wasted = 0; this.prod = 0; this.flaring = 0; this.relief = 0; this.weepR = 0; this.paintT = 99; this._ft = 0;
+    const g = new THREE.Group(); g.position.copy(pos); this.mesh = g; this.hit = []; this.parts = {};
+    this.add = (parent, geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => { const m = lfMesh(parent, geo, mat, x, y, z, rx, ry, rz); m.userData.entity = this; this.hit.push(m); return m; };
+    const add = this.add;
+    if (this.art){ const M = lfMats();
+      add(g, new THREE.BoxGeometry(2.4, .1, 1.8), M.concrete, 0, .03, 0);
+      for (const x of [-1.05, 1.05]){ add(g, new THREE.CylinderGeometry(.07, .07, .8, 10), M.yel, x, .43, -.75); add(g, new THREE.CylinderGeometry(.075, .075, .06, 10), M.dark, x, .6, -.75); }
+      add(g, new THREE.CylinderGeometry(.13, .13, .22, 16), M.rust, 0, .17, 0); add(g, new THREE.CylinderGeometry(.19, .19, .04, 16), M.rustDark, 0, .29, 0);   // old borehole + blind flange
+      for (let i = 0; i < 6; i++){ const a = i / 6 * Math.PI * 2; add(g, new THREE.CylinderGeometry(.012, .012, .05, 6), M.steel, Math.cos(a) * .15, .31, Math.sin(a) * .15); }
+      add(g, new THREE.PlaneGeometry(.3, .16), new THREE.MeshBasicMaterial({ map: lfTextTex(128, 64, (c) => { c.fillStyle = '#d8c890'; c.fillRect(0, 0, 128, 64); c.fillStyle = '#222'; c.font = 'bold 18px monospace'; c.fillText('LFG-W17', 8, 26); c.font = '12px monospace'; c.fillText('CELL 4 · 18 m', 8, 48); }) }), .3, .36, -.75, -.3);
+    } else add(g, new THREE.BoxGeometry(1, .3, 1), new THREE.MeshBasicMaterial(), 0, .15, 0);
+    // blueprint ghost of the next kit: cyan when it can go in, red when blocked (you are standing on the borehole)
+    this.ghostMat = new THREE.MeshBasicMaterial({ color: 0x38c8ff, transparent: true, opacity: .32, depthWrite: false });
+    const gh = this.ghost = new THREE.Group(); gh.visible = false; g.add(gh);
+    this.ghostT1 = [lfMesh(gh, new THREE.CylinderGeometry(.11, .11, 1.0, 14), this.ghostMat, 0, .8, 0), lfMesh(gh, new THREE.TorusGeometry(.14, .025, 8, 18), this.ghostMat, .44, 1.26, 0, Math.PI / 2)];
+    this.ghostBlower = lfMesh(gh, new THREE.BoxGeometry(1.0, .6, .55), this.ghostMat, .75, .35, .45);
+    this.ghostFlare = lfMesh(gh, new THREE.CylinderGeometry(.13, .13, 3.3, 12), this.ghostMat, -.85, 1.65, .55);
+    this.ghostLat = lfMesh(gh, new THREE.BoxGeometry(.12, .12, 2.4), this.ghostMat, -.6, .15, 1.4, 0, .5, 0);
+    if (this.art) this.buildParts();
+    game.scene?.add(g); this.syncParts();
+  }
+  buildParts(){
+    const M = lfMats(), g = this.mesh, add = this.add, P = this.parts;
+    // T1: HDPE casing riser, wellhead cap, butterfly valve + red handwheel, sample ports, gauge, flex hose into the main, status screen
+    const t1 = P.t1 = new THREE.Group(); g.add(t1);
+    add(t1, new THREE.CylinderGeometry(.11, .11, .95, 18), M.pvc, 0, .78, 0); add(t1, new THREE.CylinderGeometry(.15, .15, .06, 18), M.dark, 0, .33, 0);
+    add(t1, new THREE.CylinderGeometry(.14, .14, .12, 18), M.dark, 0, 1.3, 0); add(t1, new THREE.SphereGeometry(.14, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), M.dark, 0, 1.36, 0);
+    add(t1, new THREE.CylinderGeometry(.075, .075, .4, 14), M.pvc, .22, 1.06, 0, 0, 0, Math.PI / 2); add(t1, new THREE.BoxGeometry(.12, .2, .2), M.steel, .44, 1.06, 0);
+    const wh = this.wheel = new THREE.Group(); wh.position.set(.44, 1.22, 0); t1.add(wh);
+    add(wh, new THREE.TorusGeometry(.12, .014, 8, 22), M.red, 0, .04, 0, Math.PI / 2); for (let i = 0; i < 3; i++) add(wh, new THREE.BoxGeometry(.24, .012, .012), M.red, 0, .04, 0, 0, i * Math.PI / 3, 0);
+    add(wh, new THREE.CylinderGeometry(.015, .015, .12, 8), M.steel, 0, -.02, 0);
+    for (const y of [.62, .9]) add(t1, new THREE.CylinderGeometry(.012, .012, .08, 8), M.brass, 0, y, .13, Math.PI / 2);
+    const gcv = this.gaugeCv = document.createElement('canvas'); gcv.width = gcv.height = 64; this.gaugeTex = new THREE.CanvasTexture(gcv);
+    add(t1, new THREE.CylinderGeometry(.06, .06, .03, 18), M.steel, -.16, 1.1, .07, Math.PI / 2); add(t1, new THREE.CircleGeometry(.052, 18), new THREE.MeshBasicMaterial({ map: this.gaugeTex }), -.16, 1.1, .087);
+    add(t1, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(.5, 1.06, 0), new THREE.Vector3(.75, 1.0, 0), new THREE.Vector3(.95, .5, -.1), new THREE.Vector3(1.0, .05, -.35), new THREE.Vector3(1.05, -.1, -.6)]), 24, .055, 10), M.hdpeY, 0, 0, 0);
+    add(t1, new THREE.BoxGeometry(.06, 1.25, .06), M.galv, -.7, .62, -.4);
+    const cv = this.cv = document.createElement('canvas'); cv.width = 256; cv.height = 160; this.tex = new THREE.CanvasTexture(cv); this.tex.colorSpace = THREE.SRGBColorSpace;
+    add(t1, new THREE.BoxGeometry(.5, .34, .08), M.dark, -.7, 1.25, -.4); add(t1, new THREE.PlaneGeometry(.44, .28), new THREE.MeshBasicMaterial({ map: this.tex }), -.7, 1.25, -.359, 0, Math.PI, 0);
+    // T2: blower skid — channel-steel skid, volute blower, small gas engine driving it, guard, ducting into the riser
+    const t2 = P.t2 = new THREE.Group(); g.add(t2);
+    for (const z of [.22, .68]) add(t2, new THREE.BoxGeometry(1.1, .08, .07), M.yel, .75, .1, z);
+    add(t2, new THREE.BoxGeometry(1.1, .03, .5), M.steel, .75, .15, .45);
+    add(t2, new THREE.CylinderGeometry(.24, .24, .2, 22), M.galv, .5, .42, .45, Math.PI / 2); add(t2, new THREE.BoxGeometry(.16, .3, .2), M.galv, .5, .66, .45);
+    this.fan = add(t2, new THREE.TorusGeometry(.17, .02, 6, 20), M.dark, .5, .42, .56); for (let i = 0; i < 3; i++) add(this.fan, new THREE.BoxGeometry(.32, .02, .01), M.dark, 0, 0, 0, 0, 0, i * Math.PI / 3);
+    add(t2, new THREE.BoxGeometry(.38, .3, .3), new THREE.MeshStandardMaterial({ color: 0x2a4a6a, roughness: .5, metalness: .4 }), 1.0, .34, .45); add(t2, new THREE.CylinderGeometry(.03, .03, .45, 8), M.rustDark, 1.12, .7, .52);
+    add(t2, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(.5, .82, .45), new THREE.Vector3(.5, 1.0, .3), new THREE.Vector3(.3, 1.06, .1), new THREE.Vector3(.12, 1.06, .02)]), 16, .06, 10), M.galv, 0, 0, 0);
+    this.blowerLamp = add(t2, new THREE.SphereGeometry(.025, 10, 8), new THREE.MeshStandardMaterial({ color: 0x222222, emissive: 0x000000 }), 1.0, .52, .61);
+    // T3: two lateral headers draped up the mound to small lateral wellheads
+    const t3 = P.t3 = new THREE.Group(); g.add(t3); const z0 = this.game.landfill?.z0 ?? lfZ0(this.game), wp = this.pos;
+    for (const [tx, tz] of [[-1.6, z0 + 55.6], [-4.0, z0 + 54.9]]){
+      const pts = [new THREE.Vector3(-.1, .6, 0)]; for (let i = 1; i <= 10; i++){ const u = i / 10, x = lerp(wp.x - .1, tx, u), z = lerp(wp.z + .12, tz, u); pts.push(new THREE.Vector3(x - wp.x, Math.max(.06, lfHeight(x, z, z0) + .07), z - wp.z)); }
+      add(t3, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, .05, 8), M.hdpe, 0, 0, 0);
+      const e = pts[pts.length - 1]; add(t3, new THREE.CylinderGeometry(.07, .07, .5, 12), M.pvc, e.x, e.y + .22, e.z); add(t3, new THREE.TorusGeometry(.07, .012, 6, 14), M.red, e.x, e.y + .5, e.z, Math.PI / 2);
+    }
+    add(t3, new THREE.BoxGeometry(.24, .2, .24), M.steel, -.1, .6, 0);
+    // flare stack: candlestick, windshield, flame arrestor, pilot line, guy wires; live flame + flicker light
+    const fl = P.flare = new THREE.Group(); fl.position.set(-.85, 0, .55); g.add(fl);
+    add(fl, new THREE.BoxGeometry(.5, .06, .5), M.concrete, 0, .03, 0); add(fl, new THREE.CylinderGeometry(.11, .13, 3.0, 14), M.dark, 0, 1.56, 0);
+    add(fl, new THREE.CylinderGeometry(.2, .16, .45, 16, 1, true), M.rustDark, 0, 3.15, 0); add(fl, new THREE.BoxGeometry(.24, .28, .24), M.steel, 0, .55, 0);
+    add(fl, new THREE.CylinderGeometry(.015, .015, 3.0, 6), M.brass, .14, 1.6, 0);
+    for (let i = 0; i < 3; i++){ const a = i / 3 * Math.PI * 2 + .4, top = new THREE.Vector3(0, 2.6, 0), foot = new THREE.Vector3(Math.cos(a) * 1.3, 0, Math.sin(a) * 1.3), mid = top.clone().add(foot).multiplyScalar(.5), len = top.distanceTo(foot);
+      const w = lfMesh(fl, new THREE.CylinderGeometry(.004, .004, len, 4), M.galv, mid.x, mid.y, mid.z); w.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), top.clone().sub(foot).normalize()); }
+    this.flarePipe = add(g, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-.12, 1.06, 0), new THREE.Vector3(-.5, .9, .2), new THREE.Vector3(-.75, .5, .5), new THREE.Vector3(-.85, .45, .55)]), 12, .04, 8), M.galv, 0, 0, 0);
+    this.flames = []; for (let i = 0; i < 5; i++){ const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: FXTEX.flame(), color: i < 2 ? 0xff7a20 : i < 4 ? 0xffb050 : 0xfff2d0, transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false }));
+      s.center.set(.5, .05); s.position.set((i - 2) * .03, 3.33, 0); s.userData = { ph: i * 1.7, w: .5 - i * .06, h: 1.2 - i * .14 }; fl.add(s); this.flames.push(s); }
+    this.flareLight = new THREE.PointLight(0xff8a30, 0, 14, 1.6); this.flareLight.position.set(0, 3.7, 0); fl.add(this.flareLight);
+  }
+  syncParts(){ const P = this.parts; if (P.t1) P.t1.visible = this.tier >= 1; if (P.t2) P.t2.visible = this.blower; if (P.t3) P.t3.visible = this.laterals; if (P.flare) P.flare.visible = this.flare; if (this.flarePipe) this.flarePipe.visible = this.flare; this.paintT = 99; }
+  setState(o){ Object.assign(this, o); this.tier = this.laterals ? 3 : this.blower ? 2 : this.tier ? 1 : 0; this.syncParts(); }
+  rate(){ if (!this.tier || this.rem <= 0) return 0; const L = CFG.landfill; return L.tiers[this.tier - 1] * Math.pow(Math.max(0, this.rem) / L.reserve, L.declineExp); }
+  fieldPct(){ return Math.max(0, this.rem / CFG.landfill.reserve); }
+  nextKit(){ return !this.tier ? 'gas_well' : !this.blower ? 'well_blower' : !this.laterals ? 'well_laterals' : null; }
+  update(dt, g){
+    const L = CFG.landfill; this.prod = this.flaring = this.relief = this.weepR = 0;
+    if (!this.tier || !this.open || this.rem <= 0 || dt <= 0) return;
+    let r = this.rate(); if (this.main >= L.mainCap - 1e-6 && !this.blower) r *= L.idleDraw;   // T1 has no blower: it idles once the main is pressed full
+    const pull = Math.min(this.rem, r * dt); this.rem -= pull; this.pulled += pull; this.prod = pull / dt;
+    const toMain = Math.min(pull, L.mainCap - this.main), ex = pull - toMain; this.main += toMain;
+    if (ex > 0){ if (this.flare){ this.flared += ex; this.flaring = ex / dt; } else { this.wasted += ex; this.relief = ex / dt; } }   // flare burns it at the pad; else the relief valve vents it outdoors
+    if (!this.flare && this.main >= L.mainCap * .98){   // pressed main, no flare: the base inlet's gland weeps
+      const w = Math.min(this.main, L.weep * Math.max(r, .05) * dt); this.main -= w; this.weepR = w / dt; const inl = g.landfill?.inlet; if (inl) inl.weepIn(w, g); else g.room.add('ch4', w); }
+  }
+  standingOnPad(game){ const p = game.player.pos; return Math.hypot(p.x - this.pos.x, p.z - this.pos.z) < .55; }
+  prompt(game){
+    const L = CFG.landfill, nk = this.nextKit(), has = k => game.freeBuild || game.hasItem(k);
+    const stat = this.tier ? ` T${this.tier}${this.flare ? '+flare' : ''} · ${this.open ? this.prod.toFixed(2) + ' L/s' : 'VALVE SHUT'} · field ${Math.round(this.fieldPct() * 100)}% · main ${Math.round(this.main)}/${L.mainCap} L${this.flaring > .01 ? ' · flaring' : this.relief > .01 ? ' · RELIEF venting' : this.weepR > 0 ? ' · main pressed' : ''}` : '';
+    if (!this.tier){ if (!game.recipeUnlocked('gas_well')) return 'Capped borehole LFG-W17 — scan the Cell 4 vent stack to see what it can feed';
+      return has('gas_well') ? (this.standingOnPad(game) ? 'Step off the borehole to fit the wellhead' : '[E] fit the gas wellhead on borehole LFG-W17') : 'Capped borehole LFG-W17 — craft a gas wellhead kit (T2)'; }
+    if (nk && has(nk)) return `Wellhead${stat} — [E] fit ${(CFG.invLabels[nk] || nk).toLowerCase()}`;
+    if (!this.flare && has('flare_stack')) return `Wellhead${stat} — [E] raise the flare stack`;
+    return `Wellhead${stat} — [E] ${this.open ? 'shut' : 'open'} the valve`;
+  }
+  interact(dt, game, part, first){ if (!first) return; const r = this.fit(game); game.ui.toast?.(r.msg, 3600); if (r.ok){ beep(560, .06); if (!SAVEQ.quiet) AUDIO.clank?.(); } }
+  fit(game, what){   // bolts on the next add-on (or the flare), else toggles the valve; `what` forces a kit (tests, free)
+    const has = k => game.freeBuild || game.hasItem(k), take = k => game.freeBuild || game.takeItem(k), L = CFG.landfill;
+    const nk = what ? (what === 'flare_stack' ? null : what) : this.nextKit();
+    if (nk && (what || has(nk))){
+      if (this.standingOnPad(game)) return { ok: false, msg: 'You are standing on the borehole.' };
+      if (nk === 'gas_well' && this.tier) return { ok: false, msg: 'Wellhead already fitted.' };
+      if (nk === 'well_blower' && (this.tier < 1 || this.blower)) return { ok: false, msg: 'The blower skid needs the wellhead casing first.' };
+      if (nk === 'well_laterals' && (!this.blower || this.laterals)) return { ok: false, msg: 'Lateral headers need the blower skid.' };
+      if (!what && !take(nk)) return { ok: false, msg: 'Missing kit.' };
+      if (nk === 'gas_well') this.tier = 1; else if (nk === 'well_blower'){ this.blower = true; this.tier = 2; } else { this.laterals = true; this.tier = 3; }
+      this.syncParts(); game.bus.emit('lf:well', this);
+      if (!game._loading && !game._lucidWellSaid){ game._lucidWellSaid = true; game.lucidLine?.('Gas in the main. Methane is lighter than air — loose in the base it will sit under the ceiling, and a spark will light it.', false); }
+      return { ok: true, msg: nk === 'gas_well' ? `Wellhead on: ${L.tiers[0]} L/s of methane into the buried main (≈${Math.round(L.tiers[0] * L.gasJ)} W of burner fuel). Pipe the base gas inlet (+x wall, high) to a generator gas burner.`
+        : nk === 'well_blower' ? `Blower skid on: ${L.tiers[1]} L/s (≈${Math.round(L.tiers[1] * L.gasJ)} W). It pulls even when nothing burns the gas — raise a flare or shut the valve.`
+        : `Lateral headers run up the cap: ${L.tiers[2]} L/s (≈${Math.round(L.tiers[2] * L.gasJ)} W). Too much for a T1 gas pipe — and the cell drains faster.` };
+    }
+    if (!this.flare && (what === 'flare_stack' || (this.tier && has('flare_stack')))){
+      if (this.tier < 1) return { ok: false, msg: 'The flare needs a wellhead to feed it.' };
+      if (this.standingOnPad(game)) return { ok: false, msg: 'You are standing on the pad.' };
+      if (what !== 'flare_stack' && !take('flare_stack')) return { ok: false, msg: 'Missing flare stack.' };
+      this.flare = true; this.syncParts(); game.bus.emit('lf:well', this); return { ok: true, msg: 'Flare stack up. Surplus gas burns at the pad instead of pressing the main into the base.' };
+    }
+    if (!this.tier) return { ok: false, msg: 'The borehole is capped. Craft a gas wellhead kit (scan the Cell 4 vent first).' };
+    this.open = !this.open; if (!SAVEQ.quiet) AUDIO.valve?.(); this.paintT = 99; return { ok: true, msg: this.open ? 'Wellhead valve open.' : 'Wellhead valve shut — the field rests (and stops draining).' };
+  }
+  visual(dt, t, game){
+    this._ft += dt;
+    const nk = this.nextKit(), has = k => game.hasItem(k), near = Math.hypot(game.player.pos.x - this.pos.x, game.player.pos.z - this.pos.z) < 4.5;
+    const what = nk && has(nk) ? nk : (!this.flare && this.tier && has('flare_stack')) ? 'flare_stack' : null;
+    this.ghost.visible = !!(near && what);
+    if (this.ghost.visible){ this.ghostMat.color.setHex(this.standingOnPad(game) ? 0xff4a3a : 0x38c8ff); this.ghostMat.opacity = .24 + .1 * Math.sin(t * 4);
+      const on = what === 'gas_well' ? this.ghostT1 : what === 'well_blower' ? [this.ghostBlower] : what === 'well_laterals' ? [this.ghostLat] : [this.ghostFlare];
+      for (const c of this.ghost.children) c.visible = on.includes(c); }
+    if (!this.art) return;
+    for (const w of game.landfill?.wisps || []){ const u = w.userData; u.t += dt; const k = (u.t % 4) / 4; w.position.set(u.base.x + Math.sin(u.t * .7) * .1 * k, u.base.y + k * .9, u.base.z + Math.cos(u.t * .5) * .08 * k); w.scale.setScalar(.25 + k * .7); w.material.opacity = .13 * Math.sin(k * Math.PI); }
+    if (this.fan && this.blower && this.open) this.fan.rotation.z += dt * 30;
+    if (this.blowerLamp) this.blowerLamp.material.emissive.setHex(this.blower && this.open ? 0x30ff70 : 0x200606);
+    const fl = this.flare && this.flaring > .01 ? Math.min(1, .35 + this.flaring / .8) : this.flare ? .12 : 0;   // pilot flame when idle
+    for (const s of this.flames || []){ const u = s.userData, f = .75 + .25 * Math.sin(this._ft * 11 + u.ph) + .1 * Math.sin(this._ft * 27 + u.ph * 2); s.visible = fl > 0; s.scale.set(u.w * (.5 + fl * .6), u.h * f * (.3 + fl * .9), 1); s.material.rotation = Math.sin(this._ft * 2.3 + u.ph) * .15; }
+    if (this.flareLight) this.flareLight.intensity = fl * (6 + Math.sin(this._ft * 19) * 1);
+    if (this.wheel) this.wheel.rotation.y = this.open ? 0 : Math.PI / 2;
+    this.paintT += dt; if (this.paintT > .5 && this.cv && this.tier){ this.paintT = 0; this.paint(); }
+  }
+  paint(){
+    const c = this.cv.getContext('2d'), L = CFG.landfill, fp = this.fieldPct(), bar = (x, y, w, h, f, col) => { c.fillStyle = '#0a2418'; c.fillRect(x, y, w, h); c.fillStyle = col; c.fillRect(x, y, w * Math.max(0, Math.min(1, f)), h); };
+    c.fillStyle = '#04130c'; c.fillRect(0, 0, 256, 160); c.strokeStyle = '#2a8a5a'; c.lineWidth = 3; c.strokeRect(2, 2, 252, 156);
+    c.fillStyle = this.open ? '#6dff9a' : '#ffb040'; c.font = 'bold 17px monospace'; c.fillText(`LFG-W17  T${this.tier}  ${this.open ? 'OPEN' : 'SHUT'}`, 10, 24);
+    c.font = '14px monospace'; c.fillStyle = '#9fe8c0';
+    c.fillText(`FIELD ${(fp * 100).toFixed(1)}%`, 10, 50); bar(130, 39, 116, 13, fp, fp < .2 ? '#ffb040' : '#4dff88');
+    c.fillText(`FLOW  ${this.prod.toFixed(2)} L/s`, 10, 76); c.fillText(`MAIN  ${Math.round(this.main)}/${L.mainCap} L`, 10, 100); bar(130, 89, 116, 13, this.main / L.mainCap, this.main >= L.mainCap * .98 ? '#ffb040' : '#38c8ff');
+    c.fillStyle = this.flaring > .01 ? '#ffb050' : this.relief > .01 ? '#ff6a4a' : this.weepR > 0 ? '#ffb040' : '#5a8a70'; c.fillText(this.flaring > .01 ? `FLARE ${this.flaring.toFixed(2)} L/s` : this.relief > .01 ? 'RELIEF VENTING' : this.weepR > 0 ? 'MAIN PRESSED · WEEP' : 'CH4 52% · CO2 41%', 10, 126);
+    c.fillStyle = '#5a8a70'; c.font = '11px monospace'; c.fillText(`${(this.rate() * L.gasJ).toFixed(0)} W of gas at full draw`, 10, 148);
+    this.tex.needsUpdate = true;
+    const q = this.gaugeCv.getContext('2d'); q.fillStyle = '#e8e4d8'; q.beginPath(); q.arc(32, 32, 31, 0, 7); q.fill(); q.strokeStyle = '#222'; q.lineWidth = 2;
+    for (let i = 0; i <= 8; i++){ const a = Math.PI * .75 + i / 8 * Math.PI * 1.5; q.beginPath(); q.moveTo(32 + Math.cos(a) * 24, 32 + Math.sin(a) * 24); q.lineTo(32 + Math.cos(a) * 29, 32 + Math.sin(a) * 29); q.stroke(); }
+    const a = Math.PI * .75 + Math.min(1, this.main / L.mainCap) * Math.PI * 1.5; q.strokeStyle = '#b02018'; q.lineWidth = 2.5; q.beginPath(); q.moveTo(32, 32); q.lineTo(32 + Math.cos(a) * 24, 32 + Math.sin(a) * 24); q.stroke(); this.gaugeTex.needsUpdate = true;
+  }
+}
+// ---- base end of the buried main: +x wall, high (j4), a gas port the pipe network sees as a pump ----
+class LandfillGasInlet extends Entity {
+  constructor(game, j = 4, k = 16){
+    super(); this.game = game; this.interactable = true; this.kind = 'gasInlet'; this.medium = 'gas'; this.mix = { ch4: 1 }; this.srcVol = game.room;
+    this.i = GRID.ni - 1; this.j = j; this.k = k; this.key = GRID.key(this.i, j, k); this.yaw = Math.PI / 2;
+    this.open = false; this.filter = 0; this.wept = 0; this.flow = 0; this.spill = 0; this.spillPorts = []; this.ports = []; this.delivered = 0; this.paintT = 99;
+    const c = GRID.center(this.i, j, k); this.pos = new THREE.Vector3(R.w / 2 - .3, 0, c.z);
+    if (game.scene){ const M = lfMats(), g = new THREE.Group(); g.position.set(R.w / 2, c.y, c.z);
+      const mk = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => { const m = lfMesh(g, geo, mat, x, y, z, rx, ry, rz); m.userData.entity = this; return m; };
+      mk(new THREE.BoxGeometry(.06, .5, .44), M.yel, -.03, 0, 0); mk(new THREE.CylinderGeometry(.05, .05, 1.0, 12), M.yel, -.12, -.6, .14);   // riser from the floor duct
+      mk(new THREE.CylinderGeometry(.06, .06, .24, 14), M.steel, -.16, 0, 0, 0, 0, Math.PI / 2); mk(new THREE.TorusGeometry(.07, .016, 8, 18), M.brass, -.28, 0, 0, 0, Math.PI / 2);
+      const wh = this.wheel = new THREE.Group(); wh.position.set(-.16, .13, 0); g.add(wh);
+      const wr = lfMesh(wh, new THREE.TorusGeometry(.07, .01, 6, 18), M.red, 0, .02, 0, Math.PI / 2); wr.userData.entity = this; lfMesh(wh, new THREE.BoxGeometry(.14, .01, .01), M.red, 0, .02, 0);
+      this.cart = mk(new THREE.CylinderGeometry(.055, .055, .2, 14), new THREE.MeshStandardMaterial({ color: 0x2a6a3a, roughness: .5, metalness: .3 }), -.1, -.12, -.16);
+      this.cv = document.createElement('canvas'); this.cv.width = 192; this.cv.height = 96; this.tex = new THREE.CanvasTexture(this.cv);
+      mk(new THREE.PlaneGeometry(.3, .15), new THREE.MeshBasicMaterial({ map: this.tex }), -.07, .17, -.12, 0, -Math.PI / 2, 0);
+      mk(new THREE.PlaneGeometry(.42, .08), new THREE.MeshBasicMaterial({ map: textTex(['⚠ CH4 · LANDFILL GAS IN'], 320, 60, '#1a1a1a', '#e0b020', 'bold 26px sans-serif') }), -.065, -.2, .07, 0, -Math.PI / 2, 0);
+      this.lamp = mk(new THREE.SphereGeometry(.02, 10, 8), new THREE.MeshStandardMaterial({ color: 0x222, emissive: 0x000000 }), -.08, .02, .17);
+      game.scene.add(g); this.mesh = g; this.hit = g.children.filter(m => m.userData.entity === this); this.hit.push(wr); this.setFilterMesh();
+    } else { this.mesh = new THREE.Group(); this.hit = []; }
+    (game.gasIntakes ||= []).push(this); this.ports = this.portInfo(); game.pipes.rebuildPorts();
+  }
+  portInfo(){ return [{ pump: this, idx: 0, i: this.i, j: this.j, k: this.k, key: this.key, dir: 0, state: 'open', tip: GRID.center(this.i, this.j, this.k) }]; }
+  ratedFlow(){ return CFG.landfill.inletMax; }
+  ratedOutlet(){ return this.ratedFlow(); }
+  well(){ return this.game.landfill?.well; }
+  wantSum(){ let w = 0; for (const gen of this.game.generators || []) if (gen.gasKit && gen.gasWant) w += gen.gasWant(); return w; }
+  update(dt, g){
+    const w = this.well(); this.flow = 0; if (!this.open || !w || dt <= 0) return;
+    const got = Math.min(w.main, Math.min(this.ratedFlow(), this.wantSum()) * dt); w.main -= got; this.flow = got / dt; this.delivered += got;
+  }
+  weepIn(l, g){ const a = Math.min(l, this.filter); this.filter -= a; this.wept += l - a; if (l - a > 0) g.room.add('ch4', l - a); if (a > 0 && this.filter <= 0 && !g._loading) g.ui?.toast?.('The gas trap cartridge at the inlet is spent.', 3000); this.setFilterMesh(); }
+  setFilterMesh(){ if (this.cart){ this.cart.visible = this.filter > 0; this.cart.material.color.setHex(this.filter > CFG.landfill.filterL * .25 ? 0x2a6a3a : 0x8a6a2a); } }
+  prompt(game){
+    const w = this.well(), st = `${this.open ? 'OPEN' : 'SHUT'} · ${this.flow.toFixed(2)} L/s → burners · main ${w ? Math.round(w.main) : 0} L${this.filter > 0 ? ` · trap ${Math.round(this.filter)} L` : ''}`;
+    if (game.hasItem('gas_filter') && this.filter < CFG.landfill.filterL * .5) return `Landfill gas inlet (${st}) — [E] fit the gas trap cartridge`;
+    return `Landfill gas inlet (${st}) — [E] ${this.open ? 'shut' : 'open'}`;
+  }
+  interact(dt, game, part, first){ if (!first) return;
+    if (game.hasItem('gas_filter') && this.filter < CFG.landfill.filterL * .5){ game.takeItem('gas_filter'); this.filter = CFG.landfill.filterL; this.setFilterMesh(); game.ui.toast?.('Gas trap fitted: it soaks up what weeps through the inlet gland when the main is pressed.', 3200); beep(600, .05); return; }
+    this.open = !this.open; if (!SAVEQ.quiet) AUDIO.valve?.(); game.ui.toast?.(this.open ? 'Gas inlet open — pipe it to a generator with a gas burner kit.' : 'Gas inlet shut.', 2600); this.paintT = 99; }
+  visual(dt, t, game){
+    if (this.wheel) this.wheel.rotation.y = this.open ? 0 : Math.PI / 2;
+    if (this.lamp) this.lamp.material.emissive.setHex(!this.open ? 0x200606 : this.flow > .01 ? 0x30ff70 : 0xffa020);
+    this.paintT += dt; if (this.cv && this.paintT > .5){ this.paintT = 0; const c = this.cv.getContext('2d'), w = this.well();
+      c.fillStyle = '#071a10'; c.fillRect(0, 0, 192, 96); c.fillStyle = this.open ? '#6dff9a' : '#ffb040'; c.font = 'bold 16px monospace'; c.fillText(`CH4 INLET ${this.open ? 'OPEN' : 'SHUT'}`, 8, 22);
+      c.font = '13px monospace'; c.fillStyle = '#9fe8c0'; c.fillText(`${this.flow.toFixed(2)} L/s  ≈${Math.round(this.flow * CFG.landfill.gasJ)} W`, 8, 46); c.fillText(`MAIN ${w ? Math.round(w.main) : 0} L`, 8, 66);
+      c.fillStyle = this.filter > 0 ? '#9fe8c0' : '#5a8a70'; c.fillText(this.filter > 0 ? `TRAP ${Math.round(this.filter)} L` : 'NO GAS TRAP', 8, 86); this.tex.needsUpdate = true; }
+  }
+}
+// ---- generator gas burner kit: a pipe sink cell + a small gas buffer the generator burns before briquettes ----
+function genGasSinkCell(g, gen){
+  const inl = g.landfill?.inlet, ref = inl ? GRID.center(inl.i, inl.j, inl.k) : new THREE.Vector3(R.w / 2, 0, 0), out = [];
+  for (const [key, dir] of cellAnchors(gen.cells)){ const [i, j, k] = key.split(',').map(Number); if (j !== 0 || g.occ.has(key) || g.pipes.sinkAt.has(key) || g.pipes.pipes.has(key)) continue; out.push({ key, dir, i, j, k, d: GRID.center(i, j, k).distanceTo(ref) }); }
+  return out.sort((a, b) => a.d - b.d)[0] || null;
+}
+function fitGasKit(g, gen, o = {}){
+  if (gen.gasKit) return { ok: false, msg: 'This generator already has a gas burner.' };
+  const cell = genGasSinkCell(g, gen); if (!cell) return { ok: false, msg: 'No free cell beside the generator for the gas train.' };
+  if (!o.free && !g.freeBuild && !g.takeItem('gas_burner')) return { ok: false, msg: 'Missing gas burner kit.' };
+  const L = CFG.landfill; gen.gasKit = true; gen.gasBuf = 0; gen._gasUse = 0; gen._gasFeed = 0; gen.gasBurned = 0;
+  gen.gasWant = () => gen.gasBuf < L.genBuf * .98 ? Math.min(L.genFeedCap, gen.ratedW() / L.gasJ + L.genRefill) : gen._gasUse + .02;
+  const sink = gen.gasSink = { key: cell.key, dir: cell.dir, i: cell.i, j: cell.j, k: cell.k, rate: 0, gen, accept(r){ this.rate += r; },
+    deliver(l, mix){ const ch = l * ((mix && mix.ch4) || 0), room = Math.min(ch, L.genBuf - gen.gasBuf); gen.gasBuf += room; gen._gasFeed = gen._gasFeed * .8 + (ch / Math.max(1e-3, g.pipes.dt || .05)) * .2; if (ch - room > 0) g.room.add('ch4', ch - room); for (const k in mix || {}) if (k !== 'ch4' && mix[k] > 0) g.room.add(k, l * mix[k]); } };
+  g.pipes.addSink(sink); g.pipes.refresh();
+  if (g.scene && gen.mesh){ const M = lfMats(), c = GRID.center(cell.i, cell.j, cell.k), tr = gen.gasTrain = new THREE.Group(); tr.position.copy(c); tr.position.y = 0; g.scene.add(tr);
+    const mk = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => { const m = lfMesh(tr, geo, mat, x, y, z, rx, ry, rz); m.userData.entity = gen; gen.hit?.push(m); return m; };
+    mk(new THREE.BoxGeometry(.3, .05, .3), M.yel, 0, .025, 0); mk(new THREE.CylinderGeometry(.03, .03, .34, 10), M.yel, 0, .22, 0);
+    mk(new THREE.SphereGeometry(.08, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), M.red, .06, .36, 0); mk(new THREE.CylinderGeometry(.08, .08, .03, 14), M.dark, .06, .36, 0);
+    mk(new THREE.BoxGeometry(.07, .09, .07), M.dark, -.07, .3, 0); mk(new THREE.CylinderGeometry(.035, .035, .02, 14), M.steel, 0, .28, .06, Math.PI / 2);
+    mk(new THREE.PlaneGeometry(.12, .05), new THREE.MeshBasicMaterial({ map: textTex(['CH4'], 96, 40, '#1a1a1a', '#e0b020', 'bold 28px sans-serif') }), 0, .14, .032);
+    gen.gasLamp = mk(new THREE.SphereGeometry(.018, 8, 6), new THREE.MeshStandardMaterial({ color: 0x222, emissive: 0x000000 }), -.07, .37, 0); }
+  g.bus.emit('lf:burner', gen);
+  return { ok: true, msg: `Gas burner bolted on. Pipe the landfill gas inlet (+x wall, high) to the yellow gas train — it burns methane first (${Math.round(gen.ratedW() / L.gasJ * 100) / 100} L/s at full load), briquettes only as backup.` };
+}
+function genGasUnhook(g, gen){
+  const s = gen.gasSink; if (!s) return;
+  g.pipes.sinks = g.pipes.sinks.filter(x => x !== s); g.pipes.sinkAt.delete(s.key); g.pipes.refresh();
+  if (gen.gasBuf > 0) g.room.add('ch4', gen.gasBuf);   // the buffer vents into the base
+  if (gen.gasTrain){ g.scene?.remove(gen.gasTrain); }
+  gen.gasKit = false; gen.gasSink = null; gen.gasBuf = 0; gen.gasWant = null; if (!g.freeBuild) g.giveItem('gas_burner', 1);
+}
+function genGasW(gen){ const J = CFG.landfill.gasJ; return Math.min(gen.ratedW(), gen.gasBuf * J * 2 + (gen._gasFeed || 0) * J); }
+function genGasBurn(gen, w, dt){   // returns the watts the briquettes still have to cover
+  const J = CFG.landfill.gasJ, need = w * dt / J, use = Math.min(gen.gasBuf, need); gen.gasBuf -= use; gen.gasBurned += use;
+  gen._gasUse = gen._gasUse * .9 + (dt > 0 ? use / dt : 0) * .1;
+  if (gen.gasLamp) gen.gasLamp.material.emissive.setHex(use > 1e-6 ? 0x30ff70 : 0x201006);
+  return Math.max(0, w - (dt > 0 ? use * J / dt : 0));
+}
+// ---- methane in the base: pools under the ceiling, quiet warnings, sparks light it ----
+function ch4Ceil(g){ return Math.min(1, g.room.frac('ch4') * CFG.ch4.layer); }
+function lfHurtPipe(g, p, dmg){ const P = CFG.pipe, b = p.damage; p.damage = Math.min(1, p.damage + dmg); if (b < P.leakStart && p.damage >= P.leakStart) g.bus.emit('pipe:crack', p); if (!p.burst && p.damage >= 1){ p.burst = true; g.bus.emit('pipe:burst', p); } }
+function ch4Tick(g, dt){
+  const C = CFG.ch4, ce = ch4Ceil(g), avg = g.room.frac('ch4');
+  if (ce >= C.warnCeil && !g._ch4Warned){ g._ch4Warned = true; g.crisisNote?.('ch4', `methane pooling under the ceiling (${(ce * 100).toFixed(1)} %)`, { quiet: true });
+    g.lucidLine?.('There is methane under the ceiling. It burns from five percent — anything that sparks up there could light it. Ventilate, or fix what is leaking.', false); }
+  if (ce >= C.smellCeil && !g._ch4Smell){ g._ch4Smell = true; g.ui?.toast?.('A faint rotten-egg smell near the ceiling.', 3600); }
+  if (ce < C.warnCeil * .6){ g._ch4Warned = false; g._ch4Smell = false; }
+  g._ch4Cd = Math.max(0, (g._ch4Cd || 0) - dt);
+  if (ce < C.lel || ce > C.uel || g._ch4Cd > 0) return 0;
+  let p = 0;
+  for (const s of o2SparkSources(g)){ const lam = C.sparkK * s.w; p += lam; if ((g.rng ? g.rng() : Math.random()) < lam * dt){ ch4Ignite(g, s, avg >= C.lel ? 'blast' : 'flash'); break; } }
+  return p;
+}
+function ch4Ignite(g, s, kind = 'flash'){
+  const C = CFG.ch4, K = C[kind], r = g.room, blast = kind === 'blast';
+  const avail = blast ? r.gases.ch4 : r.gases.ch4 * K.burn * Math.min(1, C.layer * .5), burn = Math.min(avail, (r.gases.o2 || 0) / 2);
+  r.take('ch4', burn); r.take('o2', burn * 2); r.add('co2', burn);
+  const P = g.player, inBase = g.zoneAt(P.pos) === 'base'; if (inBase) P.suit = Math.max(0, P.suit - K.suit);
+  const sp = s?.p || new THREE.Vector3(0, 2.4, 0);
+  for (const net of [g.pipes, g.liquidPipes]) for (const pp of net.pipes.values()){ if (g.zoneAt(pp.group.position) !== 'base') continue;
+    if (blast){ lfHurtPipe(g, pp, (g.rng ? g.rng() : Math.random()) < K.burstP ? 1 : K.pipeDmg); }
+    else if (pp.group.position.distanceTo(sp) < C.flash.r) lfHurtPipe(g, pp, K.pipeDmg); }
+  for (let i = 0; i < K.fires && (g.fires || []).length < CFG.o2rich.fire.maxN; i++){ const a = (g.rng ? g.rng() : Math.random()) * 7, fp = new THREE.Vector3(sp.x + Math.cos(a) * .4, 0, sp.z + Math.sin(a) * .4);
+    if (g.zoneAt(fp) !== 'base') continue; const f = g.add(new SmallFire(g, fp, CFG.o2rich.fire.start, s?.src || null, 'a methane flash')); (g.fires ||= []).push(f); g.bus.emit('fire:start', f); }
+  g.ch4Events = (g.ch4Events || 0) + 1; if (blast) g._ch4Blasts = (g._ch4Blasts || 0) + 1; else g._ch4Flashes = (g._ch4Flashes || 0) + 1;
+  g._ch4Cd = C.cd || 4;
+  g.crisisNote?.('ch4', blast ? `methane deflagration: ${s?.why || 'a spark'} lit the base air` : `methane flash under the ceiling: ${s?.why || 'a spark'}`);
+  if (!g._loading){ ch4Fx(g, new THREE.Vector3(sp.x, R.h - .25, sp.z), blast ? 2.2 : 1, true); if (!SAVEQ.quiet) AUDIO.whoomp?.(blast ? 1 : .6);
+    g.ui?.toast?.(blast ? `WHUMP — the base air went up. Suit −${K.suit}.` : `A sheet of blue flame rolled across the ceiling${inBase ? ` — suit −${K.suit}` : ''}.`, 3800);
+    if (!g['_lucidCh4' + kind]){ g['_lucidCh4' + kind] = true; g.lucidLine?.(blast ? 'That was the whole room in the flammable band. Find the leak before you bring anything that sparks back in.' : `Methane flash — ${s?.why || 'a spark'} lit the ceiling layer. Fix the leak, fit a flare or a gas trap.`, false); } }
+  g.bus.emit(blast ? 'ch4:blast' : 'ch4:flash', { s, burn }); return { burn, kind };
+}
+class CH4FlashFx extends Entity {
+  constructor(g, p, s, ceiling){
+    super(); this.g = g; this.t = 0; this.life = .9 + s * .2; this.s = s;
+    const mat = new THREE.MeshBasicMaterial({ map: FXTEX.dot(), color: 0x6aa8ff, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); this.mesh.position.copy(p); if (ceiling) this.mesh.rotation.x = Math.PI / 2; else this.mesh.lookAt(g.camera?.position || new THREE.Vector3(0, 1.6, 0));
+    this.core = new THREE.Sprite(new THREE.SpriteMaterial({ map: FXTEX.flame(), color: 0xffb060, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false })); this.core.position.copy(p); this.core.scale.setScalar(.6 * s);
+    this.light = new THREE.PointLight(0x8ab0ff, 0, 10 * s, 1.6); this.light.position.copy(p);
+    g.scene.add(this.mesh, this.core, this.light);
+  }
+  update(dt, g){ this.t += dt; if (this.t > this.life){ g.scene.remove(this.mesh, this.core, this.light); this.mesh.geometry.dispose(); this.mesh.material.dispose(); g.remove(this); } }
+  visual(dt, t){ const k = Math.min(1, this.t / this.life), e = 1 - k; this.mesh.scale.setScalar((.6 + k * 4.5) * this.s); this.mesh.material.opacity = .9 * e * e; this.mesh.material.color.setHSL(.6 - k * .52, .9, .6);
+    this.core.material.opacity = .9 * e * e * e; this.light.intensity = 14 * this.s * e * e; }
+}
+function ch4Fx(g, p, s = 1, ceiling = true){ if (!g.scene) return null; return g.add(new CH4FlashFx(g, p, s, ceiling)); }
+// optional side job: run any generator on cell-4 gas for two minutes → a scrap bonus (never gates the chain)
+function lfSideTick(g, dt){
+  if (g._lfSide !== 1) return;
+  const on = (g.generators || []).some(x => x.gasKit && x.out > 0 && (x._gasUse || 0) > .05);
+  if (!on) return; g._lfSideT = (g._lfSideT || 0) + dt;
+  const S = CFG.landfill.side; if (g._lfSideT < S.runS) return;
+  g._lfSide = 2; g.scrap += S.scrap; g.ui?.refreshInv?.();
+  if (!g._loading){ g.ui?.toast?.(`SIDE JOB done: Cell 4 is on line. +${S.scrap} scrap.`, 4200); g.lucidLine?.('Two minutes on landfill gas. The cell will not last forever — but it is power the briquettes do not have to make.', false); }
+  g.bus.emit('lf:side', { scrap: S.scrap });
+}
 
 // ---------- Slice 12: Conveyor belts for solids (unlike ONI) ----------
 // Floor grid segments move small item packets along their facing. Modest power draw;
@@ -10450,10 +11124,14 @@ class Game {
   }
   // ONI-style layering stand-in: heavy CO2 pools low, so floor intakes see more of it
   intakeMix(roof, vol = this.room){   // slice 17: dig-placed pumps sample their own volume (pocket / outdoor)
-    const r = vol, T = r.gases.o2 + r.gases.co2; if (T <= 1e-9) return { o2: .5, co2: .5 };
+    const r = vol, ch = r.gases.ch4 || 0, T = r.gases.o2 + r.gases.co2 + ch; if (T <= 1e-9) return { o2: .5, co2: .5, ch4: 0 };
     const f = r.gases.co2 / T, L = CFG.gas.layering, c = roof ? f / L : Math.min(1, f * L);
-    return { o2: 1 - c, co2: c };
+    if (ch <= 1e-12) return { o2: 1 - c, co2: c, ch4: 0 };
+    // v0.3.8: methane is light — it pools under the ceiling (roof intakes see x layer, floor intakes / layer)
+    const m = ch / T, Lm = CFG.ch4.layer, h = roof ? Math.min(1, m * Lm) : m / Lm, cc = Math.min(c, 1 - h);
+    return { o2: Math.max(0, 1 - cc - h), co2: cc, ch4: h };
   }
+
   step(dt, input){
     if (this.over) return;
     dt *= CFG.timeScale; this.time += dt;
@@ -10464,6 +11142,8 @@ class Game {
     if (this.objective && !this.objective.done) objectiveTick(this);   // slice 33: FIND SHELTER
     if (this.hoseLay) hoseLayTick(this);
     if (this._chainOn) chainTick(this, dt);
+    if (this.ch4On) ch4Tick(this, dt);
+    lfSideTick(this, dt);                             // v0.3.8: optional landfill side job (never gates the chain)                // v0.3.8: methane pooling / spark risk (real play only)
     if (this.o2RiskOn) o2RichTick(this, dt);          // v0.3.6: rich-air fire risk (real play only)           // v0.3.2: objective chain + ending
     this.pipes.update(dt);                            // gas network routes, stresses pipes
     this.liquidPipes.update(dt);                      // liquid network routes, stresses pipes → puddle on leak
@@ -10761,6 +11441,7 @@ function paintMonitor(){
   c.fillStyle = r.frac('o2') < CFG.gas.breathableO2 ? C.bad : r.frac('o2') > CFG.o2rich.warn ? C.amber : C.text; c.fillText('O2   ' + pct('o2') + (r.frac('o2') > CFG.o2rich.warn ? '  RICH' : ''), 14, 72);   /* v0.3.6 quiet rich-air tell */
   c.fillStyle = r.frac('co2') > CFG.gas.toxicCO2 ? C.bad : C.text; c.fillText('CO2  ' + pct('co2'), 14, 104);
   c.font = F(17); c.fillStyle = C.text; c.fillText('Pressure ' + (r.pressure() * 100).toFixed(0) + '%', 14, 134);
+  { const ch = r.frac('ch4'), ce = Math.min(1, ch * CFG.ch4.layer); if (ch > 2e-4 || game.landfill?.well?.tier){ c.font = F(13); c.fillStyle = ce >= CFG.ch4.lel ? C.bad : ce >= CFG.ch4.warnCeil ? C.amber : C.dim; c.fillText(`CH4 ${(ch * 100).toFixed(1)}% · ceiling ${(ce * 100).toFixed(1)}%${ce >= CFG.ch4.lel ? ' FLAMMABLE' : ''}`, 128, 134); } }   /* v0.3.8 quiet methane readout */
   const pw = game.power.totals();   // diegetic only (quiet): numbers, muted amber when wanting more than served
   c.font = F(13); c.fillStyle = pw.want > pw.load + .5 ? C.amber : C.dim;
   c.fillText(fitText(c, `PWR ${Math.round(pw.gen)}W · ${Math.round(pw.load)}/${Math.round(pw.want)}W${pw.cap ? ' · B' + Math.floor(pw.stored / pw.cap * 100) + '%' : ''}`, 236), 14, 160);
@@ -11200,6 +11881,7 @@ placeCrashPod(game, slice);   // slice 33: the escape pod you came down in
   });
   buildArk3PylonSpans(game);
 })();
+buildLandfill(game, { art: true });   // v0.3.8: Northfield landfill (cell 4) — methane power
 
 // ---------- Opening cutscene stub (slice 19) ----------
 // Staged camera beats + title cards + simple geometry stand-ins. Skippable. Persists "seen" in localStorage.
@@ -11514,6 +12196,10 @@ const AUDIO = {
     const src = c.createBufferSource(), lp = c.createBiquadFilter(), g = c.createGain(); src.buffer = b; lp.type = 'lowpass'; lp.frequency.value = 520; g.gain.value = .12;
     src.connect(lp); lp.connect(g); g.connect(this.sfxB); src.start(t);
   },
+  // ---- v0.3.8: landfill gas — methane flash whoomp, kit clank, valve squeal ----
+  whoomp(v = 1){ if (!this.ctx || SAVEQ.quiet) return; const c = this.ctx, t = c.currentTime, s = c.createBufferSource(); s.buffer = this.noise; const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(900, t); lp.frequency.exponentialRampToValueAtTime(90, t + .9);
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.32 * v, t + .05); g.gain.exponentialRampToValueAtTime(.001, t + 1.2); s.connect(lp); lp.connect(g); g.connect(this.sfxB); s.start(t); s.stop(t + 1.3);
+    const o = c.createOscillator(), og = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(32, t + .6); og.gain.setValueAtTime(.25 * v, t); og.gain.exponentialRampToValueAtTime(.001, t + .7); o.connect(og); og.connect(this.sfxB); o.start(t); o.stop(t + .75); },
   beep(f, d = .12, v = .04){
     if (!this.ctx) return; const c = this.ctx, o = c.createOscillator(), g = c.createGain();
     o.frequency.value = f; o.type = 'square'; g.gain.value = v; o.connect(g); g.connect(this.sfxB); o.start(); o.stop(c.currentTime + d);
@@ -12908,6 +13594,7 @@ function updateHud(){
   const baseO2 = (r.frac('o2') * 100).toFixed(1);
   const feedPk = game.pockets?.feedTarget();
   $('room').innerHTML = `${zoneLabel}${wadeLine}<br>O2 <b style="color:${o2 < 15 ? '#ff5a4a' : o2 < 20 ? '#ffc34a' : o2 > CFG.o2rich.warn * 100 ? '#ffd27a' : '#7dffb0'}">${o2.toFixed(1)}%</b> (need 15%)<br>CO2 <b style="color:${co2 > 8 ? '#ff5a4a' : co2 > 4 ? '#ffc34a' : '#bfeaff'}">${co2.toFixed(1)}%</b><br>Breathing: ${p.breathing === 'room' ? 'local air' : '<b style="color:#ff5a4a">SUIT RESERVE</b>'}`
+    + (vol.frac('ch4') > .0005 ? `<br>CH4 <b style="color:${vol.frac('ch4') * CFG.ch4.layer >= CFG.ch4.lel ? '#ff5a4a' : vol.frac('ch4') * CFG.ch4.layer >= CFG.ch4.warnCeil ? '#ffc34a' : '#bfeaff'}">${(vol.frac('ch4') * 100).toFixed(1)}%</b>` : '')
     + (p.pocket ? `<br><span style="color:#ffd27a">Pocket air</span>` : '')
     + (p.zone !== 'base' ? `<br>Base O2 <b>${baseO2}%</b>` : '')
     + (feedPk && !p.pocket ? `<br>Feed → <b>${feedPk.tag}</b>` : '')
@@ -13148,6 +13835,9 @@ function saveStaticTable(){
         e.repaired = !!v[0]; e.chipIn = !!v[1]; e.exportTier = v[2] || 1; e.fuel = v[3] || 0; e.heat = v[4] || 0;
         e.running = !!v[5]; e.tripped = !!v[6]; e.repaintExport?.(); e.paint?.();
       }],
+    [LandfillWell, e => [e.tier, e.blower ? 1 : 0, e.laterals ? 1 : 0, e.flare ? 1 : 0, sR(e.rem, 2), e.open ? 1 : 0, sR(e.main, 3), sR(e.flared, 1), sR(e.wasted, 1)],   // v0.3.8
+      (e, v) => { e.setState({ tier: v[0], blower: !!v[1], laterals: !!v[2], flare: !!v[3], rem: v[4], open: !!v[5], main: v[6], flared: v[7] || 0, wasted: v[8] || 0 }); }],
+    [LandfillGasInlet, e => [e.open ? 1 : 0, e.filter ? sR(e.filter, 2) : 0, sR(e.wept, 2)], (e, v) => { e.open = !!v[0]; e.filter = v[1] || 0; e.wept = v[2] || 0; e.setFilterMesh(); }],
     [SurfacePylon, e => [e.tier, e.failed ? 1 : 0, sR(e.damage, 3)], (e, v) => { e.tier = v[0]; e.failed = !!v[1]; e.damage = v[2]; e.repaint?.(); }],
     ...(SP ? [[SP, e => e.taken ? 1 : 0, (e, v, g) => { if (v && !e.taken) e.interact(0, g, null, true); }]] : []),
   ];
@@ -13167,7 +13857,7 @@ function saveCapture(g){
   d.flags = {};
   for (const k of Object.keys(g)) if (k[0] === '_' && k !== '_loading' && (typeof g[k] === 'boolean' || typeof g[k] === 'number')) d.flags[k] = typeof g[k] === 'number' ? sR(g[k], 3) : g[k];
   d.lucid = { online: !!g.lucid.online, line: g.lucid.line };
-  const gas = c => [sR(c.gases.o2, 4), sR(c.gases.co2, 4)];
+  const gas = c => c.gases.ch4 > 1e-6 ? [sR(c.gases.o2, 4), sR(c.gases.co2, 4), sR(c.gases.ch4, 4)] : [sR(c.gases.o2, 4), sR(c.gases.co2, 4)];   // v0.3.8: + CH4 when present
   d.gas = {}; for (const n of ['room', 'outdoor', 'growLab', 'robotLab', 'mineLab']) if (g[n]) d.gas[n] = gas(g[n]);
   if (g.airlock){
     const A = g.airlock; d.gas.chamber = gas(A.chamber);
@@ -13194,7 +13884,7 @@ function saveCapture(g){
   pl.pumps = g.pumps.map(p => p instanceof GasPump
     ? { m: 'g', ...dev(p), roof: p.roof ? 1 : 0, fy: sR(p.floorY, 3), dp: p.digPlace ? 1 : 0, it: p.intakeTier, out: p.outlets }
     : { m: 'l', ...dev(p), it: p.intakeTier, out: p.outlets });
-  pl.gens = g.generators.map(e => ({ ...dev(e), mf: e.manifold ? 1 : 0 }));
+  pl.gens = g.generators.map(e => ({ ...dev(e), mf: e.manifold ? 1 : 0, ...(e.gasKit ? { gk: 1, gb: sR(e.gasBuf, 3) } : {}) }));   // v0.3.8: + gas burner kit
   pl.bats = g.batteries.map(e => ({ ...saveFootprint(e), ...savePrims(e) }));
   pl.brks = g.breakers.map(e => ({ ...saveFootprint(e), ...savePrims(e) }));
   pl.tables = g.tables.map(e => ({ ...saveFootprint(e), t: e.tier }));
@@ -13214,7 +13904,7 @@ function saveCapture(g){
       pk: g.pockets.list.filter(p => LiquidNet.liqTot(p.liq) > 1e-6).map(p => ({ c: p.cells.values().next().value, w: sR(p.liq.water, 3), b: sR(p.liq.brine, 3), o: sR(p.liq.oil, 3), wet: [...p.wet].join(';') })) }; }
   pl.scrub = g.entities.filter(e => e instanceof PocketScrubber).map(e => [e.i, e.j, e.k, sR(e.filter, 2)]);
   // pockets: gas per pocket, matched on load by its first cell
-  d.pockets = { seq: g.pockets.seq, sel: g.pockets.feedSel, list: g.pockets.list.map(p => ({ c: p.cells.values().next().value, id: p.id, o2: sR(p.gas.gases.o2, 5), co2: sR(p.gas.gases.co2, 5), w: p.warned ? 1 : 0, fed: sR(p.fed || 0, 3) })) };
+  d.pockets = { seq: g.pockets.seq, sel: g.pockets.feedSel, list: g.pockets.list.map(p => ({ c: p.cells.values().next().value, id: p.id, o2: sR(p.gas.gases.o2, 5), co2: sR(p.gas.gases.co2, 5), ch4: p.gas.gases.ch4 > 1e-6 ? sR(p.gas.gases.ch4, 5) : undefined, w: p.warned ? 1 : 0, fed: sR(p.fed || 0, 3) })) };
   // LUCID net + body
   const N = g.lucidNet;
   d.net = { seq: { ...N.seq }, units: N.units.map(u => u.linkTag), hs: N.handshakes };
@@ -13239,6 +13929,8 @@ function saveCapture(g){
   pl.fires = (g.fires || []).filter(f => !f.out).map(f => { let ck = null; if (f.src) for (const [k, c] of g.power.cables) if (c === f.src){ ck = k; break; }
     return [sR(f.pos.x), sR(f.pos.z), sR(f.I, 3), ck, sR(f.burned, 1), f.why || 'spark']; });   // v0.3.7: + the cable it is cooking, burn, cause
   d.o2r = [sR(g._o2RichT || 0, 1), g._laborHinted ? 1 : 0];
+  { const w = g.landfill?.well, inl = g.landfill?.inlet; d.lf = w ? { t: w.tier, b: w.blower ? 1 : 0, l: w.laterals ? 1 : 0, f: w.flare ? 1 : 0, o: w.open ? 1 : 0, r: sR(w.rem, 2), m: sR(w.main, 3), pu: sR(w.pulled, 2), fl: sR(w.flared, 2), wa: sR(w.wasted, 2),
+    io: inl?.open ? 1 : 0, fi: sR(inl?.filter || 0, 2), de: sR(inl?.delivered || 0, 2), we: sR(inl?.wept || 0, 2), ev: g.ch4Events || 0 } : null; }   // v0.3.8: landfill wellhead + base gas inlet
   d.ik = g.intakes?.[0] ? sR(g.intakes[0].buffer.amount, 3) : 0;
   d.obj = g.objective ? { d: g.objective.done ? 1 : 0, s: g.objective.secs ?? null, e: g.objective.done ? undefined : Math.round(g.time - (g.objective.t0 || 0)) } : null;   // v0.3.7: e = seconds on the bottle so far
   d.pod = g._slice?.pod ? [g._slice.pod.salvage, g._slice.pod.logRead ? 1 : 0] : null;
@@ -13247,7 +13939,7 @@ function saveCapture(g){
   const placedN = pl.pumps.length + pl.gens.length + pl.bats.length + pl.brks.length + pl.tables.length + pl.belts.length + pl.drills.length + pl.refs.length + pl.torsos.length + pl.consoles.length;
   const sum = { zone: P.zone, scrap: g.scrap, items: Object.values(g.inv).reduce((a, b) => a + (+b || 0), 0), placed: placedN, pipes: pl.pipes.length + pl.lpipes.length, cables: pl.cables.length,
     recipes: d.unlocks.recipes.length, tier: g.unlocks.craftTable, imps: d.imps.filter(i => i.r).length, t: d.time };
-  return { schema: SAVE_SCHEMA, proto: '0.3.7', saved: Date.now(), t: d.time, sum, d };
+  return { schema: SAVE_SCHEMA, proto: '0.3.8', saved: Date.now(), t: d.time, sum, d };
 }
 
 // remove every placed thing (free build: no refunds) so the saved layout can be rebuilt on top of the static world
@@ -13321,7 +14013,7 @@ function saveApply(g, snap, sl = (typeof slice !== 'undefined' ? slice : null)){
       for (const a of pl.lpipes || []){ const p = new LiquidPipeSegment(g, a[0], a[1], a[2], a[3]); g.liquidPipes.addPipe(p, SAVE_MASKDIRS(a[4])); p.damage = a[5]; p.burst = !!a[6]; }
     });
     step('power', () => {
-      for (const o of pl.gens || []){ const e = B.placeDevice({ kind: 'generator', ...fp(o) }, { fuel: o.fuel || 0 }); loadPrims(e, o); if (o.mf) e.fitManifold(g); devs.push([e, o]); }
+      for (const o of pl.gens || []){ const e = B.placeDevice({ kind: 'generator', ...fp(o) }, { fuel: o.fuel || 0 }); loadPrims(e, o); if (o.mf) e.fitManifold(g); if (o.gk){ fitGasKit(g, e, { free: true }); e.gasBuf = o.gb || 0; } devs.push([e, o]); }
       for (const o of pl.bats || []){ const e = B.placeDevice({ kind: 'battery', ...fp(o) }, { charge: o.charge || 0 }); loadPrims(e, o); }
       for (const o of pl.brks || []){ const e = B.placeDevice({ kind: 'breaker', ...fp(o) }); loadPrims(e, o); e.paintT = 99; }
       for (const a of pl.cables || []){ const c = g.power.addCable(new CableSegment(g, a[0], a[1], a[2], a[3])); c.damage = a[4]; c.failed = !!a[5]; }
@@ -13352,6 +14044,8 @@ function saveApply(g, snap, sl = (typeof slice !== 'undefined' ? slice : null)){
       for (const [x, z, si, v] of pl.regs || []){ const r = g.add(new O2Regulator(g, new THREE.Vector3(x, 0, z), si | 0)); r.vented = v || 0; (g.regs ||= []).push(r); }   // v0.3.6
       for (const [x, z, I, ck, burned, why] of pl.fires || []){ const src = ck != null ? g.power.cables.get(ck) || null : null; const f = g.add(new SmallFire(g, new THREE.Vector3(x, 0, z), I, src && !src.failed ? src : null, why || 'spark')); f.burned = burned || 0; (g.fires ||= []).push(f); }
       if (d.o2r){ g._o2RichT = d.o2r[0]; g._laborHinted = !!d.o2r[1]; }
+      if (d.lf && g.landfill?.well){ const w = g.landfill.well, inl = g.landfill.inlet; w.setState({ tier: d.lf.t, blower: !!d.lf.b, laterals: !!d.lf.l, flare: !!d.lf.f, open: !!d.lf.o, rem: d.lf.r, main: d.lf.m, pulled: d.lf.pu || 0, flared: d.lf.fl || 0, wasted: d.lf.wa || 0 });
+        if (inl){ inl.open = !!d.lf.io; inl.filter = d.lf.fi || 0; inl.delivered = d.lf.de || 0; inl.wept = d.lf.we || 0; inl.setFilterMesh(); inl.paintT = 99; } g.ch4Events = d.lf.ev || 0; }
       for (const [x, z, age, w] of pl.planters || []){ const p = g.add(new OxygenPlant(g, new THREE.Vector3(x, 0, z))); p.placed = true; p.age = age; p.water = w; (g.planters ||= []).push(p); }
       if (g.intakes?.[0] && d.ik != null) g.intakes[0].buffer.amount = d.ik;
       if (d.pod && g._slice?.pod){ g._slice.pod.salvage = d.pod[0]; g._slice.pod.logRead = !!d.pod[1]; }
@@ -13426,10 +14120,10 @@ function saveApply(g, snap, sl = (typeof slice !== 'undefined' ? slice : null)){
     });
     // 8. gases, pockets, player, pack, unlocks, flags (last: placement above may have shifted gas / inventory)
     step('state', () => {
-      for (const [n, v] of Object.entries(d.gas || {})){ const c = n === 'chamber' ? g.airlock?.chamber : g[n]; if (c){ c.gases.o2 = v[0]; c.gases.co2 = v[1]; } }
+      for (const [n, v] of Object.entries(d.gas || {})){ const c = n === 'chamber' ? g.airlock?.chamber : g[n]; if (c){ c.gases.o2 = v[0]; c.gases.co2 = v[1]; c.gases.ch4 = v[2] || 0; } }
       if (g.puddle && d.puddle != null) g.puddle.amount = d.puddle;
       const PK = d.pockets; if (PK){
-        for (const o of PK.list || []){ const pk = g.pockets.byCell.get(o.c); if (!pk) continue; pk.id = o.id; pk.tag = 'P-' + o.id; pk.gas.gases.o2 = o.o2; pk.gas.gases.co2 = o.co2; pk.warned = !!o.w; pk.fed = o.fed || 0; }
+        for (const o of PK.list || []){ const pk = g.pockets.byCell.get(o.c); if (!pk) continue; pk.id = o.id; pk.tag = 'P-' + o.id; pk.gas.gases.o2 = o.o2; pk.gas.gases.co2 = o.co2; pk.gas.gases.ch4 = o.ch4 || 0; pk.warned = !!o.w; pk.fed = o.fed || 0; }
         g.pockets.seq = Math.max(g.pockets.seq, PK.seq || 0); g.pockets.feedSel = PK.sel ?? null; g.pockets._dugN = g.voxels.dug.size;
       }
       const P = g.player, o = d.player;
@@ -13575,7 +14269,7 @@ const SHOT = new URLSearchParams(location.search).get('shot');
 if (SHOT || /[?&](selftest|preview)\b/.test(location.search)) document.body.classList.remove('pregame');   // slice 31: debug views keep the HUD
 if (!SAVE_RT.loaded && !SHOT && !/[?&](selftest|preview|nocrash)\b/.test(location.search)) { crashStart(game, slice); game._needHose = true; }   // slice 33: a new game starts at the pod (Continue keeps the save)
 // v0.3.2: objective chain + ending run in real play only (selftests / shots / previews drive their own fixtures)
-if (!SHOT && !/[?&](selftest|preview)\b/.test(location.search)){ if (SAVE_RT.loaded && game._objStep == null) game._chainSilent = true; game._chainOn = true; game.o2RiskOn = true; }
+if (!SHOT && !/[?&](selftest|preview)\b/.test(location.search)){ if (SAVE_RT.loaded && game._objStep == null) game._chainSilent = true; game._chainOn = true; game.o2RiskOn = true; game.ch4On = true; }
 function showWin(st){
   const m = Math.floor(st.secs / 60), h = Math.floor(m / 60);
   $('winstats').innerHTML = `time alive ${h ? h + ' h ' : ''}${m % 60} min · crew ${st.crew} · ARKs reached ${st.arks}/3<br>crises logged ${st.crises} · collar relapses ${st.relapses}`;
@@ -19471,7 +20165,7 @@ if (location.search.includes('selftest')){
         const T = saveStaticTable().find(x => x[0] === SalvageCache), c1 = g2.add(new SalvageCache(g2, new THREE.Vector3(3, 0, 3))); c1.scanned = true; c1.stock = 1; const v = JSON.parse(JSON.stringify(T[1](c1)));
         const c2 = g2.add(new SalvageCache(g2, new THREE.Vector3(3, 0, 3))); T[2](c2, v, g2);
         s38.F_save = { proto: snap.proto, regs: (g2.regs || []).map(x => [x.setIdx, x.vented]), fires: (g2.fires || []).map(x => r3(x.I)), richT: g2._o2RichT, hinted: g2._laborHinted, cache: [c2.scanned, c2.stock, c2.caseG.visible, c2.ring.visible],
-          ok: snap.proto === '0.3.7' && g2.regs?.length === 1 && g2.regs[0].setIdx === 2 && Math.abs(g2.regs[0].vented - 12.3) < .11 && g2.fires?.length === 1 && Math.abs(g2.fires[0].I - .42) < .002 && g2._o2RichT === 321 && g2._laborHinted === true && c2.scanned && c2.stock === 1 && c2.caseG.visible && !c2.ring.visible };
+          ok: /^0\.3\.[7-9]$/.test(snap.proto) && g2.regs?.length === 1 && g2.regs[0].setIdx === 2 && Math.abs(g2.regs[0].vented - 12.3) < .11 && g2.fires?.length === 1 && Math.abs(g2.fires[0].I - .42) < .002 && g2._o2RichT === 321 && g2._laborHinted === true && c2.scanned && c2.stock === 1 && c2.caseG.visible && !c2.ring.visible };
         SV.saveApply(g2, snap, s2); s38.F_save.reloadNoDup = g2.regs.length === 1 && g2.fires.length === 1; s38.F_save.ok = s38.F_save.ok && s38.F_save.reloadNoDup; }
       // G: salvage caches in the world — 3 surface + 1 per ARK, clear of colliders / other things; scan → strip
       { const C = slice.salvage || [], bad = [];
@@ -19520,8 +20214,8 @@ if (location.search.includes('selftest')){
           s39.D_lucid = { said: said.length, fire: said.some(m => /Fire/.test(m)), out: said.some(m => /Out\.|choked/.test(m)), flags: [g._lucidFireSaid, g._lucidFireOutSaid],
             ok: said.some(m => /Fire/.test(m)) && said.some(m => /Out\.|choked/.test(m)) && g._lucidFireSaid === true && g._lucidFireOutSaid === true }; }
         { const fns = ['setFire', 'douse', 'valve', 'unlock', 'clank']; s39.E_sound = { have: fns.filter(k => typeof AUDIO[k] === 'function'), ok: fns.every(k => typeof AUDIO[k] === 'function') }; }
-        { const h = $('help')?.textContent || ''; s39.F_help = { ver: /v0\.3\.7/.test(h), sec: /AIR SAFETY/.test(h), reg: /regulator/i.test(h), fire: /douse/i.test(h), cache: /Salvage caches/i.test(h), hose: /hose reel/i.test(h), noOne: !/v1\.0/.test(h),
-            ok: /v0\.3\.7/.test(h) && /AIR SAFETY/.test(h) && /regulator/i.test(h) && /douse/i.test(h) && /Salvage caches/i.test(h) && /hose reel/i.test(h) && !/v1\.0/.test(h) }; }
+        { const h = $('help')?.textContent || ''; s39.F_help = { ver: /v0\.3\.[7-9]/.test(h), sec: /AIR SAFETY/.test(h), reg: /regulator/i.test(h), fire: /douse/i.test(h), cache: /Salvage caches/i.test(h), hose: /hose reel/i.test(h), noOne: !/v1\.0/.test(h),
+            ok: /v0\.3\.[7-9]/.test(h) && /AIR SAFETY/.test(h) && /regulator/i.test(h) && /douse/i.test(h) && /Salvage caches/i.test(h) && /hose reel/i.test(h) && !/v1\.0/.test(h) }; }
         // G: a save made during the crash walk resumes FIND SHELTER (was: always loaded as done); a done objective stays done
         { const SV = window.__breathless.save; const [g] = mk38(); g.time = 50; g.objective = { id: 'shelter', label: 'FIND SHELTER', t0: 20, done: false, doneT: null };
           const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))); const [g2, s2] = mk38(); g2.time = 50; SV.saveApply(g2, snap, s2);
@@ -19530,6 +20224,88 @@ if (location.search.includes('selftest')){
           G.doneKept = !!g3.objective?.done && g3.objective.secs === 33; G.ok = G.open && Math.abs(G.elapsed - 30) <= 1 && G.doneKept; }
         s39.SUCCESS = !!(s39.A_hint.ok && s39.B_fireSave.ok && s39.C_log.ok && s39.D_lucid.ok && s39.E_sound.ok && s39.F_help.ok && s39.G_crashSave.ok);
       } catch (err){ s39.error = String(err?.stack || err).slice(0, 600); s39.SUCCESS = false; }
+      // ---- v0.3.8 / slice 40: Cell 4 landfill gas (methane power, risks, dig, save) ----
+      const s40 = out.slice40 = {}; try {
+        const mk40 = () => { const [g, s] = mk38(); buildLandfill(g, { art: false }); g.rng = lcg; return [g, s]; };
+        const LF = CFG.landfill, C4 = CFG.ch4, r3 = v => Math.round(v * 1000) / 1000;
+        const setCH4 = (g, f) => { g.room.gases.ch4 = f * g.room.volume; };
+        // A: gas behaviour — light (pools at the ceiling), flammable band, not breathable
+        { const [g] = mk40(); setCH4(g, .01); const roof = g.intakeMix(true), floor = g.intakeMix(false), ce = ch4Ceil(g);
+          const pocket = new GasContainer(100, { o2: 21, co2: 0, ch4: 40 }), suffoc = pocket.frac('ch4') >= C4.asphyx;
+          const lucid0 = []; g.lucidLine = (m) => lucid0.push(m); g.crisisNote = (k, m, o) => { (g._notes ||= []).push([k, m, !!o?.quiet]); return { toast: null }; };
+          setCH4(g, .008); ch4Tick(g, .1); ch4Tick(g, .1); const quiet = (g._notes || []).filter(n => n[0] === 'ch4'), warnOnce = quiet.length === 1 && quiet[0][2] && lucid0.length === 1;
+          s40.A_gas = { roofCH4: r3(roof.ch4), floorCH4: r3(floor.ch4), ceil: r3(ce), lel: C4.lel, uel: C4.uel, asphyx: C4.asphyx, suffoc, warnOnce, notes: quiet.length, lucid: lucid0.length,
+            ok: roof.ch4 > floor.ch4 * 8 && Math.abs(ce - .01 * C4.layer) < 1e-6 && C4.lel === .05 && C4.uel === .15 && suffoc && warnOnce }; }
+        // B: extraction — tiers, decline, idle, flare / relief / weep
+        { const [g] = mk40(), w = g.landfill.well, inl = g.landfill.inlet, tr = [];
+          const r0 = w.fit(g, 'gas_well'); w.update(10, g); tr.push([w.tier, r3(w.prod), r3(w.main)]);
+          w.main = LF.mainCap; w.update(1, g); const idle = r3(w.prod), weep1 = r3(w.weepR), room1 = g.room.gases.ch4;
+          inl.filter = 5; w.main = LF.mainCap; w.update(1, g); const trapped = inl.filter < 5 && g.room.gases.ch4 === room1;
+          w.fit(g, 'well_blower'); w.rem = LF.reserve; w.main = LF.mainCap; w.update(1, g); const relief = r3(w.relief), t2 = r3(w.prod);
+          w.fit(g, 'flare_stack'); w.main = LF.mainCap; w.update(1, g); const flaring = r3(w.flaring), weep2 = w.weepR;
+          w.fit(g, 'well_laterals'); w.rem = LF.reserve; w.main = 0; w.update(1, g); const t3 = r3(w.prod);
+          w.rem = LF.reserve / 4; w.main = 0; w.update(1, g); const half = r3(w.prod);
+          w.rem = .2; for (let t = 0; t < 120; t++){ w.main = 0; w.update(1, g); } const dry = w.prod === 0 && w.rem === 0;
+          const hours = LF.tiers.map(t => r3(2 * LF.reserve / t / 3600));   // ∫ dR / (t·√(R/R0)) = 2·R0 / t
+          s40.B_extract = { fit: r0.ok, t1: tr[0], idle, weep1, trapped, t2, relief, flaring, weep2, t3, half, dry, hoursToEmpty: hours, wattsByTier: LF.tiers.map(t => Math.round(t * LF.gasJ)),
+            ok: r0.ok && tr[0][1] === LF.tiers[0] && idle === r3(LF.tiers[0] * LF.idleDraw) && weep1 > 0 && trapped && t2 === LF.tiers[1] && relief > 0 && flaring > 0 && weep2 === 0 && t3 === LF.tiers[2] && Math.abs(half - LF.tiers[2] * .5) < .002 && dry }; }
+        // C: generator output on methane — burner kit, T1 gas pipe from the base inlet, no briquettes
+        { const [g, s] = mk40(), w = g.landfill.well, inl = g.landfill.inlet, gen = quickGrid(g, s, 0);
+          const kit = fitGasKit(g, gen, { free: true }), sk = gen.gasSink;
+          const run = (order) => cellPath([inl.i, inl.j, inl.k], [sk.i, sk.j, sk.k], order), clash = c => c.slice(1).some(([i, j, k]) => g.pipes.pipes.has(GRID.key(i, j, k)));
+          let cells = run('xzy'); if (clash(cells)) cells = run('zxy');
+          const f = g.freeBuild; g.freeBuild = true; g.builder.buildRun(cells); g.freeBuild = f; g.pipes.rebuildPorts?.(); g.pipes.refresh?.();
+          const sim = (secs, load) => { let E = 0, T = 0, gasW = 0; const dt = .1; for (let t = 0; t < secs; t += dt){ w.update(dt, g); inl.update(dt, g); g.pipes.update(dt);
+              const a = gen.availW(g), drawn = Math.min(a, load); gen.out = drawn; const rest = genGasBurn(gen, drawn, dt); E += (drawn - rest) * dt; T += dt; } return E / T; };
+          w.fit(g, 'gas_well'); inl.open = true; setO2(g, .21);
+          const w1 = sim(240, 200), buf1 = r3(gen.gasBuf), maxLoad = Math.max(...[...g.pipes.pipes.values()].map(p => p.load || (p.inflow / Math.max(1e-6, CFG.pipe.tiers[p.tier - 1])) || 0));
+          w.fit(g, 'well_blower'); w.fit(g, 'flare_stack'); const w2 = sim(240, 200);
+          const fuel = gen.fuel, delivered = r3(inl.delivered), burned = r3(gen.gasBurned), dmg = Math.max(0, ...[...g.pipes.pipes.values()].map(p => p.damage || 0));
+          s40.C_gen = { kit: kit.ok, cells: cells.length, watts_T1: Math.round(w1), watts_T2: Math.round(w2), buf1, delivered, burned, fuel, pipeLoadMax: r3(maxLoad), pipeDmg: r3(dmg), flared: r3(w.flared),
+            ok: kit.ok && Math.abs(w1 - LF.tiers[0] * LF.gasJ) < 15 && w2 > 190 && fuel === 0 && burned > 100 && dmg === 0 }; }
+        // D: leak / flash risk — uncoupled inlet blows gas into the base, ceiling layer + spark = flash, room in band = blast, dug pocket flash
+        { const [g, s] = mk40(), w = g.landfill.well, inl = g.landfill.inlet, gen = quickGrid(g, s, 1e9); fitGasKit(g, gen, { free: true });
+          w.fit(g, 'gas_well'); w.main = LF.mainCap; inl.open = true; const c0 = g.room.gases.ch4;
+          for (let t = 0; t < 20; t += .1){ w.update(.1, g); inl.update(.1, g); g.pipes.update(.1); }
+          const leaked = r3(g.room.gases.ch4 - c0), spill = r3(inl.spill || 0);
+          // ceiling flash: a live generator is a spark source
+          setO2(g, .21); setCH4(g, .02); gen.out = 150; const src = o2SparkSources(g), ceil = r3(ch4Ceil(g)); g.rng = () => 0; g._ch4Cd = 0;
+          const pIgn = ch4Tick(g, .1), fl = g._ch4Flashes || 0, after = r3(g.room.frac('ch4')), suit = g.player.suit;
+          // a spark while the ceiling is above UEL (too rich) does nothing
+          setCH4(g, .06); g._ch4Cd = 0; const rich = ch4Tick(g, .1), flRich = g._ch4Flashes || 0;
+          // whole room inside the band: deflagration
+          setCH4(g, .07); g._ch4Cd = 0; g.player.suit = 100; const bl = ch4Ignite(g, src[0], 'blast'), blastSuit = g.player.suit, co2Up = g.room.frac('co2') > .01;
+          // landfill dig: a laser into a pocket inside the band flashes; a rich (undiluted) pocket does not
+          const zone = g.zones?.landfill || null, blk = [...g.voxels.cells?.values?.() || []].map(c => c.entity).find(e => e instanceof RefuseBlock) || null;
+          let pocket = null, rich2 = null;
+          if (blk){ const key = g.voxels.key(blk.i, blk.j, blk.k), fake = { gas: new GasContainer(500, { o2: 100, co2: 0, ch4: 40 }) }; g.pockets.byCell.set(key, fake);
+            pocket = lfDigFlash(g, { mat: 'refuse', i: blk.i, j: blk.j, k: blk.k, wx: blk.pos?.x ?? 0, wz: blk.pos?.z ?? 0, laser: true });
+            fake.gas = new GasContainer(125, { o2: 5, co2: 0, ch4: 40 }); rich2 = lfDigFlash(g, { mat: 'refuse', i: blk.i, j: blk.j, k: blk.k, wx: 0, wz: 0, laser: true }); g.pockets.byCell.delete(key); }
+          s40.D_risk = { leaked, spill, sparkSrc: src.length, ceil, pIgn: r3(pIgn), flashes: fl, after, suit, rich: r3(rich), flRich, blast: bl?.kind, blastSuit, co2Up, refuseBlk: !!blk, pocketFlash: !!pocket, richPocket: !!rich2,
+            ok: leaked > 1 && src.length > 0 && fl === 1 && after < .02 && suit < 100 && flRich === 1 && rich === 0 && bl?.kind === 'blast' && g._ch4Blasts === 1 && blastSuit < 100 && !!blk && !!pocket && !rich2 }; }
+        // E: save / load — wellhead tiers + flare, field left, main, inlet + trap, burner kit + buffer, side-job flag, room CH4
+        { const [g, s] = mk40(), w = g.landfill.well, inl = g.landfill.inlet, gen = quickGrid(g, s, 0); fitGasKit(g, gen, { free: true }); gen.gasBuf = 7.5;
+          w.fit(g, 'gas_well'); w.fit(g, 'well_blower'); w.fit(g, 'flare_stack'); w.rem = 5123; w.main = 33.3; w.flared = 12; inl.open = true; inl.filter = 120; g._lfSide = 1; g._lfSideT = 44; setCH4(g, .004); g.ch4Events = 2;
+          const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))), [g2, s2] = mk40(); SV.saveApply(g2, snap, s2);
+          const w2 = g2.landfill.well, i2 = g2.landfill.inlet, gn2 = (g2.generators || []).find(x => x.gasKit) || null;
+          const got = { tier: w2.tier, blower: w2.blower, flare: w2.flare, lat: w2.laterals, rem: w2.rem, main: w2.main, io: i2.open, fi: i2.filter, kit: !!gn2, buf: gn2?.gasBuf, sinkOn: !!(gn2 && g2.pipes.sinkAt.has(gn2.gasSink.key)), side: g2._lfSide, sideT: g2._lfSideT, ch4: r3(g2.room.frac('ch4')), ev: g2.ch4Events, proto: snap.proto };
+          s40.E_save = { ...got, ok: got.tier === 2 && got.blower && got.flare && !got.lat && Math.abs(got.rem - 5123) < .1 && Math.abs(got.main - 33.3) < .01 && got.io && got.fi === 120 && got.kit && Math.abs(got.buf - 7.5) < .01 && got.sinkOn && got.side === 1 && got.sideT === 44 && got.ch4 === .004 && got.ev === 2 && got.proto === '0.3.8' }; }
+        // F: scanning the vent once unlocks the family (no tier jump), optional side job pays out but never gates the chain
+        { const [g] = mk40(), tier0 = g.unlocks.craftTable, find = g.landfill.ventFind; g.lucid.online = true; find.complete(g);
+          const fam = ['gas_well', 'well_blower', 'well_laterals', 'flare_stack', 'gas_filter', 'gas_burner'].map(k => [k, g.recipeUnlocked(k)]);
+          const side1 = g._lfSide, sc0 = g.scrap, gen = quickGrid(g, g._slice, 0); fitGasKit(g, gen, { free: true }); gen.out = 120; gen._gasUse = .5;
+          for (let t = 0; t < 125; t += .5) lfSideTick(g, .5); const side2 = g._lfSide, paid = g.scrap - sc0;
+          s40.F_scan = { fam, tier0, tier1: g.unlocks.craftTable, side1, side2, paid, gensetFind: !!g.landfill.gensetFind,
+            ok: fam.filter(([k, v]) => k !== 'gas_burner').every(([, v]) => v) && g.unlocks.craftTable <= Math.max(tier0, 2) && side1 === 1 && side2 === 2 && paid === LF.side.scrap && !!g.landfill.gensetFind }; }
+        // G: digging the mound — refuse blocks give scrap / salvage, five gas pockets, buried steel sparks
+        { const [g] = mk40(), blocks = [...g.voxels.cells.values()].map(c => c.entity).filter(e => e instanceof RefuseBlock);
+          const pockets = blocks.filter(b => b.ch4 >= LF.dig.pocketCH4).length, metal = blocks.filter(b => b.metal).length, salv = blocks.filter(b => b.drop === 'ore_scrap').length;
+          const b0 = blocks.find(b => b.scrapN > 0), sc0 = g.scrap; b0?.finish(g); const gain = g.scrap - sc0;
+          s40.G_dig = { blocks: blocks.length, pockets, metal, salvage: salv, gain, prompt: (b0 && b0.prompt ? '' : '-'), ok: blocks.length > 100 && pockets === 5 && metal > 10 && salv > 0 && gain === b0?.scrapN && gain > 0 }; }
+        // H: help + version
+        { const h = $('help')?.textContent || ''; s40.H_help = { ver: /v0\.3\.8/.test(h), sec: /LANDFILL GAS/.test(h), flam: /5 and 15 %/.test(h), flare: /flare/i.test(h), noOne: !/v1\.0/.test(h) }; s40.H_help.ok = Object.values(s40.H_help).every(Boolean); }
+        s40.SUCCESS = !!(s40.A_gas.ok && s40.B_extract.ok && s40.C_gen.ok && s40.D_risk.ok && s40.E_save.ok && s40.F_scan.ok && s40.G_dig.ok && s40.H_help.ok);
+      } catch (err){ s40.error = String(err?.stack || err).slice(0, 600); s40.SUCCESS = false; }
       s38.SUCCESS = !!(s38.A_hose.ok && s38.B_rich.ok && s38.C_ignite.ok && s38.D_fire.ok && s38.E_reg.ok && s38.F_save.ok && s38.G_salvage.ok && s38.H_labor.ok && s38.I_gate.ok);
     } catch (err){ s38.error = String(err?.stack || err).slice(0, 600); s38.SUCCESS = false; }
   }
