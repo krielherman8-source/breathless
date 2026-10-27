@@ -1,6 +1,6 @@
 # BREATHLESS - Game Design Brief (from the user, verbatim intent)
 
-**Current version: v0.3.6** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
+**Current version: v0.3.7** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
 
 ## Version history (old labels → v0.x)
 Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those old labels as **v0.X.Y**. The build-log entries below keep their original labels as **history**.
@@ -12,7 +12,7 @@ Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those ol
 | prototype 2.0 - 2.9.1 | v0.2.0 - v0.2.9.1 | 20-31 |
 | v3.0 / v3.1 / v3.1.1 | v0.3.0 / v0.3.1 / v0.3.1.1 | 32-33 + hotfix |
 | v3.2 / v3.3 | v0.3.2 / v0.3.3 | 34 / 35 |
-| (new numbering) | v0.3.4, v0.3.5, **v0.3.6 (current)** | 36, 37, 38 |
+| (new numbering) | v0.3.4, v0.3.5, v0.3.6, **v0.3.7 (current)** | 36, 37, 38, 39 |
 
 Old saves (any proto string) still load, because loading is gated by `schema` (1).
 
@@ -659,7 +659,7 @@ Builds were labelled "prototype 2.x/3.x". They are now pre-release v0.x: old 3.3
 - **Tests:** new selftest slice37 (A save omni/time, B fresh build flag, C ARK-03 air budget, D live feed + hints + death text, E hose balance + glow, F spares). The slice34 mock gained a turbine and pylons. Full selftest ran 3× back to back: all green each time (about 15 s per run, 157 boolean checks; the only false one is `slice8.A_noLink.remoteOk`, which the test expects to be false).
 - **Open / for the user:** scrap is still tight without crew labour. Base O2 drifts to about 39% with planters (no cap or venting). A T1 hose on full sump flow bursts about every 3.4 min until it is reinforced. After the win, a continuous ARK-03 burn starves the hall in about 17 min.
 
-## v0.3.6 (slice 38, 2026-10-26): rich air & salvage (current)
+## HISTORY — v0.3.6 (slice 38, 2026-10-26): rich air & salvage
 User decisions on the five v0.3.5 open questions:
 - **Scrap: crew labour is the main source, plus modest salvage.** There are 6 scannable *salvage caches*: 3 on the surface (crash debris), plus 1 each in ARK-01 (records), ARK-02 (servo rack) and ARK-03 (switchgear). Each has a dust mound, hull panel, tool case, conduit, coil and plates. Scan it once ([F], 1.4 s, or faster with omni) to unlock it, then each [E] strip gives +2 scrap. Each cache holds 3 strips, so 36 scrap in total. The playthrough stripped 30 of them and cut its top-ups from 77 to 47 scrap. **Labour hint:** once you have a collared survivor and nobody has been on LABOR for 45 s, you get one toast. The chain strip also shows a short tip until a survivor is set to LABOR.
 - **O2 overshoot is realistic, with no hard cap.**
@@ -673,3 +673,28 @@ User decisions on the five v0.3.5 open questions:
 - **Save:** proto `0.3.6` stores regulators (position, setpoint, vented), fires (position, intensity), cache state (scanned, stock), the rich-air timer and the labour-hint flag. Older saves still load.
 - **Tests:** new selftest slice38 (A hose timing, B rich-air warning, C ignition hazard, D fire grow/burn/douse/starve, E regulator, F save roundtrip with no duplicates, G salvage placement and yield, H labour hint, I gating + recipe). Two ARK caches were moved off colliders. The full selftest ran 3× back to back, all green each time (about 15 s per run, 166 boolean checks; the only false one is the expected `slice8.A_noLink.remoteOk`). The scripted playthrough reached **SUCCESS** (won at 704 s, 794 s simulated, no issues). Economy: 47 scrap of top-ups (was 77), 30 scrap salvaged, 0 labour. Rich-air fire risk only runs in real play (`o2RiskOn`), not in selftest or preview.
 
+
+
+## v0.3.7 (slice 39, 2026-10-27): air-safety polish (current)
+- **Fire FX visible**: the label-declutter pass was hiding the flame/smoke sprites (it treated every textured sprite as a label). It now skips sprites tagged `userData.fx` and additive sprites, so fires show clearly again.
+- **O2 regulator gauge readable**: the gauge head (dial, boss, glass, LCD) is now one tilted `gaugeHead` group at chest height, facing the player. The SET/VENT LCD sits above the dial, and the LED moved to the side.
+- **Crash-walk save**: saving before you reach shelter used to mark FIND SHELTER as done on load. The save now stores elapsed time for an open objective, and load keeps it open (selftest `slice39.G_crashSave`).
+- **Content**:
+  - H-help has NOW (current objective) and FLIGHT LOG (recovered logs, in order) sections.
+  - LUCID now has first-time lines for fire, fire out, the regulator, a cache and the sump hose.
+  - New sounds: a fire roar with crackles (scaled to heat), extinguishing, the regulator valve, and the cache unlock.
+- **Hint gate**: tutorial hints go through `hint()`.
+  - One-time hints persist in the save.
+  - Hints keep a minimum 9 s gap, never stack on another toast, and wait in a deduped queue of 3.
+  - Hints still waiting after 40 s are dropped.
+- **Objective strip off**: NEW OBJECTIVE toasts are suppressed and H-help "NOW" shows the current objective (judgement call, can be reverted).
+- **Tests**:
+  - Selftest: 174 checks pass. The only false value is `slice8.A_noLink.remoteOk`, which is meant to be false.
+  - Normal `?playthrough`: won at sim 789 s, with 47 scrap top-ups and 30 salvage.
+  - New `?playthrough&labor` (crew labour, no scrap top-ups): won at sim 2438 s. 73 scrap came from crew labour and 30 from salvage, with 0 top-ups (18 suit top-ups for walks are still allowed). Labour cost 1480 s of waiting at the craft table, with 30-254 s per item.
+  - Labour mode needed the player to restart the turbine twice and rouse the crew once. Both crew went DOWN in a CO2 spike in the hold (O2 21%, CO2 15%) while the turbine was off. This is a real crisis, not a bug, and the player has to rouse them.
+  - `edge.saveMidFireReg`: a save and load during an active fire, with a regulator set, keeps the regs, setpoint, fires and I.
+  - `play/run_deathflow.mjs`: the death screen offers continue from the last save. Continue restores the save, and New game wipes it and starts at the pod with FIND SHELTER.
+- **Observations**:
+  - Without a regulator, base O2 sits around 38% during the hold.
+  - The "New seedling planted" toast can repeat.
