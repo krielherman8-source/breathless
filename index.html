@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>BREATHLESS - v0.3.9 (crew-labour pacing)</title>
+<title>BREATHLESS - v0.4.0 (crew routes)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   /* slice 25: shared UI tokens — every panel / HUD box / button pulls from these */
@@ -167,7 +167,7 @@
   <div id="lucidui" class="panel"><span class="close">[Esc] close</span><h2 id="lucidtitle">LUCID LINK</h2><div class="meta" id="lucidmeta"></div><div class="ctrlcmds" id="ctrlcmds" style="display:none"></div><div id="lucidlist"></div><div class="crew sect" id="crewlist" style="display:none"></div><div class="orbcmds" id="orbcmds" style="display:none"></div><div class="last" id="lucidlast"></div></div>
   <div id="hint"><kbd>H</kbd> controls &nbsp; <kbd>B</kbd> build &nbsp; <kbd>Esc</kbd> pause</div>
   <div id="help">
-    <div class="ttl">CONTROLS<span>[H] close · v0.3.9</span></div>
+    <div class="ttl">CONTROLS<span>[H] close · v0.4.0</span></div>
     <div class="hcols">
     <div class="sec"><h4>MOVE &amp; ACT</h4>
       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>Esc</kbd> pause<br>
@@ -207,7 +207,8 @@
     <div class="sec"><h4>SURVIVOR CREW</h4>
       Feral survivors roam outside and in the ARKs — ragged, irradiated people. Craft a <b>snare cage</b>, place it with <kbd>E</kbd> near one and back off; it takes the bait and the cage drops.<br>
       Wait out the thrashing (~6 s), then while it is calm (~14 s) hold <kbd>E</kbd> with a <b>mood-dampener collar</b> in the pack (~2 s; it may flinch and claw your suit).<br>
-      Collared = crew. Carry it <kbd>Q</kbd> into breathable air, hold <kbd>E</kbd> to rouse it. <kbd>E</kbd> on crew = next job: follow · wander · tend plant · labor (craft table) · haul (scrap → crate). Jobs stay in its own zone.<br>
+      Collared = crew. Carry it <kbd>Q</kbd> into breathable air, hold <kbd>E</kbd> to rouse it. <kbd>E</kbd> on crew = next job: follow · wander · tend plant · labor (craft table) · haul (scrap → crate).<br>
+      <b>Crew routes</b> (v0.4.0): crew walk with you through doors, hatches and the airlock — they cycle the lock themselves and wait it out (never both doors open). Remote <kbd>Z</kbd> picks the order <b>site</b> (HERE / BASE / ARK-01 / ARK-02 / ARK-03): the crew member walks there if its air reserve covers the crossing, catching its breath in an open ARK on the way, or refuses with the reason ("can't reach: no air").<br>
       Remote (LUCID reachable): <kbd>Tab</kbd> pick crew, <kbd>Shift</kbd>+<kbd>1</kbd>-<kbd>5</kbd> or <kbd>F</kbd> <kbd>T</kbd> <kbd>L</kbd> <kbd>H</kbd> <kbd>W</kbd> = FOLLOW / TEND / LABOR / HAUL / WANDER. Control room: ALL → job buttons.<br>
       A collar runs ~30 min: crew below 30% walk to a powered <b>collar dock</b> (60 W, 2 min to full), or hold <kbd>R</kbd> on one to hand-charge. LED amber = low, red blink + twitching = critical; at 0 it turns feral again (bolts or attacks).<br>
       Every survivor breathes 0.9 to your 1.0 (a mature plant makes 1.9): build an <b>O2 planter</b> per extra pair of lungs. In thin air crew slow, then collapse until you fix the air and rouse them.</div>
@@ -252,7 +253,7 @@
   <p id="starthint"><b>Click to begin</b> &nbsp; <span style="opacity:.6">(<kbd>Shift</kbd>+click replays the intro · <kbd>Space</kbd> skips it)</span></p>
   <div id="savebox" style="display:none"><div class="row"><button id="btnContinue" class="sbtn main">Continue</button><button id="btnNew" class="sbtn">New game</button></div><div class="row"><button id="btnSetT" class="sbtn small">Settings</button></div><div id="saveinfo"></div></div>
   <div id="savenote" style="display:none"></div>
-  <div class="ver">v0.3.9 · BREATHING ROOM</div>
+  <div class="ver">v0.4.0 · BREATHING ROOM</div>
 </div>
 <div id="settings"><div class="card"><h3>SETTINGS</h3>
 <label>Mouse sensitivity <input id="setSens" type="range" min="0.25" max="3" step="0.05"></label>
@@ -271,7 +272,7 @@
 import * as THREE from './lib/three.module.js';
 
 /* =====================================================================
-   BREATHLESS v0.3.9  (v0.3.9: crew-labour pacing — 1 scrap / 20 s per LABOR worker, +10 % per bench tier, +25 % per extra worker (max 4), a 4-slot bench craft queue crew labour funds while you are away, a lit job board on the bench, one-time replant toast, landfill payoff once + LUCID gas tip after ARK-03, fled ferals calm when left alone; v0.3.8: Cell 4 landfill — methane wellhead T1-T3 + flare, gas burner on generators, CH4 ceiling layer / flash / blast, refuse dig with gas pockets; v0.3.7: visible fire FX, readable regulator gauge, flight-log continuity, hint gate, crash-walk saves; versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.6: rich air is a
+   BREATHLESS v0.4.0  (v0.4.0: crew routes — a zone + door graph over the base, airlock, surface lanes and ARK-01/02/03 with waypoint paths; crew on FOLLOW walk through doors with you, cycle the airlock and hatches themselves safely, refuse crossings their air won't cover, take orders for another zone ([Z] site), and resume a trip after save/load.  v0.3.9: crew-labour pacing — 1 scrap / 20 s per LABOR worker, +10 % per bench tier, +25 % per extra worker (max 4), a 4-slot bench craft queue crew labour funds while you are away, a lit job board on the bench, one-time replant toast, landfill payoff once + LUCID gas tip after ARK-03, fled ferals calm when left alone; v0.3.8: Cell 4 landfill — methane wellhead T1-T3 + flare, gas burner on generators, CH4 ceiling layer / flash / blast, refuse dig with gas pockets; v0.3.7: visible fire FX, readable regulator gauge, flight-log continuity, hint gate, crash-walk saves; versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.6: rich air is a
    fire risk (O2 > 30 %: quiet RICH tell, sparks from strained cables / burst pipes / generators can start a small fire; O2 regulator bleeds
    the excess), starter hose weeps ~12 min before it bursts (drips, hiss, creaks), scannable salvage caches (surface + ARKs), crew-labour hint;
    HISTORY — v0.3.5: full scripted
@@ -916,6 +917,24 @@ const UI_COL = { text: '#bfeaff', hi: '#e6f8ff', dim: '#7fb3c8', faint: '#4f7f96
   mono: 'ui-monospace, Menlo, Consolas, "DejaVu Sans Mono", monospace' };
 const lerp = (a, b, t) => a + (b - a) * Math.max(0, Math.min(1, t));
 
+// v0.4.0 (slice 42): crew pathing between sealed zones (zone + door graph, per-zone grid A*, crew work the airlock)
+CFG.nav = {
+  cell: .4,                 // m — walk grid inside a zone (world colliders, portal doors left out: they are graph edges)
+  clear: .25,               // m — clearance around colliders (crew radius .22 + a hair)
+  transitMul: .8,           // on reserve, crew hurry across at 0.8 × speed (they still WORK at the reserve crawl)
+  airMargin: 1.15,          // a thin-air leg must fit in the reserve with 15 % spare …
+  airPad: 3,                // … plus 3 s
+  rideFrac: .8,             // FOLLOW only steps into the lock / out of an ARK with ≥ 80 % reserve
+  lockHoldMax: 4,           // s a closing lock door waits for a survivor standing in it, then shoves it clear
+  replanStuck: 2.0,         // s of no progress on a waypoint before it re-plans
+  retry: 5,                 // s between re-tries of an order it could not reach
+  lockOutS: 1.4,            // s exposed walking out of a vented chamber (after vent + open)
+  lockInS: 1.6,             // s exposed walking into the chamber on the surface side (before close + press)
+};
+const NAV_DOOR_IDS = new Set(['airlock-inner', 'airlock-outer', 'ark-hatch-door', 'ark2-hatch-door', 'ark3-hatch-door']);
+const navDoorRef = r => !!(r && NAV_DOOR_IDS.has(r.id));
+const NAV_ZL = { base: 'BASE', airlock: 'AIRLOCK', surface: 'SURFACE', ark: 'ARK-01', ark2: 'ARK-02', ark3: 'ARK-03' };
+
 // Build grid helpers (cell = 0.5 m). Cell (i,j,k) spans x/y/z from origin corner.
 const GRID = {
   c: CFG.grid.cell, ox: -R.w / 2, oz: -R.d / 2,
@@ -1484,7 +1503,7 @@ class OxygenPlant extends Entity {
     this.tex.needsUpdate = true;
   }
   update(dt, game){
-    const P = CFG.plant, room = game.room, st = this.stage();
+    const P = CFG.plant, room = this.placed && game.arkBounds && game.zoneAt?.(this.pos) === 'ark' ? game.growLab : game.room, st = this.stage();   // v0.4.0: a grow-lab planter breathes the grow lab
     this.age += dt; if (this.wateringT > 0) this.wateringT -= dt;
     const alive = st[2] !== 'Withered';
     // water is consumed only while it is working
@@ -3980,9 +3999,9 @@ class CableSegment extends Entity {
 
 // ---------- World / collision ----------
 class World {
-  constructor(){ this.boxes = []; }  // AABBs; walk:false boxes only block placement
-  addBox(x, z, w, d, y0 = 0, y1 = 3, opt = {}){ const b = { minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, minY: y0, maxY: y1, walk: opt.walk !== false, ref: opt.ref || null }; this.boxes.push(b); return b; }
-  removeRef(ref){ this.boxes = this.boxes.filter(b => b.ref !== ref); }
+  constructor(){ this.boxes = []; this.ver = 0; }  // AABBs; walk:false boxes only block placement. ver: v0.4.0 nav-grid cache key (portal doors excluded)
+  addBox(x, z, w, d, y0 = 0, y1 = 3, opt = {}){ const b = { minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, minY: y0, maxY: y1, walk: opt.walk !== false, ref: opt.ref || null }; this.boxes.push(b); if (b.walk && !navDoorRef(b.ref)) this.ver++; return b; }
+  removeRef(ref){ const n = this.boxes.length; this.boxes = this.boxes.filter(b => b.ref !== ref); if (this.boxes.length !== n && !navDoorRef(ref)) this.ver++; }
   hit(x, z, r){ return this.boxes.some(b => b.walk && b.minY < 1.8 && b.maxY > .05 && x + r > b.minX && x - r < b.maxX && z + r > b.minZ && z - r < b.maxZ); }
   move(p, dx, dz, r){
     if (!this.hit(p.x + dx, p.z, r)) p.x += dx;
@@ -4170,9 +4189,12 @@ class Builder {
     const cells = []; for (let i = i0; i <= i1; i++) for (let k = k0; k <= k1; k++) for (let j = 0; j <= 1; j++) cells.push([i, j, k]);
     let reason = null;
     const unlocked = g.unlocks.craftTable;
+    // v0.4.0: a bench may stand inside an open ARK deck too (ARK-02 bench); off the base build grid, so no grid cells
+    const zc = g.zoneAt({ x: cx, z: cz }), inArk = /^ark/.test(zc) && [[-hw, -hd], [hw, -hd], [-hw, hd], [hw, hd]].every(([a, b]) => g.zoneAt({ x: cx + a, z: cz + b }) === zc);
+    if (inArk) cells.length = 0;
     if (tier < 1 || tier > CFG.craft.maxTier) reason = 'Invalid tier';
     else if (tier > unlocked) reason = `Tier T${tier} locked (unlocked up to T${unlocked})`;
-    else if (cells.some(([i, j, k]) => !GRID.inside(i, j, k))) reason = 'No space here';
+    else if (!inArk && cells.some(([i, j, k]) => !GRID.inside(i, j, k))) reason = 'No space here';
     else if (cells.some(([i, j, k]) => g.occ.has(GRID.key(i, j, k)))) reason = 'Blocked by a pipe or machine';
     else if (g.world.overlaps({ minX: cx - hw, maxX: cx + hw, minZ: cz - hd, maxZ: cz + hd, minY: 0, maxY: F.h })) reason = 'Blocked';
     else if (this.playerIn({ minX: cx - hw, maxX: cx + hw, minZ: cz - hd, maxZ: cz + hd, minY: 0, maxY: F.h })) reason = 'You are standing there';
@@ -4651,7 +4673,8 @@ class LucidNet {
     else if (im.airMul < .92){ health = 'THIN AIR'; hc = 'thin'; }
     else { health = 'OK'; hc = 'ok'; }
     const note = im.jobNote(), idle = / — /.test(note);
-    return { tag: im.tag, job: im.job, jobLabel: C.jobShort[im.job] || im.job.toUpperCase(), health, hc, zone: z,
+    return { tag: im.tag, job: im.job, jobLabel: (C.jobShort[im.job] || im.job.toUpperCase()) + (im.workZone && im.workZone !== z ? '→' + NAV_ZL[im.workZone] : ''), health, hc, zone: z,
+      workZone: im.workZone || null, travel: im.nav?.ok && im.nav.zone !== z ? NAV_ZL[im.nav.zone] : null,
       reserve: +im.reserve.toFixed(1), idle, note: idle ? note.split(' — ')[1] : '' };
   }
   crewList(){ return this.crew().map(im => this.impStatus(im)); }
@@ -4663,11 +4686,23 @@ class LucidNet {
     else if (!im) res.msg = 'No collared crew there.';
     else if (!CFG.imp.jobs.includes(c.job)) res.msg = `Unknown job '${c.job}'.`;
     else if (im.carried) res.msg = `${im.tag} is being carried. Set it down first.`;
+    else if (c.zone && c.zone !== 'here' && !NAV_ZL[c.zone]) res.msg = `Unknown zone '${c.zone}'.`;
     else {
-      const prev = im.job;
-      if (prev !== c.job) im.setJob(c.job);   // same path as [E] cycle (resets haul/wander state, emits imp:job)
-      res.ok = true; res.prev = prev; res.job = im.job; res.tag = im.tag; res.status = this.impStatus(im);
-      res.msg = `${im.tag} → ${CFG.imp.jobShort[im.job]}${im.state === 'down' ? ' (down — starts when roused)' : ''}`;
+      // v0.4.0: an order may name another zone (the ARK-02 bench, a plant in the grow lab). It is pre-checked against the
+      // door graph and the survivor's own air; an unreachable site is refused with the reason (and the job stays as it was).
+      const zone = c.zone && c.zone !== 'here' && c.job !== 'follow' ? c.zone : null;
+      const chk = zone && im.state === 'awake' && zone !== im.zone() ? navOf(this.g).reach(im, zone) : { ok: true };
+      if (!chk.ok){
+        res.msg = `${im.tag} can't reach ${NAV_ZL[zone]}: ${chk.why}`; res.why = chk.why; res.tag = im.tag; res.refused = true;
+        im.refusals = (im.refusals || 0) + 1;
+        this.log.push({ t: +this.g.time.toFixed(1), op: c.op, via: c.via || '?', tag: im.tag, job: c.job, zone, ok: false }); if (this.log.length > 24) this.log.shift();
+        this.g.bus.emit('lucid:result', { cmd: c, ...res });
+        return res;
+      }
+      const prev = im.job, prevZ = im.workZone || null;
+      if (prev !== c.job || prevZ !== zone) im.setJob(c.job, zone);   // same path as [E] cycle (resets haul/wander state, emits imp:job)
+      res.ok = true; res.prev = prev; res.job = im.job; res.tag = im.tag; res.zone = im.workZone || null; res.status = this.impStatus(im);
+      res.msg = `${im.tag} → ${CFG.imp.jobShort[im.job]}${im.workZone ? ' @ ' + NAV_ZL[im.workZone] : ''}${im.state === 'down' ? ' (down — starts when roused)' : ''}`;
       im.remoteOrders = (im.remoteOrders || 0) + 1; this.crewOrders = (this.crewOrders || 0) + 1;
       // sparse: ONE confirm line ever (HUD), then silent UI updates only
       if (!this.g._crewOrderOnce){ this.g._crewOrderOnce = true; this.g.lucidLine(`Crew orders run through me now. ${res.msg}.`, true); }
@@ -9231,12 +9266,20 @@ class Airlock extends Entity {
     if (this.state === 'base') this.beginCycle('out');
     else if (this.state === 'surface') this.beginCycle('in');
   }
-  beginCycle(dir){
+  beginCycle(dir, who){
     if (this.state === 'cycling') return false;
-    this.cycleDir = dir; this.state = 'cycling'; this.phase = 'close'; this.phaseT = 0;
-    this.game.ui.toast?.(dir === 'out' ? 'Airlock: cycling to surface…' : 'Airlock: cycling to base…', 2200);
-    beep(420, .06); this.paint(); this.game.bus.emit('airlock:cycle', { dir });
+    this.cycleDir = dir; this.state = 'cycling'; this.phase = 'close'; this.phaseT = 0; this._holdT = 0;
+    // v0.4.0: a survivor working the lock is quiet (no toast) — the doors, the panel and the hiss are the only tell
+    this.byCrew = who === 'crew';
+    if (this.byCrew) this.crewCycles = (this.crewCycles || 0) + 1;
+    else this.game.ui.toast?.(dir === 'out' ? 'Airlock: cycling to surface…' : 'Airlock: cycling to base…', 2200);
+    beep(420, this.byCrew ? .03 : .06); this.paint(); this.game.bus.emit('airlock:cycle', { dir, who: who || 'player' });
     return true;
+  }
+  // v0.4.0: survivors standing in a closing door's track (the door waits, then shoves them clear to the near side)
+  doorBand(zD){
+    const hw = CFG.airlock.doorW / 2 + .1, r = CFG.imp.radius;
+    return (this.game.imps || []).filter(im => !im.carried && Math.abs(im.pos.x) < hw && Math.abs(im.pos.z - zD) < .06 + r + .02);
   }
   // dump chamber gases into outdoor (vent)
   ventChamber(){
@@ -9265,6 +9308,13 @@ class Airlock extends Entity {
     if (this.state === 'cycling'){
       this.phaseT += dt;
       if (this.phase === 'close'){
+        // v0.4.0 door hold: never shut a door on a survivor — hold (≤ lockHoldMax s), then shove it to the near side
+        const zD = this.cycleDir === 'out' ? this.zInner : this.zOuter, band = this.doorBand(zD);
+        if (band.length){
+          this._holdT = (this._holdT || 0) + dt;
+          if (this._holdT < CFG.nav.lockHoldMax && this.phaseT < A.closeT * .4) { this.phaseT = Math.max(0, this.phaseT - dt); this.holds = (this.holds || 0) + (this._holdT === dt ? 1 : 0); }
+          else for (const im of band){ const sg = im.pos.z >= zD ? 1 : -1; im.pos.z = zD + sg * (.06 + CFG.imp.radius + .06); this.shoves = (this.shoves || 0) + 1; }
+        }
         const t = Math.min(1, this.phaseT / A.closeT);
         if (this.cycleDir === 'out') this.innerOpen = 1 - t; else this.outerOpen = 1 - t;
         if (t >= 1){
@@ -9288,8 +9338,8 @@ class Airlock extends Entity {
           this.phase = null; this.cycleDir = null; this.phaseT = 0;
           this.syncColliders();
           beep(560, .05); beep(720, .06);
-          this.game.ui.toast?.(this.state === 'surface' ? 'Outer door open. Surface beyond.' : 'Inner door open. Base sealed.', 2000);
-          this.game.bus.emit('airlock:done', { state: this.state });
+          if (!this.byCrew) this.game.ui.toast?.(this.state === 'surface' ? 'Outer door open. Surface beyond.' : 'Inner door open. Base sealed.', 2000);
+          this.game.bus.emit('airlock:done', { state: this.state, who: this.byCrew ? 'crew' : 'player' }); this.byCrew = false;
         }
       }
       this.syncColliders();
@@ -9301,6 +9351,195 @@ class Airlock extends Entity {
     this.outerL.position.x = -hw / 2 - this.outerOpen * slide;
     this.outerR.position.x = +hw / 2 + this.outerOpen * slide;
     if ((this._paintT = (this._paintT || 0) + dt) > .2){ this._paintT = 0; this.paint(); }
+  }
+}
+
+// ---------- v0.4.0 (slice 42): CREW NAV — zone + door graph, per-zone walk grids, waypoint paths ----------
+// Graph: BASE ⇄ airlock (inner door · chamber · outer door) ⇄ SURFACE lanes ⇄ ARK-01 / ARK-02 / ARK-03 hatches.
+// Inside one zone a 0.4 m occupancy grid (live colliders; the five portal doors are edges, not walls) runs 8-way A*,
+// string-pulled to a few waypoints. Across zones the plan is a list of steps: walk · door (an open hatch) · lock (the
+// crew call / ride / cycle the airlock, which by construction only ever opens one door) · breath (fill the reserve
+// before a thin-air leg). A thin-air leg must fit the survivor's own reserve (×1.15 + 3 s); a long crossing can break
+// at an open, breathable ARK to catch its breath. Nothing is free: a crew cycle costs base air exactly like yours.
+const navOf = g => g._crewNav || (g._crewNav = new CrewNav(g));
+class NavGrid {
+  constructor(g, zone, r, c){
+    this.zone = zone; this.c = c; this.x0 = r.x0; this.z0 = r.z0; this.ver = g.world.ver;
+    const nx = this.nx = Math.max(1, Math.ceil((r.x1 - r.x0) / c)), nz = this.nz = Math.max(1, Math.ceil((r.z1 - r.z0) / c));
+    const b = this.blk = new Uint8Array(nx * nz), cl = CFG.nav.clear, q = { x: 0, y: 0, z: 0 };
+    for (let k = 0; k < nz; k++) for (let i = 0; i < nx; i++){ q.x = this.cx(i); q.z = this.cz(k); if (g.zoneAt(q) !== zone) b[i + k * nx] = 1; }
+    for (const bx of g.world.boxes){
+      if (!bx.walk || bx.minY >= 1.8 || bx.maxY <= .05 || navDoorRef(bx.ref)) continue;
+      const i0 = Math.max(0, Math.floor((bx.minX - cl - this.x0) / c)), i1 = Math.min(nx - 1, Math.floor((bx.maxX + cl - this.x0) / c));
+      const k0 = Math.max(0, Math.floor((bx.minZ - cl - this.z0) / c)), k1 = Math.min(nz - 1, Math.floor((bx.maxZ + cl - this.z0) / c));
+      for (let k = k0; k <= k1; k++){ const z = this.cz(k); if (z <= bx.minZ - cl || z >= bx.maxZ + cl) continue;
+        for (let i = i0; i <= i1; i++){ const x = this.cx(i); if (x > bx.minX - cl && x < bx.maxX + cl) b[i + k * nx] = 1; } }
+    }
+  }
+  cx(i){ return this.x0 + (i + .5) * this.c; }
+  cz(k){ return this.z0 + (k + .5) * this.c; }
+  ci(x){ return Math.floor((x - this.x0) / this.c); }
+  ck(z){ return Math.floor((z - this.z0) / this.c); }
+  free(i, k){ return i >= 0 && k >= 0 && i < this.nx && k < this.nz && !this.blk[i + k * this.nx]; }
+  freeAt(x, z){ return this.free(this.ci(x), this.ck(z)); }
+  snap(x, z, R = 5){
+    const i0 = this.ci(x), k0 = this.ck(z); if (this.free(i0, k0)) return i0 + k0 * this.nx;
+    let best = -1, bd = 1e9;
+    for (let k = k0 - R; k <= k0 + R; k++) for (let i = i0 - R; i <= i0 + R; i++) if (this.free(i, k)){ const d = (this.cx(i) - x) ** 2 + (this.cz(k) - z) ** 2; if (d < bd){ bd = d; best = i + k * this.nx; } }
+    return best;
+  }
+  los(ax, az, bx, bz){
+    const d = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.ceil(d / (this.c * .35)));
+    for (let s = 0; s <= n; s++){ const t = s / n; if (!this.freeAt(ax + (bx - ax) * t, az + (bz - az) * t)) return false; }
+    return true;
+  }
+  astar(s, e){
+    const nx = this.nx, N = nx * this.nz, G = new Float32Array(N).fill(1e9), par = new Int32Array(N).fill(-1), done = new Uint8Array(N);
+    const hp = [], hf = [], ex = e % nx, ez = (e / nx) | 0;
+    const h = (i) => { const dx = Math.abs(i % nx - ex), dz = Math.abs(((i / nx) | 0) - ez); return (dx + dz + (Math.SQRT2 - 2) * Math.min(dx, dz)); };
+    const push = (i, f) => { hp.push(i); hf.push(f); let j = hp.length - 1; while (j > 0){ const p = (j - 1) >> 1; if (hf[p] <= hf[j]) break; [hp[p], hp[j]] = [hp[j], hp[p]]; [hf[p], hf[j]] = [hf[j], hf[p]]; j = p; } };
+    const pop = () => { const top = hp[0], li = hp.pop(), lf = hf.pop(); if (hp.length){ hp[0] = li; hf[0] = lf; let j = 0; for (;;){ const a = 2 * j + 1, b = a + 1; let m = j; if (a < hp.length && hf[a] < hf[m]) m = a; if (b < hp.length && hf[b] < hf[m]) m = b; if (m === j) break; [hp[m], hp[j]] = [hp[j], hp[m]]; [hf[m], hf[j]] = [hf[j], hf[m]]; j = m; } } return top; };
+    G[s] = 0; push(s, h(s));
+    while (hp.length){
+      const u = pop(); if (done[u]) continue; done[u] = 1; if (u === e) break;
+      const ui = u % nx, uk = (u / nx) | 0;
+      for (let dk = -1; dk <= 1; dk++) for (let di = -1; di <= 1; di++){
+        if (!di && !dk) continue; const vi = ui + di, vk = uk + dk; if (!this.free(vi, vk)) continue;
+        if (di && dk && (!this.free(ui + di, uk) || !this.free(ui, uk + dk))) continue;   // no corner cutting
+        const v = vi + vk * nx, ng = G[u] + (di && dk ? Math.SQRT2 : 1);
+        if (ng < G[v]){ G[v] = ng; par[v] = u; push(v, ng + h(v)); }
+      }
+    }
+    if (!done[e]) return null;
+    const out = []; for (let v = e; v !== -1; v = par[v]) out.push(v); return out.reverse();
+  }
+  // waypoints (start excluded, end = b itself when reachable in a straight line from the last cell) or null
+  path(a, b){
+    const s = this.snap(a.x, a.z), e = this.snap(b.x, b.z); if (s < 0 || e < 0) return null;
+    const cells = this.astar(s, e); if (!cells) return null;
+    const P = cells.map(v => ({ x: this.cx(v % this.nx), z: this.cz((v / this.nx) | 0) }));
+    if (this.freeAt(b.x, b.z) && this.los(P[P.length - 1].x, P[P.length - 1].z, b.x, b.z)) P.push({ x: b.x, z: b.z });
+    const pts = []; let ax = a.x, az = a.z, k = 0;
+    if (!this.freeAt(ax, az)){ ax = P[0].x; az = P[0].z; pts.push(P[0]); }
+    while (k < P.length - 1){
+      let j = P.length - 1; while (j > k + 1 && !this.los(ax, az, P[j].x, P[j].z)) j--;
+      pts.push(P[j]); ax = P[j].x; az = P[j].z; k = j;
+    }
+    if (!pts.length) pts.push(P[P.length - 1]);
+    return pts;
+  }
+}
+const navLen = (a, pts) => { let L = 0, x = a.x, z = a.z; for (const p of pts){ L += Math.hypot(p.x - x, p.z - z); x = p.x; z = p.z; } return L; };
+class CrewNav {
+  constructor(g){ this.g = g; this.grids = {}; this.cache = new Map(); this.st = { builds: 0, plans: 0, fails: 0, astar: 0, lockCalls: 0, lockCycles: 0, stops: 0 }; }
+  rect(z){
+    const g = this.g, al = g.airlock, O = CFG.outdoor;
+    if (z === 'base') return { x0: -R.w / 2, x1: R.w / 2, z0: -R.d / 2, z1: al ? al.zInner : R.d / 2 };
+    if (z === 'surface') return al ? { x0: -O.w / 2, x1: O.w / 2, z0: al.zOuter + .06, z1: al.zOuter + O.d } : null;
+    const b = z === 'ark' ? g.arkBounds : z === 'ark2' ? g.ark2Bounds : z === 'ark3' ? g.ark3Bounds : null;
+    return b ? { x0: b.minX, x1: b.maxX, z0: b.minZ, z1: b.maxZ } : null;
+  }
+  grid(z){
+    const gr = this.grids[z]; if (gr && gr.ver === this.g.world.ver) return gr;
+    const r = this.rect(z); if (!r) return null;
+    if (gr && gr.ver !== this.g.world.ver) this.cache.clear();
+    this.st.builds++; return (this.grids[z] = new NavGrid(this.g, z, r, CFG.nav.cell));
+  }
+  hatchOf(z){ const g = this.g; return z === 'ark' ? g.arkHatch : z === 'ark2' ? g.ark2Hatch : z === 'ark3' ? g.ark3Hatch : null; }
+  portal(z){ const h = this.hatchOf(z); if (!h) return null; return { z, out: { x: h.hx, z: h.hz - .85 }, in: { x: h.hx, z: h.hz + .95 }, open: h.state === 'open', label: NAV_ZL[z] }; }
+  lockPts(){ const al = this.g.airlock; return { base: { x: 0, z: al.zInner - .8 }, surf: { x: 0, z: al.zOuter + .85 }, mid: al.zMid }; }
+  vol(z){ const g = this.g; return z === 'ark' ? g.growLab : z === 'ark2' ? g.robotLab : z === 'ark3' ? g.mineLab : z === 'surface' ? g.outdoor : z === 'airlock' ? g.volumeAt({ x: 0, z: g.airlock.zMid }) : g.room; }
+  breathable(z){ const v = this.vol(z), C = CFG.imp; return !!v && v.frac('o2') >= C.breathO2 && v.frac('co2') < C.toxicCO2 && v.gases.o2 > .01; }
+  vR(){ return CFG.imp.speed * CFG.nav.transitMul; }
+  need(sec){ return sec * CFG.nav.airMargin + CFG.nav.airPad; }
+  maxRes(im){ return CFG.imp.reserve * im.lungs; }
+  walk(zone, a, b, cacheIt){
+    const key = cacheIt ? `${zone}:${a.x.toFixed(2)},${a.z.toFixed(2)}>${b.x.toFixed(2)},${b.z.toFixed(2)}` : null;
+    const gr = this.grid(zone); if (!gr) return null;
+    if (key && this.cache.has(key)) return this.cache.get(key);
+    this.st.astar++; const pts = gr.path(a, b), r = pts ? { pts, len: navLen(a, pts) } : null;
+    if (key) this.cache.set(key, r); return r;
+  }
+  lockInS(){ const A = CFG.airlock; return A.closeT + A.ventT + A.openT + CFG.nav.lockInS + A.closeT + A.pressT; }   // worst case: the lock has to be called over first
+  lockOutS(){ const A = CFG.airlock; return A.ventT + A.openT + CFG.nav.lockOutS; }
+  // can this survivor get into `zone` from where it stands (door graph + its own air)? Used to pre-check orders.
+  reach(im, zone){
+    if (zone === im.zone()) return { ok: true };
+    if (zone === 'surface' || zone === 'airlock') return { ok: false, why: `no air in ${NAV_ZL[zone]}` };
+    const P = this.portal(zone), goal = zone === 'base' ? { x: 0, z: this.g.airlock.zInner - 1.6 } : P ? { x: P.in.x, z: P.in.z + .6 } : null;
+    if (!goal) return { ok: false, why: 'no route' };
+    return this.plan(im, goal, { zone });
+  }
+  // cheapest way back into breathable air from a point on the surface (direct lanes only; the ARKs are the stops)
+  refuge(im){
+    const L = this.lockPts(), here = { x: im.pos.x, z: im.pos.z }, vR = this.vR(); let best = null;
+    const cands = [{ zone: 'base', hub: L.surf, goal: { x: 0, z: this.g.airlock.zInner - 1.6 }, tail: this.lockInS() }];
+    if (this.breathable('base') === false) cands.length = 0;
+    for (const z of ['ark', 'ark2', 'ark3']){ const P = this.portal(z); if (P && P.open && this.breathable(z)) cands.push({ zone: z, hub: P.out, goal: { x: P.in.x, z: P.in.z + .6 }, tail: 1.8 / vR }); }
+    for (const c of cands){ const w = this.walk('surface', here, c.hub); if (!w) continue; const expo = w.len / vR + c.tail; if (!best || expo < best.expo) best = { ...c, expo }; }
+    return best;
+  }
+  // plan(im, goal, {zone, thin, force}) → { ok, steps, expo, legs } | { ok:false, why }
+  plan(im, goal, opt = {}){
+    const g = this.g, A = CFG.airlock, N = CFG.nav, L = this.lockPts(), vR = this.vR();
+    const zs = g.zoneAt(im.pos), zg = opt.zone || g.zoneAt(goal);
+    this.st.plans++;
+    const fail = why => { this.st.fails++; return { ok: false, why, zs, zg }; };
+    const steps = [], legs = [];
+    const walk = (zone, a, b, c) => { const w = this.walk(zone, a, b, c); if (!w) return false; steps.push({ k: 'walk', zone, pts: w.pts.map(p => ({ x: p.x, z: p.z })) }); return w; };
+    if (zg === 'airlock') return fail('no route');
+    if (!opt.thin && !this.breathable(zg)) return fail(`no air in ${NAV_ZL[zg]}`);
+    if (zs === zg){ if (!walk(zs, im.pos, goal)) return fail(`no path in ${NAV_ZL[zs]}`); return { ok: true, steps, expo: zs === 'surface' ? 0 : 0, legs, zs, zg }; }
+    let hub, head = 0, here = false, first = null;
+    if (zs === 'airlock'){
+      const vented = !this.breathable('airlock');
+      if (zg === 'base'){ steps.push({ k: 'lock', dir: 'in' }); if (!walk('base', L.base, goal)) return fail('no path in BASE'); return { ok: true, steps, expo: vented ? A.closeT + A.pressT + 1 : 0, legs, zs, zg }; }
+      first = { k: 'lock', dir: 'out' }; steps.push(first); hub = { id: 'base', p: L.surf }; head = this.lockOutS(); here = vented;
+    } else if (zs === 'base'){
+      if (!walk('base', im.pos, L.base)) return fail('no path in BASE');
+      first = { k: 'breath', need: 0 }; steps.push(first, { k: 'lock', dir: 'out' }); hub = { id: 'base', p: L.surf }; head = this.lockOutS();
+    } else if (zs === 'surface'){ hub = { id: 'here', p: { x: im.pos.x, z: im.pos.z } }; here = true; }
+    else {
+      const P = this.portal(zs); if (!P) return fail('no route'); if (!P.open) return fail(`${P.label} hatch sealed`);
+      if (!walk(zs, im.pos, P.in)) return fail(`no path in ${P.label}`);
+      first = { k: 'breath', need: 0 }; steps.push(first, { k: 'door', pts: [P.out] }); hub = { id: zs, p: P.out }; head = 1.8 / vR;
+    }
+    let end, tail;
+    if (zg === 'base'){ end = { id: 'base', p: L.surf }; tail = this.lockInS(); }
+    else if (zg === 'surface'){ end = { id: 'goal', p: { x: goal.x, z: goal.z } }; tail = 0; }
+    else { const P = this.portal(zg); if (!P) return fail('no route'); if (!P.open) return fail(`${P.label} hatch sealed`); end = { id: zg, p: P.out, P }; tail = 1.8 / vR; }
+    // surface legs: Dijkstra over hub → (open breathable ARKs to catch breath) → end
+    const stops = ['ark', 'ark2', 'ark3'].filter(z => z !== zs && z !== zg).map(z => this.portal(z)).filter(P => P && P.open && this.breathable(P.z)).map(P => ({ id: P.z, p: P.out, P }));
+    const nodes = [hub, ...stops, end], n = nodes.length, D = new Array(n).fill(1e9), prev = new Array(n).fill(-1), legOf = new Array(n).fill(null), seen = new Array(n).fill(false);
+    const cap0 = here ? im.reserve : this.maxRes(im), capM = this.maxRes(im);
+    let direct = null; D[0] = 0;
+    for (;;){
+      let u = -1; for (let i = 0; i < n; i++) if (!seen[i] && D[i] < 1e9 && (u < 0 || D[i] < D[u])) u = i;
+      if (u < 0 || u === n - 1) break; seen[u] = true;
+      for (let v = 1; v < n; v++){ if (seen[v] || v === u) continue;
+        const w = this.walk('surface', nodes[u].p, nodes[v].p, nodes[u].id !== 'here' && nodes[v].id !== 'goal'); if (!w) continue;
+        const sec = w.len / vR + (u === 0 ? head : 1.8 / vR) + (v === n - 1 ? tail : 1.8 / vR), need = this.need(sec), cap = u === 0 ? cap0 : capM;
+        if (u === 0 && v === n - 1) direct = { sec, need, cap };
+        if (need > cap && !(opt.force && u === 0 && v === n - 1)) continue;
+        const cost = D[u] + sec + (v < n - 1 ? 8 : 0);
+        if (cost < D[v]){ D[v] = cost; prev[v] = u; legOf[v] = { w, sec, need }; }
+      }
+    }
+    if (prev[n - 1] < 0){
+      if (direct) return fail(`no air (needs ${Math.round(direct.need)}s, has ${Math.round(direct.cap)}s)`);
+      return fail('no route on the surface');
+    }
+    const chain = []; for (let v = n - 1; v > 0; v = prev[v]) chain.push(v); chain.reverse();
+    let expo = 0;
+    chain.forEach((v, idx) => {
+      const lg = legOf[v]; legs.push({ to: nodes[v].id, sec: +lg.sec.toFixed(1), need: +lg.need.toFixed(1) }); expo += lg.sec;
+      if (idx === 0 && first) first.need = lg.need;
+      steps.push({ k: 'walk', zone: 'surface', pts: lg.w.pts.map(p => ({ x: p.x, z: p.z })) });
+      if (v < n - 1){ const P = nodes[v].P, nx = legOf[chain[idx + 1]]; this.st.stops++; steps.push({ k: 'door', pts: [P.in] }, { k: 'breath', need: nx.need, stop: P.z }, { k: 'door', pts: [P.out] }); }
+    });
+    if (zg === 'base'){ steps.push({ k: 'lock', dir: 'in' }); if (!walk('base', L.base, goal)) return fail('no path in BASE'); }
+    else if (zg !== 'surface'){ const P = end.P; steps.push({ k: 'door', pts: [P.in] }); if (!walk(zg, P.in, goal)) return fail(`no path in ${P.label}`); }
+    return { ok: true, steps, expo: +expo.toFixed(1), legs, zs, zg };
   }
 }
 
@@ -9551,17 +9790,19 @@ class Imp extends Entity {
   }
   powerDown(game, why = 'air'){
     if (this.state !== 'awake') return;
-    this.state = 'down'; this.downs++; this.working = false; this.moving = 0;
+    this.state = 'down'; this.downs++; this.working = false; this.moving = 0; this.nav = null;
     if (this.haul.pile && this.haul.pile.claim === this) this.haul.pile.claim = null;
     const msg = `${this.tag} collapsed — not enough air. Still breathing, barely. Fix the air, then rouse it.`;
     impSay(game, msg, !game._impDownOnce); game._impDownOnce = true;
     game.crisisNote?.('imp', `${this.tag} down`, { quiet: true });   // slice 25: counts on the monitor ALERT line
     game.bus.emit('imp:down', { imp: this, why });
   }
-  setJob(job){
+  setJob(job, zone){
     if (!CFG.imp.jobs.includes(job)) return;
     if (this.haul.pile && this.haul.pile.claim === this) this.haul.pile.claim = null;
     this.job = job; this.haul = { phase: 'seek', pile: null, crate: null, t: 0 }; this.wanderTo = null; this.stuck = 0; this.working = false; this.followWait = false;
+    this.nav = null; this.followWhy = null; this._navWhyNoted = null; this._benchFor = null; this._tendFor = null;
+    this.workZone = job === 'follow' || !zone ? null : zone;   // v0.4.0: an order can name a zone other than the one it stands in
     if (job === 'wander') this.home.copy(this.pos);
     this.game.bus.emit('imp:job', { imp: this, job });
   }
@@ -9571,14 +9812,18 @@ class Imp extends Entity {
   }
   jobNote(){
     const g = this.game, z = this.zone(), L = CFG.imp.jobLabels[this.job];
+    const wz = this.workZone, where = wz ? NAV_ZL[wz] : 'this zone', n = this.nav;
+    if (n && !n.ok && n.kind !== 'follow') return `${this.tag}: ${L} — can't reach ${NAV_ZL[n.zone] || 'there'}: ${n.why}. It waits.`;
+    if (this.job === 'follow' && this.followWhy === 'air') return `${this.tag}: ${L} — turned back: its air won't last out there.`;
     if (this.job === 'follow' && this.followWait) return `${this.tag}: ${L} — waiting: the air where you are is too thin for it. Carry it [Q].`;
-    if (this.job === 'tend' && !this.findPlant()) return `${this.tag}: ${L} — no plant in this zone. It idles.`;
-    if (this.job === 'labor' && !this.findTable()) return `${this.tag}: ${L} — no craft table in this zone. It idles.`;
-    if (this.job === 'haul' && !this.findCrate()) return `${this.tag}: ${L} — no crate in this zone to haul to.`;
+    if (n && n.ok && this.zone() !== n.zone) return `${this.tag}: ${L} — on its way to ${NAV_ZL[n.zone]}${n.wait ? ' (' + (n.wait === 'breath' ? 'catching its breath' : n.wait === 'cycle' ? 'cycling the airlock' : n.wait === 'you' ? 'waiting for you to cycle' : 'airlock busy') + ')' : ''}.`;
+    if (this.job === 'tend' && !this.findPlant()) return `${this.tag}: ${L} — no plant in ${where}. It idles.`;
+    if (this.job === 'labor' && !this.findTable()) return `${this.tag}: ${L} — no craft table in ${where}. It idles.`;
+    if (this.job === 'haul' && !this.findCrate()) return `${this.tag}: ${L} — no crate in ${where} to haul to.`;
     return `${this.tag}: ${L}`;
   }
   // ---- targets (same zone only: imps do not path between sealed volumes on their own) ----
-  sameZone(p){ return this.game.zoneAt(p) === this.zone(); }
+  sameZone(p){ return this.game.zoneAt(p) === (this.workZone || this.zone()); }   // v0.4.0: the ordered work zone, else its own
   // slice 25: TEND picks the nearest THIRSTY living plant anywhere in its own zone (whole base, never another zone);
   // with nobody thirsty it stands by the nearest living plant (withered last).
   findPlant(){
@@ -9652,6 +9897,153 @@ class Imp extends Entity {
     const s = Math.sin(this._head), c = Math.cos(this._head);
     return new THREE.Vector3(P.pos.x + s * 1.15 + c * this.side, 0, P.pos.z + c * 1.15 - s * this.side);
   }
+  // ---------- v0.4.0 (slice 42): travel between zones ----------
+  navTo(goal, opt = {}){
+    const g = this.game, nav = navOf(g), p = nav.plan(this, goal, opt);
+    const base = { goal: { x: goal.x, z: goal.z }, zone: p.zg, kind: opt.kind || 'job', thin: !!opt.thin, force: !!opt.force, t0: g.time, replans: opt._replans || 0 };
+    this.nav = p.ok ? { ...base, ok: true, steps: p.steps, si: 0, pi: 0, expo: p.expo, legs: p.legs, wait: null }
+                    : { ...base, ok: false, why: p.why, retryAt: g.time + CFG.nav.retry };
+    if (p.ok) this.navPlans = (this.navPlans || 0) + 1;
+    else if (opt.kind !== 'follow' && this._navWhyNoted !== p.why){ this._navWhyNoted = p.why; g.lucidLine(`${this.tag} can't reach ${NAV_ZL[p.zg] || 'there'}: ${p.why}.`, false); }   // quiet: monitor log only
+    return this.nav;
+  }
+  // shared by FOLLOW and jobs: (re)plan when the goal moved (throttled), tick the plan, true on arrival
+  navGo(goal, dt, opt = {}){
+    const g = this.game, n = this.nav, zg = opt.zone || g.zoneAt(goal);
+    // a survivor that bailed for air finishes reaching its refuge before the job (or FOLLOW) re-plans the trip
+    if (n && n.ok && n.bail && opt.kind !== 'refuge'){ if (this.navTick(dt) === 'done'){ this.nav = null; this.moving = 0; } return false; }
+    const moved = !n || Math.hypot(n.goal.x - goal.x, n.goal.z - goal.z) > (opt.slack ?? .4) || n.zone !== zg || n.kind !== (opt.kind || 'job');
+    if (!n || (n.ok && moved && g.time - n.t0 > (opt.every ?? .6)) || (!n.ok && (g.time >= n.retryAt || (moved && g.time - n.t0 > 1.5)))) this.navTo(goal, { ...opt, zone: zg });
+    if (!this.nav.ok){ this.moving = 0; this.stuck = 0; return false; }
+    const r = this.navTick(dt);
+    if (r === 'done'){ this.nav = null; this._navWhyNoted = null; return this.moveTo(goal, dt, opt.arrive ?? .2); }
+    return false;
+  }
+  // walk to t: straight when it is in this zone with a clear line, else by plan (doors, lock, lanes)
+  travel(t, dt, arrive = .2, opt = {}){
+    const g = this.game, z = this.zone();
+    if (g.zoneAt(t) === z && z !== 'airlock' && !(this.nav && this.nav.ok && this.nav.zone === z && this.nav.steps.length > 1)){
+      const gr = navOf(g).grid(z);
+      // close by (bench, plant, pile at arm's length) or a clear line: plain steering, as before v0.4.0
+      if (!gr || Math.hypot(t.x - this.pos.x, t.z - this.pos.z) < 3 || gr.los(this.pos.x, this.pos.z, t.x, t.z)){ this.nav = null; return this.moveTo(t, dt, arrive); }
+      const r = this.navGo(t, dt, { ...opt, arrive });
+      if (this.nav && !this.nav.ok){ this.nav = null; return this.moveTo(t, dt, arrive); }   // no grid path inside one room: steer as before
+      return r;
+    }
+    return this.navGo(t, dt, { ...opt, arrive });
+  }
+  // Out on the surface its air is checked against what is left of the leg: when the reserve won't cover it (held up at a
+  // lock, blocked, pushed around) and a nearer refuge exists, it turns back for that refuge. Quiet — one monitor line.
+  navBail(dt, force){
+    const n = this.nav, g = this.game; if (!n || !n.ok || n.kind === 'refuge' || this._airGood || this.zone() !== 'surface') return false;
+    if (!force && (this._bailT = (this._bailT || 0) - dt) > 0) return false; this._bailT = .5;
+    const nav = navOf(g), vR = nav.vR(), st = n.steps[n.si]; let rem = 0;
+    if (st && st.k === 'walk'){ let d = 0, p = this.pos; for (let i = n.pi; i < st.pts.length; i++){ d += Math.hypot(st.pts[i].x - p.x, st.pts[i].z - p.z); p = st.pts[i]; } const nx = n.steps[n.si + 1]; rem = d / vR + (nx?.k === 'lock' ? nav.lockInS() : 1.8 / vR); }
+    else if (st && st.k === 'lock') rem = nav.lockInS(); else rem = 1.8 / vR;
+    if (!force && this.reserve >= rem + 1) return false;
+    const r = nav.refuge(this); if (!r || (!force && r.expo >= rem)) return false;
+    this.navTo(r.goal, { zone: r.zone, kind: 'refuge', force: true }); if (!this.nav.ok) return false;
+    this.nav.bail = true; this.turnBacks = (this.turnBacks || 0) + 1;
+    g.lucidLine(`${this.tag} turned back for ${NAV_ZL[r.zone]} — its air won't last the rest of the way.`, false);
+    return true;
+  }
+  navTick(dt){
+    const n = this.nav, g = this.game, N = CFG.nav; if (!n || !n.ok) return 'fail';
+    const st = n.steps[n.si]; if (!st) return 'done';
+    n.wait = null;
+    if (this.navBail(dt)) return 'go';
+    if (this.stuck > N.replanStuck){
+      this.stuck = 0; const k = n.replans + 1;
+      if (k > 6){ if (this.navBail(dt, true)) return 'go'; this.nav = { ...n, ok: false, why: 'stuck on the way', retryAt: g.time + N.retry, t0: g.time }; return 'fail'; }
+      this.navTo(n.goal, { zone: n.zone, kind: n.kind, thin: n.thin, force: n.force, _replans: k }); if (n.bail && this.nav.ok) this.nav.bail = true; this.navReplans = (this.navReplans || 0) + 1; return 'go';
+    }
+    if (st.k === 'walk' || st.k === 'door'){
+      const last = n.pi >= st.pts.length - 1, t = st.pts[n.pi];
+      if (this.run(t, dt, last ? .2 : .32)){ n.pi++; if (n.pi >= st.pts.length){ n.si++; n.pi = 0; } }
+      return 'go';
+    }
+    if (st.k === 'breath'){
+      const need = Math.min(st.need || 0, navOf(g).maxRes(this) - .05);
+      if (this.reserve >= need){ n.si++; return 'go'; }
+      this.moving = 0; n.wait = 'breath'; return 'wait';
+    }
+    if (st.k === 'lock') return this.lockTick(st, dt, n);
+    n.si++; return 'go';
+  }
+  // on reserve it hurries across (transitMul) — it still WORKS at the reserve crawl
+  run(t, dt, arrive){ const ws = this.workMul; if (!this._airGood) this.workMul = Math.max(ws, CFG.nav.transitMul); const r = this.moveTo(t, dt, arrive); this.workMul = ws; return r; }
+  // The airlock, worked from door + zone state alone (no memory needed, so it survives save/load mid-cycle):
+  // origin side → call the lock over (only with nobody inside) or step in while that door is open; in the chamber →
+  // ride a running cycle, or cycle it once clear of both doors; far side open → walk out. The lock opens one door at a time.
+  lockTick(st, dt, n){
+    const g = this.game, al = g.airlock, nav = navOf(g), L = nav.lockPts(), out = st.dir === 'out';
+    const O = out ? 'base' : 'surface', T = out ? 'surface' : 'base', z = this.zone();
+    const oPt = out ? L.base : L.surf, tPt = out ? L.surf : L.base, slot = { x: this.side >= 0 ? .55 : -.55, z: al.zMid };
+    const pIn = g.zoneAt(g.player.pos) === 'airlock';
+    const crewIn = (g.imps || []).some(o => o !== this && !o.carried && o.zone() === 'airlock' && !(o.state === 'awake' && o.nav?.ok && o.nav.steps[o.nav.si]?.k === 'lock' && o.nav.steps[o.nav.si].dir === st.dir));
+    if (z === T){ if (this.run(tPt, dt, .3)) n.si++; return 'go'; }
+    if (z === 'airlock'){
+      if (al.state === T){ this.run(tPt, dt, .3); return 'go'; }
+      if (al.state === 'cycling'){ this.moving = 0; n.wait = al.cycleDir === st.dir ? 'cycle' : 'lock busy'; return 'wait'; }
+      if (!this.run(slot, dt, .15)) return 'go';
+      if (st.need && this.reserve < Math.min(st.need, nav.maxRes(this) - .05) && nav.breathable('airlock')){ n.wait = 'breath'; return 'wait'; }
+      if (pIn && out){ n.wait = 'you'; return 'wait'; }   // never takes you outside — you cycle it yourself
+      if (crewIn){ n.wait = 'lock busy'; return 'wait'; }
+      if (al.beginCycle(st.dir, 'crew')){ nav.st.lockCycles++; this.lockUses = (this.lockUses || 0) + 1; }
+      n.wait = 'cycle'; return 'wait';
+    }
+    if (z !== O){ this.nav = null; return 'fail'; }
+    const oOpen = out ? al.innerOpen > .6 : al.outerOpen > .6;
+    if (al.state === O && oOpen){ this.run(slot, dt, .15); return 'go'; }
+    if (al.state === 'cycling'){ this.run(oPt, dt, .35); n.wait = 'lock busy'; return 'wait'; }
+    if (!this.run(oPt, dt, .35)) return 'go';
+    if (pIn || crewIn){ n.wait = 'lock busy'; return 'wait'; }
+    if (al.beginCycle(out ? 'in' : 'out', 'crew')){ nav.st.lockCalls++; this.lockCalls = (this.lockCalls || 0) + 1; }
+    n.wait = 'cycle'; return 'wait';
+  }
+  // FOLLOW: walks with you — through the airlock beside you, out of an ARK after you, across the lanes to you —
+  // and waits (or turns back) when your air would not last it.
+  followTick(dt, game){
+    const C = CFG.imp, N = CFG.nav, nav = navOf(game), P = game.player, al = game.airlock;
+    const z = this.zone(), pz = game.zoneAt(P.pos), dP = Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z), maxR = nav.maxRes(this);
+    const stand = () => { this.moving = 0; this.stuck = 0; };
+    const vP = game.volumeAt(P.pos), okThere = vP.frac('o2') >= C.breathO2 && vP.frac('co2') < C.toxicCO2 && vP.gases.o2 > .01;
+    this.followWait = false;
+    if (this.followWhy === 'air'){
+      if (this._airGood && (this.reserve >= maxR * N.rideFrac || okThere)) this.followWhy = null;
+      else if (this._airGood){ this.followWait = true; this.nav = null; stand(); return; }
+      else {
+        if ((this._rT = (this._rT || 0) - dt) <= 0 || !this.nav){ this._rT = 1; const r = nav.refuge(this); if (r) this._refuge = r; }
+        const r = this._refuge; if (r){ if (this.navGo(r.goal, dt, { zone: r.zone, kind: 'refuge', force: true, every: 1.5 })) stand(); } else stand();
+        return;
+      }
+    }
+    if (pz === z && z !== 'airlock'){
+      if (!this._airGood && (this._rT = (this._rT || 0) - dt) <= 0){
+        this._rT = .5; const r = nav.refuge(this);
+        if (r && this.reserve < nav.need(r.expo) + 1){ this.followWhy = 'air'; this._refuge = r; this.turnBacks = (this.turnBacks || 0) + 1; this.nav = null; game.lucidLine(`${this.tag} turned back — its air won't last out there.`, false); return; }
+      }
+      if (dP <= 1.0 && !this.nav){ stand(); this.yaw = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z); return; }
+      if (dP > 1.0 || this.nav) this.travel(this.followPoint(), dt, .3, { kind: 'follow', every: .8, slack: 1.2 });
+      return;
+    }
+    if (pz === 'airlock'){
+      const L = nav.lockPts(), slot = { x: this.side >= 0 ? .55 : -.55, z: al.zMid };
+      if (z === 'airlock'){ this.nav = null; if (this.run(slot, dt, .15)) stand(); return; }
+      const sideOpen = z === 'base' ? al.innerOpen > .6 : z === 'surface' ? al.outerOpen > .6 : false;
+      if (sideOpen && (z !== 'base' || this.reserve >= maxR * N.rideFrac)){ this.nav = null; this.run(slot, dt, .15); return; }
+      if (z === 'base' || z === 'surface'){ if (this.travel(z === 'base' ? L.base : L.surf, dt, .4, { kind: 'follow' })) stand(); this.followWait = z === 'base'; return; }
+      this.followWait = true; this.nav = null; stand(); return;
+    }
+    if (okThere){ if (this.navGo(P.pos, dt, { zone: pz, kind: 'follow', every: 1.0, slack: 1.5, arrive: 1.0 })) stand(); return; }
+    if (this._airGood){
+      const Pz = nav.portal(z);
+      if (Pz && Pz.open && pz === 'surface' && Math.hypot(P.pos.x - Pz.out.x, P.pos.z - Pz.out.z) < C.leash && this.reserve >= maxR * N.rideFrac){ this.navGo(P.pos, dt, { zone: pz, kind: 'follow', thin: true, every: 1.0, slack: 1.5, arrive: 1.0 }); return; }
+      this.followWait = true; this.nav = null; stand(); return;
+    }
+    if (z === 'airlock' && pz === 'surface' && al.outerOpen > .6){ this.navGo(P.pos, dt, { zone: pz, kind: 'follow', thin: true, every: 1.0, slack: 1.5, arrive: 1.0 }); return; }
+    this.followWhy = 'air'; this._rT = 0; this.nav = null;
+  }
   warpBehindPlayer(){
     const P = this.game.player, w = this.game.world;
     for (const k of [1, .6, 0]){
@@ -9664,13 +10056,14 @@ class Imp extends Entity {
     const C = CFG.imp;
     if (this.carried){
       const P = game.player; this.pos.set(P.pos.x - Math.sin(P.yaw) * .5, 0, P.pos.z - Math.cos(P.yaw) * .5); this.yaw = P.yaw + Math.PI;
+      this.nav = null;   // v0.4.0: carried = the plan is void; it re-plans from wherever you set it down
     }
     if (this.state === 'feral'){ this.rate = 0; if (!this.carried) this.feralTick(dt, game); return; }   // slice 33: ferals run on adrenaline, off the air books
     if (this.state === 'trapped'){ this.rate = 0; this.trapTick(dt, game); return; }
     if (this.state !== 'awake'){ this.working = false; this.moving = 0; this.rate = 0; return; }   // sedated / down: shallow breathing, off the books
     if (this.collarTick(dt, game)) return;   // slice 33: collar drains while awake; at 0 it relapses
     // ---- breathe (small player): O2 -> CO2 in the local volume ----
-    const a = this.airAt();
+    const a = this.airAt(); this._airGood = a.good;
     const busy = this.working && !this.carried;
     const rate = C.o2Use * (this.carried ? C.carryBreath : busy ? (this.job === 'tend' ? C.tendBreath : C.workBreath) : 1);
     this.rate = rate;
@@ -9696,17 +10089,15 @@ class Imp extends Entity {
     this.working = false;
     const J = this.job;
     if (J === 'follow'){
-      const P = game.player, fp = this.followPoint(), dP = Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z);
-      // slice 25 (zone follow bug): the catch-up warp no longer drops an imp into air it cannot breathe (surface, bad
-      // pocket, vented chamber) — it waits in its own zone instead (crew list: "waiting"). Same-zone / breathable OK.
-      const pz = game.zoneAt(P.pos), cross = pz !== this.zone();
-      const vP = game.volumeAt(P.pos), okThere = vP.frac('o2') >= C.breathO2 && vP.frac('co2') < C.toxicCO2 && vP.gases.o2 > .01;
-      this.followWait = cross && !okThere;
-      if (this.followWait){ this.moving = 0; this.stuck = 0; }
-      else if (dP > C.leash || (this.stuck > C.stuckWarp && dP > 1.8)) this.warpBehindPlayer();
-      else if (dP > 1.0) this.moveTo(fp, dt, .25);
-      else { this.moving = 0; this.yaw = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z); }
+      // v0.4.0: no catch-up warp — it walks (A* in a zone, the door graph between zones). slice 25's rule stands:
+      // it never follows you into air it cannot breathe; it waits ("waiting") or turns back for air.
+      this.followTick(dt, game);
     } else if (J === 'wander'){
+      if (this.workZone && this.zone() !== this.workZone){   // v0.4.0: ordered to wander elsewhere — go there first
+        const P = navOf(game).portal(this.workZone), dest = this.workZone === 'base' ? { x: 0, z: 1.5 } : P ? { x: P.in.x, z: P.in.z + .8 } : null;
+        if (dest && this.travel(dest, dt, .3)) this.home.copy(this.pos);
+        return;
+      }
       this.wanderT -= dt;
       if (!this.wanderTo || this.wanderT <= 0){
         for (let i = 0; i < 6; i++){
@@ -9720,7 +10111,7 @@ class Imp extends Entity {
       const pl = this.findPlant();
       if (pl){
         const spot = this._tendSpot && this._tendFor === pl ? this._tendSpot : (this._tendFor = pl, this._tendSpot = this.standNear(pl.pos, 1.0));
-        if (this.moveTo(spot, dt, .2)){
+        if (this.travel(spot, dt, .2)){
           this.yaw = Math.atan2(pl.pos.x - this.pos.x, pl.pos.z - this.pos.z);
           if (pl.water < C.tendBelow && pl.stage()[2] !== 'Withered'){
             const add = C.tendWater * this.workMul * dt; pl.water = Math.min(CFG.plant.waterMax, pl.water + add); this.watered += add; this.working = true;
@@ -9731,7 +10122,7 @@ class Imp extends Entity {
       const t = this.findTable();
       if (t){
         if (this._benchFor !== t){ this._benchFor = t; this._benchSpot = benchSpot(game, this, t); }   // v0.3.9: each worker gets its own side of the bench
-        if (this.moveTo(this._benchSpot, dt, .2)){
+        if (this.travel(this._benchSpot, dt, .2)){
           this.yaw = Math.atan2(t.cx - this.pos.x, t.cz - this.pos.z); this.working = true;
           this.laborT += dt * this.workMul * benchRateMul(game, t);   // v0.3.9: bench tier + team bonus
           if (this.laborT >= C.laborEvery){
@@ -9754,7 +10145,7 @@ class Imp extends Entity {
     } else if (h.phase === 'toPile'){
       if (!h.pile || h.pile.n <= 0){ h.phase = 'seek'; return; }
       h.spot ||= this.standNear(h.pile.pos, .42);
-      if (this.moveTo(h.spot, dt, .18)){ h.phase = 'pick'; h.t = C.pickTime; }
+      if (this.travel(h.spot, dt, .18)){ h.phase = 'pick'; h.t = C.pickTime; }
     } else if (h.phase === 'pick'){
       this.working = true; this.yaw = Math.atan2(h.pile.pos.x - this.pos.x, h.pile.pos.z - this.pos.z);
       h.t -= dt * this.workMul;
@@ -9766,7 +10157,7 @@ class Imp extends Entity {
       this.working = true;
       if (!h.crate){ h.phase = 'seek'; return; }
       h.spot ||= this.standNear(h.crate.mesh.position, .55);
-      if (this.moveTo(h.spot, dt, .18)){ h.phase = 'drop'; h.t = C.dropTime; }
+      if (this.travel(h.spot, dt, .18)){ h.phase = 'drop'; h.t = C.dropTime; }
     } else if (h.phase === 'drop'){
       this.working = true; h.t -= dt * this.workMul;
       if (h.t <= 0){
@@ -10233,7 +10624,8 @@ function tryPlaceDockInFront(game){
 function tryPlacePlanterInFront(game){
   if (!game.hasItem('o2_planter') && !game.freeBuild) return false;
   const p = game.player, pos = new THREE.Vector3(p.pos.x - Math.sin(p.yaw) * 1.3, 0, p.pos.z - Math.cos(p.yaw) * 1.3);
-  if (game.zoneAt(pos) !== 'base'){ game.ui.toast?.('Planters go in the base (it needs the room air and your water).', 2200); return false; }
+  const pz = game.zoneAt(pos);   // v0.4.0: the open ARK-01 grow lab takes planters too (its own air; crew can be sent to tend them)
+  if (pz !== 'base' && !(pz === 'ark' && game.arkHatch?.state === 'open')){ game.ui.toast?.('Planters go in the base or the ARK-01 grow lab (they need sealed air and your water).', 2200); return false; }
   if (game.world.hit(pos.x, pos.z, .45)){ game.ui.toast?.('No room for a planter there.', 1800); return false; }
   if (!game.freeBuild) game.takeItem('o2_planter');
   const pl = game.add(new OxygenPlant(game, pos)); pl.placed = true; pl.water = (CFG.plant.startWater ?? 70) * .6; (game.planters ||= []).push(pl);
@@ -11578,12 +11970,13 @@ function paintMonitor(){
     const maxRows = Math.max(1, Math.floor((RB - y0 - 22) / 16)), rows = Math.min(maxRows, crew.length), h = 22 + rows * 16;
     const sel = Math.min(game.ui?.crewSel || 0, crew.length - 1);
     const first = Math.max(0, Math.min(sel - rows + 1, crew.length - rows));
-    boxAt(y0, h, 'SURVIVOR CREW', crew.length > rows ? `${sel + 1}/${crew.length} · Tab` : 'Tab · Shift+1-5');
+    const site = game.ui?.crewSite && game.ui.crewSite !== 'here' ? '@' + NAV_ZL[game.ui.crewSite] + ' · ' : '';   // v0.4.0: [Z] order site
+    boxAt(y0, h, 'SURVIVOR CREW', site + (crew.length > rows ? `${sel + 1}/${crew.length} · Tab` : 'Tab · Shift+1-5'));
     crew.slice(first, first + rows).forEach((m, k) => {
       const i = first + k, y = y0 + 32 + k * 16;
       c.font = F(12); c.fillStyle = i === sel ? '#e6fff2' : C.row;
       c.fillText(`${i === sel ? '\u25B8' : ' '}${m.tag}`, RX + 4, y);
-      c.fillStyle = m.idle ? C.mute : C.text; c.fillText(m.jobLabel + (m.idle ? '?' : ''), RX + 72, y);
+      c.fillStyle = m.idle ? C.mute : C.text; c.fillText(fitText(c, m.jobLabel + (m.idle ? '?' : ''), 62), RX + 72, y);
       c.fillStyle = C.health[m.hc] || C.amber; c.fillText(fitText(c, m.health, RW - 144), RX + 136, y);
     });
     paintMonitor.crewRows = rows; y0 += h + 4;
@@ -12822,8 +13215,9 @@ class BuildMode {
     } else if (this.sel === 'craft'){
       const floor = n.y > .7;
       const F = CFG.craft.footprint;
-      const cx = Math.max(GRID.ox + F.w / 2, Math.min(GRID.ox + R.w - F.w / 2, GRID.snapLine(p.x, GRID.ox)));
-      const cz = Math.max(GRID.oz + F.d / 2, Math.min(GRID.oz + R.d - F.d / 2, GRID.snapLine(p.z, GRID.oz)));
+      const inArk = /^ark/.test(this.g.zoneAt(p));   // v0.4.0: ARK decks take a bench too (no base-grid clamp there)
+      const cx = inArk ? GRID.snapLine(p.x, GRID.ox) : Math.max(GRID.ox + F.w / 2, Math.min(GRID.ox + R.w - F.w / 2, GRID.snapLine(p.x, GRID.ox)));
+      const cz = inArk ? GRID.snapLine(p.z, GRID.oz) : Math.max(GRID.oz + F.d / 2, Math.min(GRID.oz + R.d - F.d / 2, GRID.snapLine(p.z, GRID.oz)));
       const cp = this.cam.position, yaw = Math.round(Math.atan2(cp.x - cx, cp.z - cz) / (Math.PI / 2)) * (Math.PI / 2) + this.yawOff;
       const tier = this.craftTier;
       const c = this.cand = B.craftCandidate(cx, cz, yaw, tier);
@@ -13109,10 +13503,20 @@ const ui = game.ui = {
     this.crewSel = ((this.crewSel + dir) % n + n) % n;
     paintMonitor(); if (this.lucidOpen) this.refreshLucid();
   },
-  lucidImpJob(i, job, via){
+  // v0.4.0: [Z] order site — HERE (the zone it stands in) · BASE · ARK-01 · ARK-02 · ARK-03. Orders go to that zone.
+  crewSite: 'here',
+  crewSiteCycle(dir = 1){
+    const S = ['here', 'base', 'ark', 'ark2', 'ark3'], k = S.indexOf(this.crewSite);
+    this.crewSite = S[((k < 0 ? 0 : k) + dir + S.length) % S.length]; beep(520, .03);
+    paintMonitor(); if (this.lucidOpen) this.refreshLucid();
+    return this.crewSite;
+  },
+  crewSiteLabel(){ return this.crewSite === 'here' ? 'HERE' : NAV_ZL[this.crewSite]; },
+  lucidImpJob(i, job, via, zone){
     via = via || this.lucidVia || 'panel';
     if (typeof i === 'number') this.crewSel = i;
-    const c = { op: 'imp_job', target: i, job, via };
+    zone = zone ?? (this.crewSite !== 'here' ? this.crewSite : null);
+    const c = { op: 'imp_job', target: i, job, via, zone };
     game.bus.emit('lucid:command', c);
     const r = c.result;
     beep(r?.ok ? 640 : 200, .04); paintMonitor(); if (this.lucidOpen) this.refreshLucid();
@@ -13135,11 +13539,11 @@ const ui = game.ui = {
     box.style.display = 'block'; $('lucidui').classList.add('wide');
     if (this.crewSel >= crew.length) this.crewSel = 0;
     const J = CFG.imp.remoteJobs;
-    const sig = crew.map(c => c.tag).join(',') + '|' + this.lucidVia;
+    const sig = crew.map(c => c.tag).join(',') + '|' + this.lucidVia + '|' + this.crewSite;
     if (box.dataset.sig !== sig){
       box.dataset.sig = sig; box.innerHTML = '';
       const hint = document.createElement('div'); hint.className = 'hint';
-      hint.textContent = 'SURVIVOR CREW — [Tab] select · [Shift+1-5] or F T L H W assign job';
+      hint.textContent = `SURVIVOR CREW — [Tab] select · [Shift+1-5] or F T L H W assign job · [Z] site: ${this.crewSiteLabel()}`;
       box.appendChild(hint);
       // slice 25: control room only — one order for the whole crew (same imp_job path per imp)
       if (this.lucidVia === 'control'){
@@ -13401,6 +13805,7 @@ document.addEventListener('keydown', e => {
     // slice 24: crew orders — Tab select, Shift+1-5 / F T L H W assign (plain digits still switch units)
     if (game.lucidNet.crewAccess(ui.lucidVia).ok && game.lucidNet.crew().length){
       if (e.code === 'Tab'){ e.preventDefault(); ui.crewCycle(e.shiftKey ? -1 : 1); return; }
+      if (e.code === 'KeyZ'){ ui.crewSiteCycle(e.shiftKey ? -1 : 1); return; }   // v0.4.0: order site
       const mj = e.shiftKey && /^Digit([1-5])$/.exec(e.code);
       const job = mj ? CFG.imp.remoteJobs[+mj[1] - 1] : (!e.shiftKey && CFG.imp.remoteKeys[e.code]);
       if (job){ ui.lucidImpJob(ui.crewSel, job, ui.lucidVia || 'panel'); return; }
@@ -13414,6 +13819,7 @@ document.addEventListener('keydown', e => {
   // slice 24: looking at the wall monitor — Tab picks an imp, Shift+1-5 assigns its job remotely
   if (!build.active && aimed instanceof BaseMonitor && game.lucidNet.crewAccess('monitor').ok && game.lucidNet.crew().length){
     if (e.code === 'Tab'){ e.preventDefault(); ui.crewCycle(e.shiftKey ? -1 : 1); return; }
+    if (e.code === 'KeyZ'){ ui.crewSiteCycle(e.shiftKey ? -1 : 1); return; }   // v0.4.0: order site
     const mj = e.shiftKey && /^Digit([1-5])$/.exec(e.code);
     if (mj){ ui.lucidImpJob(ui.crewSel, CFG.imp.remoteJobs[+mj[1] - 1], 'monitor'); return; }
   }
@@ -14034,7 +14440,11 @@ function saveCapture(g){
   d.imps = (g.imps || []).map(im => ({ o: im.origin, l: im.label, s: im.state, j: im.job, r: im.recruited ? 1 : 0, t: im.tag,
     p: [sR(im.pos.x), sR(im.pos.z)], y: sR(im.yaw, 3), h: [sR(im.home.x), sR(im.home.z)], rs: sR(im.reserve, 3), lu: sR(im.lungs, 4), sd: sR(im.side, 3),
     dn: im.downs, hl: im.hauled, cr: im.carried ? 1 : 0,
-    cc: im.collar ? sR(im.collar.charge, 2) : null, cd: im.collar?.dead ? 1 : 0, md: im.mood }));   // slice 33: collar + mood (a caged one saves as feral)
+    cc: im.collar ? sR(im.collar.charge, 2) : null, cd: im.collar?.dead ? 1 : 0, md: im.mood,   // slice 33: collar + mood (a caged one saves as feral)
+    // v0.4.0: ordered work zone + the trip in progress (goal, zone, step). The plan itself is rebuilt on load from where it
+    // stands — the lock steps read only door + zone state, and a mid-cycle airlock saves as its end state.
+    wz: im.workZone || null, fw: im.followWhy || null,
+    nv: im.nav && im.nav.ok ? { g: [sR(im.nav.goal.x, 2), sR(im.nav.goal.z, 2)], z: im.nav.zone, k: im.nav.kind, si: im.nav.si, n: im.nav.steps.length } : null }));
   for (const o of d.imps) if (o.s === 'trapped') o.s = 'feral';
   pl.traps = (g.traps || []).map(t => [sR(t.pos.x), sR(t.pos.z), t.tier, t.state === 'broken' ? 'broken' : 'armed']);
   pl.docks = (g.docks || []).map(k => [k.i, k.k, sR(k.yaw, 3)]);
@@ -14054,7 +14464,7 @@ function saveCapture(g){
   const placedN = pl.pumps.length + pl.gens.length + pl.bats.length + pl.brks.length + pl.tables.length + pl.belts.length + pl.drills.length + pl.refs.length + pl.torsos.length + pl.consoles.length;
   const sum = { zone: P.zone, scrap: g.scrap, items: Object.values(g.inv).reduce((a, b) => a + (+b || 0), 0), placed: placedN, pipes: pl.pipes.length + pl.lpipes.length, cables: pl.cables.length,
     recipes: d.unlocks.recipes.length, tier: g.unlocks.craftTable, imps: d.imps.filter(i => i.r).length, t: d.time };
-  return { schema: SAVE_SCHEMA, proto: '0.3.9', saved: Date.now(), t: d.time, sum, d };
+  return { schema: SAVE_SCHEMA, proto: '0.4.0', saved: Date.now(), t: d.time, sum, d };
 }
 
 // remove every placed thing (free build: no refunds) so the saved layout can be rebuilt on top of the static world
@@ -14226,6 +14636,9 @@ function saveApply(g, snap, sl = (typeof slice !== 'undefined' ? slice : null)){
           migrated33++;
         } else { im.collar = o.cc == null ? null : { charge: o.cc, dead: !!o.cd }; im.mood = o.md || im.mood; }
         im.trap = null; im.docked = null; im.warned = 0;
+        im.workZone = o.wz || null; im.followWhy = o.fw || null; im.nav = null; im._navWhyNoted = null; im._benchFor = null; im._tendFor = null;   // v0.4.0
+        im.navSaved = o.nv || null;
+        if (o.nv && o.nv.k === 'job' && im.state === 'awake') im.navTo({ x: o.nv.g[0], z: o.nv.g[1] }, { zone: o.nv.z, kind: 'job' });   // re-plan the trip from here
         im.syncMesh?.();
       }
       g._migrated33 = migrated33;   // not a warning: an expected upgrade
@@ -14453,8 +14866,10 @@ async function runPlaythrough(){
       st: (g.imps || []).filter(im => im.collar).map(im => [im.state, im.job, g.zoneAt(posOf(im)), r1(im.collarPct() * 100), r1(im.workMul ?? -1), im.scrapMade | 0, !!im.working].join('/')) });
     if (g.scrap < n){ out.issues.push(`labor wait for ${why} timed out (${g.scrap}/${n})`); out.concessions.scrap += n - g.scrap; g.scrap = n; } };
   const table = () => g.tables[0];
-  const exitBase = (why) => { if (P.pos.z > al.zOuter + .3) return; walkTo(0, al.zInner - 1.2, why + ' (to inner door)'); walkTo(0, al.zMid, why + ' (into airlock)'); al.interact(0, g, 'panel', true); sim(14, {}, () => al.state === 'surface'); walkTo(0, al.zOuter + 1.3, why + ' (out)'); };
-  const enterBase = (why) => { walkTo(0, al.zOuter + 1.3, why + ' (to outer door)'); walkTo(0, al.zMid, why + ' (into airlock)'); al.interact(0, g, 'panel', true); sim(14, {}, () => al.state === 'base'); walkTo(0, al.zInner - 1.2, why + ' (in)'); };
+  // v0.4.0: crew work the airlock too — wait out their cycle and call it back to our side first
+  const lockTo = (side) => { sim(16, {}, () => al.state !== 'cycling'); if (al.state !== side){ al.interact(0, g, 'call', true); sim(16, {}, () => al.state === side); } };
+  const exitBase = (why) => { if (P.pos.z > al.zOuter + .3) return; walkTo(0, al.zInner - 1.2, why + ' (to inner door)'); lockTo('base'); walkTo(0, al.zMid, why + ' (into airlock)'); al.interact(0, g, 'panel', true); sim(14, {}, () => al.state === 'surface'); walkTo(0, al.zOuter + 1.3, why + ' (out)'); };
+  const enterBase = (why) => { walkTo(0, al.zOuter + 1.3, why + ' (to outer door)'); lockTo('surface'); walkTo(0, al.zMid, why + ' (into airlock)'); al.interact(0, g, 'panel', true); sim(14, {}, () => al.state === 'base'); walkTo(0, al.zInner - 1.2, why + ' (in)'); };
   const plants = () => g.entities.filter(e => e instanceof OxygenPlant && g.zoneAt(posOf(e)) === 'base');
   const tendBase = () => { const r = { watered: 0, replanted: 0 };   // what a player does on every pass through the base
     for (const pl of plants()){ const wd = pl.stage()[2] === 'Withered'; if (!wd && pl.water > 55) continue;
@@ -17626,8 +18041,9 @@ if (location.search.includes('selftest')){
     for (let t = 0; t < 4; t += .05){ g.player.pos.z = Math.max(g.arkBounds.gateZ + .8, g.player.pos.z - .04); g.room.gases.o2 = Math.max(g.room.gases.o2, 170); g.step(.05, { keys: {} }); }
     for (let t = 0; t < 3; t += .05) g.step(.05, { keys: {} });
     const followDist = r3(ai.pos.distanceTo(g.player.pos));
-    g.player.pos.set(0, 0, 2); for (let t = 0; t < 1; t += .05) g.step(.05, { keys: {} });
-    s16.B2_arkImp = { spawnedOnUnlock: !!ai, zone: aiZone, awake: aiAwake, tag: ai.tag, followDist, follows: followDist < 2.4, warpedToBase: ai.zone() === 'base', warps: ai.warps || 0, imps: g.imps.filter(i => i.recruited).length };
+    // v0.4.0: no warp any more — left behind, it walks out of the ARK, across and cycles the airlock in on its own
+    g.player.pos.set(0, 0, 2); let walkT = null; for (let t = 0; t < 120 && walkT == null; t += .05){ g.room.gases.o2 = Math.max(g.room.gases.o2, 170); g.step(.05, { keys: {} }); if (ai.zone() === 'base') walkT = r3(t); }
+    s16.B2_arkImp = { spawnedOnUnlock: !!ai, zone: aiZone, awake: aiAwake, tag: ai.tag, followDist, follows: followDist < 2.4, warpedToBase: ai.zone() === 'base', walkT, warps: ai.warps || 0, imps: g.imps.filter(i => i.recruited).length };
     // C: atmosphere impact. C1: healthy mature plant buffers 2 imps (quiet). C2: no O2 production -> base turns unbreathable sooner.
     const runAtmo = (n, healthy) => {
       const [ga, sa] = mk16(); ga.player.pos.set(0, 0, 2);
@@ -18754,7 +19170,7 @@ if (location.search.includes('selftest')){
       const st = $('start').textContent;
       s25.B_help = { missing, hasDebugSection: !!dbg && /DEBUG/.test(dbg.textContent), debugOutside, crewKeys: /Shift\+1-5|Tab/.test(help.textContent) && /ALL/.test(help.textContent),
         startClean: !/slice|debug|stub|selftest|prototype 2\.4|\(stub\)/i.test(st), startHasHelpKey: /all controls/i.test(st), title: document.title.includes('SELFTEST') ? 'SELFTEST' : document.title,
-        version: /2\.[7-9]|3\.\d/.test($('start').textContent) && /2\.[7-9]|3\.\d/.test(help.textContent), pausedCard: !!$('resume') };
+        version: /2\.[7-9]|3\.\d|0\.4\.\d/.test($('start').textContent) && /2\.[7-9]|3\.\d|0\.4\.\d/.test(help.textContent), pausedCard: !!$('resume') };
       s25.B_help.ok = !missing.length && s25.B_help.hasDebugSection && !debugOutside.length && s25.B_help.startClean && s25.B_help.version && s25.B_help.crewKeys;
     }
     // C: quiet-crisis — a 6-event cascade gives ONE toast; the rest are one ALERT line on the wall monitor; flapping supply = one note
@@ -19195,7 +19611,7 @@ if (location.search.includes('selftest')){
 
     // G: regression — ARK-03 still gated/rewards; version 2.6; manifold watts; prior SUCCESS
     const G = s27.G_regression = {
-      version27: /2\.[7-9]|3\.\d/.test(document.querySelector('.ver')?.textContent || '') || /2\.[7-9]|3\.\d/.test(document.title),
+      version27: /2\.[7-9]|3\.\d|0\.4\.\d/.test(document.querySelector('.ver')?.textContent || '') || /2\.[7-9]|3\.\d|0\.4\.\d/.test(document.title),
       drillW: CFG.mining.drillW === 150,
       manifoldW: CFG.ark3.manifoldW === 150,
       genBaseW: CFG.power.generator.maxW === 200,
@@ -19373,7 +19789,7 @@ if (location.search.includes('selftest')){
 
     // G: regression — drill + ARK-03 + version 2.7 + table fallback
     const G = s28.G_regression = {
-      version27: /2\.[7-9]|3\.\d/.test(document.querySelector('.ver')?.textContent || '') || /2\.[7-9]|3\.\d/.test(document.title),
+      version27: /2\.[7-9]|3\.\d|0\.4\.\d/.test(document.querySelector('.ver')?.textContent || '') || /2\.[7-9]|3\.\d|0\.4\.\d/.test(document.title),
       refineryW: CFG.refinery.drawW === 100,
       betterRatio: CFG.refinery.outBrick === 4 && CFG.refinery.inOre === 2,
       tableFallback: !!CFG.craft.recipes.find(r => r.id === 'ore_briquette' && r.yield === 3),
@@ -19519,7 +19935,7 @@ if (location.search.includes('selftest')){
 
     // F: regression + version
     const F = s29.F_regression = {
-      version28: /2\.[89]|3\.\d/.test(document.querySelector('.ver')?.textContent || '') && /2\.[89]|3\.\d/.test(document.title),
+      version28: /2\.[89]|3\.\d|0\.4\.\d/.test(document.querySelector('.ver')?.textContent || '') && /2\.[89]|3\.\d|0\.4\.\d/.test(document.title),
       s28: !!out.slice28?.SUCCESS, s27: !!out.slice27?.SUCCESS, s26: !!out.slice26?.SUCCESS,
       introKeyKept: CFG.intro.storageKey === 'breathless_seenIntro',
     };
@@ -19682,7 +20098,7 @@ if (location.search.includes('selftest')){
 
     // F: regression
     const F = s30.F_regression = {
-      version29: /2\.9|3\.\d/.test(document.querySelector('.ver')?.textContent || '') && /2\.9|3\.\d/.test(document.title),
+      version29: /2\.9|3\.\d|0\.4\.\d/.test(document.querySelector('.ver')?.textContent || '') && /2\.9|3\.\d|0\.4\.\d/.test(document.title),
       s29: !!out.slice29?.SUCCESS, s28: !!out.slice28?.SUCCESS, s27: !!out.slice27?.SUCCESS,
       ark3: !!g.ark3Hatch, drill: typeof MiningDrill === 'function', refinery: typeof OreRefinery === 'function',
       saveSchema: SV.SAVE_SCHEMA === 1,
@@ -19818,7 +20234,7 @@ if (location.search.includes('selftest')){
     }
     // G: version + regression
     {
-      const G = s31.G_regression = { title: /2\.9\.1|3\.\d/.test(document.title) || document.title === 'SELFTEST', ver: /2\.9\.1|3\.\d/.test(document.querySelector('.ver')?.textContent || ''),
+      const G = s31.G_regression = { title: /2\.9\.1|(3\.\d|0\.4\.\d)/.test(document.title) || document.title === 'SELFTEST', ver: /2\.9\.1|(3\.\d|0\.4\.\d)/.test(document.querySelector('.ver')?.textContent || ''),
         s30: !!out.slice30?.SUCCESS, s29: !!out.slice29?.SUCCESS, s25: !!out.slice25?.SUCCESS, save: window.__breathless.save?.saveCapture ? /^(2\.9\.1|3\.\d(\.\d)?|0\.\d+\.\d+)$/.test(window.__breathless.save.saveCapture(game).proto) : true };
       G.ok = Object.entries(G).every(([k, v]) => v === true);
     }
@@ -19960,12 +20376,12 @@ if (location.search.includes('selftest')){
       G.warn = (ap.warn || []).join('|').slice(0, 160); G.water = r3(pk2?.liq.water || 0); G.waterBack = near(pk2?.liq.water || 0, want.w, 1e-4);
       G.wetBack = pk2?.wet.size === want.wet; G.resBack = L.res.every((r, n) => r.breached === want.res[n]); G.ledBack = near(L.led.dumped, want.led.dumped, 1e-4);
       G.sumpBack = g.sumps.length === 1 && g.sumps[0].mode === 'dump'; G.massBack = near(L.total(), T0, 1e-4);
-      G.ok = G.hasLiq && G.hasSump && /^(0\.)?3\.\d(\.\d)?$/.test(G.proto) && G.waterBack && G.wetBack && G.resBack && G.ledBack && G.sumpBack && G.massBack && !(ap.warn || []).some(w => /liq|sump/.test(w));
+      G.ok = G.hasLiq && G.hasSump && /^((0\.)?3\.\d(\.\d)?|0\.4\.\d)$/.test(G.proto) && G.waterBack && G.wetBack && G.resBack && G.ledBack && G.sumpBack && G.massBack && !(ap.warn || []).some(w => /liq|sump/.test(w));
       g.ui = ui0;
     }
     // H: version + regression
     {
-      const H = s32.H_regression = { title: /3\.\d/.test(document.title) || document.title === 'SELFTEST', ver: /3\.\d/.test(document.querySelector('.ver')?.textContent || ''),
+      const H = s32.H_regression = { title: /(3\.\d|0\.4\.\d)/.test(document.title) || document.title === 'SELFTEST', ver: /(3\.\d|0\.4\.\d)/.test(document.querySelector('.ver')?.textContent || ''),
         s31: !!out.slice31?.SUCCESS, s30: !!out.slice30?.SUCCESS, s29: !!out.slice29?.SUCCESS, viewLive: !!liquidView && liquidView.stats.surf >= 0 };
       H.ok = Object.entries(H).every(([k, v]) => v === true);
     }
@@ -20171,12 +20587,12 @@ if (location.search.includes('selftest')){
       const m1 = g3.imps.find(i => i.origin === 'wreck'), m2 = g3.imps.find(i => i.origin === 'ark');
       I.mig = { n: g3._migrated33, crewTag: m1?.tag, crewCollar: m1?.collar?.charge, crewState: m1?.state, worldState: m2?.state, worldMood: m2?.mood, worldLabel: m2?.label, warn: (ap3.warn || []).length };
       I.migOk = I.mig.n === 2 && m1?.tag === 'CREW-1' && m1?.collar?.charge === S.collarLife && m1?.state === 'awake' && m2?.state === 'feral' && m2?.mood === 'hostile' && !/imp/i.test(m1?.label + m2?.label);
-      I.ok = /^(0\.)?3\.\d+(\.\d)?$/.test(I.proto) && I.schema && I.crewBack && I.feralBack && I.traps === 1 && I.docks === 1 && I.planters === 1 && I.objDone && I.migOk;
+      I.ok = /^((0\.)?3\.\d+(\.\d)?|0\.4\.\d)$/.test(I.proto) && I.schema && I.crewBack && I.feralBack && I.traps === 1 && I.docks === 1 && I.planters === 1 && I.objDone && I.migOk;
     }
     // J: regression + wording — every older slice green, version 3.1, no 'imp' left in the help / title text
     {
       const help = document.getElementById('help')?.textContent || '', st = document.getElementById('start')?.textContent || '';
-      const J = s33.J_regression = { title: /3\.\d/.test(document.title) || document.title === 'SELFTEST', ver: /3\.\d/.test(document.querySelector('.ver')?.textContent || ''),
+      const J = s33.J_regression = { title: /(3\.\d|0\.4\.\d)/.test(document.title) || document.title === 'SELFTEST', ver: /(3\.\d|0\.4\.\d)/.test(document.querySelector('.ver')?.textContent || ''),
         noImpHelp: !/\bimps?\b/i.test(help), noImpStart: !/\bimps?\b/i.test(st), recipes: ['snare_cage', 'snare_cage_t2', 'mood_collar', 'collar_dock', 'o2_planter'].every(id => CFG.craft.recipes.some(r => r.id === id)) };
       for (let n = 16; n <= 32; n++) if (out['slice' + n] && 'SUCCESS' in out['slice' + n]) J['s' + n] = !!out['slice' + n].SUCCESS;
       J.ok = Object.entries(J).every(([k, v]) => v === true);
@@ -20317,7 +20733,7 @@ if (location.search.includes('selftest')){
         const T = saveStaticTable().find(x => x[0] === SalvageCache), c1 = g2.add(new SalvageCache(g2, new THREE.Vector3(3, 0, 3))); c1.scanned = true; c1.stock = 1; const v = JSON.parse(JSON.stringify(T[1](c1)));
         const c2 = g2.add(new SalvageCache(g2, new THREE.Vector3(3, 0, 3))); T[2](c2, v, g2);
         s38.F_save = { proto: snap.proto, regs: (g2.regs || []).map(x => [x.setIdx, x.vented]), fires: (g2.fires || []).map(x => r3(x.I)), richT: g2._o2RichT, hinted: g2._laborHinted, cache: [c2.scanned, c2.stock, c2.caseG.visible, c2.ring.visible],
-          ok: /^0\.3\.[7-9]$/.test(snap.proto) && g2.regs?.length === 1 && g2.regs[0].setIdx === 2 && Math.abs(g2.regs[0].vented - 12.3) < .11 && g2.fires?.length === 1 && Math.abs(g2.fires[0].I - .42) < .002 && g2._o2RichT === 321 && g2._laborHinted === true && c2.scanned && c2.stock === 1 && c2.caseG.visible && !c2.ring.visible };
+          ok: /^0\.(3\.[7-9]|4\.0)$/.test(snap.proto) && g2.regs?.length === 1 && g2.regs[0].setIdx === 2 && Math.abs(g2.regs[0].vented - 12.3) < .11 && g2.fires?.length === 1 && Math.abs(g2.fires[0].I - .42) < .002 && g2._o2RichT === 321 && g2._laborHinted === true && c2.scanned && c2.stock === 1 && c2.caseG.visible && !c2.ring.visible };
         SV.saveApply(g2, snap, s2); s38.F_save.reloadNoDup = g2.regs.length === 1 && g2.fires.length === 1; s38.F_save.ok = s38.F_save.ok && s38.F_save.reloadNoDup; }
       // G: salvage caches in the world — 3 surface + 1 per ARK, clear of colliders / other things; scan → strip
       { const C = slice.salvage || [], bad = [];
@@ -20366,8 +20782,8 @@ if (location.search.includes('selftest')){
           s39.D_lucid = { said: said.length, fire: said.some(m => /Fire/.test(m)), out: said.some(m => /Out\.|choked/.test(m)), flags: [g._lucidFireSaid, g._lucidFireOutSaid],
             ok: said.some(m => /Fire/.test(m)) && said.some(m => /Out\.|choked/.test(m)) && g._lucidFireSaid === true && g._lucidFireOutSaid === true }; }
         { const fns = ['setFire', 'douse', 'valve', 'unlock', 'clank']; s39.E_sound = { have: fns.filter(k => typeof AUDIO[k] === 'function'), ok: fns.every(k => typeof AUDIO[k] === 'function') }; }
-        { const h = $('help')?.textContent || ''; s39.F_help = { ver: /v0\.3\.[7-9]/.test(h), sec: /AIR SAFETY/.test(h), reg: /regulator/i.test(h), fire: /douse/i.test(h), cache: /Salvage caches/i.test(h), hose: /hose reel/i.test(h), noOne: !/v1\.0/.test(h),
-            ok: /v0\.3\.[7-9]/.test(h) && /AIR SAFETY/.test(h) && /regulator/i.test(h) && /douse/i.test(h) && /Salvage caches/i.test(h) && /hose reel/i.test(h) && !/v1\.0/.test(h) }; }
+        { const h = $('help')?.textContent || ''; s39.F_help = { ver: /v0\.(3\.[7-9]|4\.0)/.test(h), sec: /AIR SAFETY/.test(h), reg: /regulator/i.test(h), fire: /douse/i.test(h), cache: /Salvage caches/i.test(h), hose: /hose reel/i.test(h), noOne: !/v1\.0/.test(h),
+            ok: /v0\.(3\.[7-9]|4\.0)/.test(h) && /AIR SAFETY/.test(h) && /regulator/i.test(h) && /douse/i.test(h) && /Salvage caches/i.test(h) && /hose reel/i.test(h) && !/v1\.0/.test(h) }; }
         // G: a save made during the crash walk resumes FIND SHELTER (was: always loaded as done); a done objective stays done
         { const SV = window.__breathless.save; const [g] = mk38(); g.time = 50; g.objective = { id: 'shelter', label: 'FIND SHELTER', t0: 20, done: false, doneT: null };
           const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))); const [g2, s2] = mk38(); g2.time = 50; SV.saveApply(g2, snap, s2);
@@ -20441,7 +20857,7 @@ if (location.search.includes('selftest')){
           const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))), [g2, s2] = mk40(); SV.saveApply(g2, snap, s2);
           const w2 = g2.landfill.well, i2 = g2.landfill.inlet, gn2 = (g2.generators || []).find(x => x.gasKit) || null;
           const got = { tier: w2.tier, blower: w2.blower, flare: w2.flare, lat: w2.laterals, rem: w2.rem, main: w2.main, io: i2.open, fi: i2.filter, kit: !!gn2, buf: gn2?.gasBuf, sinkOn: !!(gn2 && g2.pipes.sinkAt.has(gn2.gasSink.key)), side: g2._lfSide, sideT: g2._lfSideT, ch4: r3(g2.room.frac('ch4')), ev: g2.ch4Events, proto: snap.proto };
-          s40.E_save = { ...got, ok: got.tier === 2 && got.blower && got.flare && !got.lat && Math.abs(got.rem - 5123) < .1 && Math.abs(got.main - 33.3) < .01 && got.io && got.fi === 120 && got.kit && Math.abs(got.buf - 7.5) < .01 && got.sinkOn && got.side === 1 && got.sideT === 44 && got.ch4 === .004 && got.ev === 2 && /^0\.3\.[89]$/.test(got.proto) }; }
+          s40.E_save = { ...got, ok: got.tier === 2 && got.blower && got.flare && !got.lat && Math.abs(got.rem - 5123) < .1 && Math.abs(got.main - 33.3) < .01 && got.io && got.fi === 120 && got.kit && Math.abs(got.buf - 7.5) < .01 && got.sinkOn && got.side === 1 && got.sideT === 44 && got.ch4 === .004 && got.ev === 2 && /^0\.(3\.[89]|4\.0)$/.test(got.proto) }; }
         // F: scanning the vent once unlocks the family (no tier jump), optional side job pays out but never gates the chain
         { const [g] = mk40(), tier0 = g.unlocks.craftTable, find = g.landfill.ventFind; g.lucid.online = true; find.complete(g);
           const fam = ['gas_well', 'well_blower', 'well_laterals', 'flare_stack', 'gas_filter', 'gas_burner'].map(k => [k, g.recipeUnlocked(k)]);
@@ -20455,7 +20871,7 @@ if (location.search.includes('selftest')){
           const b0 = blocks.find(b => b.scrapN > 0), sc0 = g.scrap; b0?.finish(g); const gain = g.scrap - sc0;
           s40.G_dig = { blocks: blocks.length, pockets, metal, salvage: salv, gain, prompt: (b0 && b0.prompt ? '' : '-'), ok: blocks.length > 100 && pockets === 5 && metal > 10 && salv > 0 && gain === b0?.scrapN && gain > 0 }; }
         // H: help + version
-        { const h = $('help')?.textContent || ''; s40.H_help = { ver: /v0\.3\.[89]/.test(h), sec: /LANDFILL GAS/.test(h), flam: /5 and 15 %/.test(h), flare: /flare/i.test(h), noOne: !/v1\.0/.test(h) }; s40.H_help.ok = Object.values(s40.H_help).every(Boolean); }
+        { const h = $('help')?.textContent || ''; s40.H_help = { ver: /v0\.(3\.[89]|4\.0)/.test(h), sec: /LANDFILL GAS/.test(h), flam: /5 and 15 %/.test(h), flare: /flare/i.test(h), noOne: !/v1\.0/.test(h) }; s40.H_help.ok = Object.values(s40.H_help).every(Boolean); }
         s40.SUCCESS = !!(s40.A_gas.ok && s40.B_extract.ok && s40.C_gen.ok && s40.D_risk.ok && s40.E_save.ok && s40.F_scan.ok && s40.G_dig.ok && s40.H_help.ok);
       } catch (err){ s40.error = String(err?.stack || err).slice(0, 600); s40.SUCCESS = false; }
       // ---------- v0.3.9 (slice 41): crew-labour pacing — bench rate, craft queue, toast dedupe, save ----------
@@ -20491,7 +20907,7 @@ if (location.search.includes('selftest')){
           t.queue = [{ id: ids[0], f: 2 }, { id: ids[1] || ids[0], f: 0 }]; g._lfPaid = true; g._hint_replant = true;
           const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))), [g2, s2] = mk38(); SV.saveApply(g2, snap, s2); const q2 = s2.table.queue || [];
           s41.D_save = { ids, q: q2.map(e => e.id + ':' + e.f).join(','), lfPaid: !!g2._lfPaid, hint: !!g2._hint_replant, proto: snap.proto,
-            ok: q2.length === 2 && q2[0].id === ids[0] && q2[0].f === 2 && q2[1].f === 0 && !!g2._lfPaid && !!g2._hint_replant && snap.proto === '0.3.9' }; }
+            ok: q2.length === 2 && q2[0].id === ids[0] && q2[0].f === 2 && q2[1].f === 0 && !!g2._lfPaid && !!g2._hint_replant && /^0\.(3\.9|4\.0)$/.test(snap.proto) }; }
         { const LF = CFG.landfill, mk41 = () => { const [g, s] = mk38(); buildLandfill(g, { art: false }); g.rng = lcg; return [g, s]; };
           const [g] = mk41(); g.lucid.online = true; g.landfill.ventFind.complete(g); const gen = quickGrid(g, g._slice, 0); fitGasKit(g, gen, { free: true }); gen.out = 120; gen._gasUse = .5; const sc0 = g.scrap;
           for (let t = 0; t < 125; t += .5) lfSideTick(g, .5); const paid1 = g.scrap - sc0; g._lfSide = 1; g._lfSideT = 0;
@@ -20503,7 +20919,7 @@ if (location.search.includes('selftest')){
           const helpGas = /LUCID points it out once you reach ARK-03/.test($('help')?.textContent || '');
           s41.E_lf = { paid1, paid2, lfPaid: !!g._lfPaid, side: g._lfSide, tipBefore: before, tipEarly: early, tipOnce: one, tipTotal: tips(), tipIfSide: k.ui.all.filter(m => /vents methane/.test(m)).length, helpGas, reSide,
             ok: paid1 === LF.side.scrap && paid2 === LF.side.scrap && !!g._lfPaid && reSide === 0 && before === 0 && early === 0 && one === 1 && tips() === 1 && k.ui.all.filter(m => /vents methane/.test(m)).length === 0 && helpGas }; }
-        { const h = $('help')?.textContent || ''; s41.F_help = { ver: /v0\.3\.9/.test(h), bench: /Bench labour/.test(h), queue: /queue/i.test(h), noOne: !/v1\.0/.test(h), title: /v0\.3\.9/.test(document.title) || document.title === 'SELFTEST' }; s41.F_help.ok = Object.values(s41.F_help).every(Boolean); }
+        { const h = $('help')?.textContent || ''; s41.F_help = { ver: /v0\.(3\.9|4\.0)/.test(h), bench: /Bench labour/.test(h), queue: /queue/i.test(h), noOne: !/v1\.0/.test(h), title: /v0\.(3\.9|4\.0)/.test(document.title) || document.title === 'SELFTEST' }; s41.F_help.ok = Object.values(s41.F_help).every(Boolean); }
         s41.SUCCESS = !!(s41.A_rate.ok && s41.B_queue.ok && s41.C_toast.ok && s41.D_save.ok && s41.E_lf.ok && s41.F_help.ok);
       } catch (err){ s41.error = String(err?.stack || err).slice(0, 600); s41.SUCCESS = false; }
       s38.SUCCESS = !!(s38.A_hose.ok && s38.B_rich.ok && s38.C_ignite.ok && s38.D_fire.ok && s38.E_reg.ok && s38.F_save.ok && s38.G_salvage.ok && s38.H_labor.ok && s38.I_gate.ok);
