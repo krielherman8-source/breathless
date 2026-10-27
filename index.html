@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>BREATHLESS - v0.4.0 (crew routes)</title>
+<title>BREATHLESS - v0.4.1 (cave-ins &amp; breaches)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   /* slice 25: shared UI tokens — every panel / HUD box / button pulls from these */
@@ -167,7 +167,7 @@
   <div id="lucidui" class="panel"><span class="close">[Esc] close</span><h2 id="lucidtitle">LUCID LINK</h2><div class="meta" id="lucidmeta"></div><div class="ctrlcmds" id="ctrlcmds" style="display:none"></div><div id="lucidlist"></div><div class="crew sect" id="crewlist" style="display:none"></div><div class="orbcmds" id="orbcmds" style="display:none"></div><div class="last" id="lucidlast"></div></div>
   <div id="hint"><kbd>H</kbd> controls &nbsp; <kbd>B</kbd> build &nbsp; <kbd>Esc</kbd> pause</div>
   <div id="help">
-    <div class="ttl">CONTROLS<span>[H] close · v0.4.0</span></div>
+    <div class="ttl">CONTROLS<span>[H] close · v0.4.1</span></div>
     <div class="hcols">
     <div class="sec"><h4>MOVE &amp; ACT</h4>
       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>Esc</kbd> pause<br>
@@ -215,6 +215,11 @@
     <div class="sec"><h4>ARKS &amp; DIGGING</h4>
       ARK-01: hatch → restore power junction → close gate breaker → bulkhead. Claim the omni-tool (faster <kbd>F</kbd>, enables <kbd>V</kbd>).<br>
       ARK-02 (west, further out): dig the soil-packed rails with <kbd>V</kbd>. ARK-03 (furthest, past ARK-01): seat 2 batteries, sleeve the ram feeder to T3, cycle the blast door. Clear the dig-laser cave-in → scan the drill head → craft a mining drill (T5) → <kbd>E</kbd> place; cable 150 W; faces ore/berm. Scan the briquette die → table press (2→3) or craft ore refinery (2→4, 100 W). Restart the hall turbine (repair kit, control chip, T3 export, briquettes) and repair/sleeve the outdoor pylons to T3 — station feed gains bulk watts when the line holds. Dug pockets hold their own (bad) air: <kbd>E</kbd> on the pocket floor hangs a seal hatch / curtain, scrubbers clean it.</div>
+    <div class="sec"><h4>ROCK, CAVE-INS &amp; BREACHES (v0.4.1)</h4>
+      <b>Rock stress</b>: a soft (soil) roof more than 2 cells from a wall or support slowly loads up. It tells you quietly — dust sifting, then creaks and pebbles — never randomly. Rock roofs and open sky never move.<br>
+      <b>Cave-in</b>: an overloaded span drops 3×3 cells of rubble. Under it: −30 suit and you are knocked flat; crew go DOWN (rouse them). Pipes, hoses and cables under the fall are pinched — dig the rubble clear (<kbd>V</kbd>, faster than virgin ground; yields scrap or ore); a crushed cable then needs repairing. Crew routes through a fall re-plan or refuse.<br>
+      <b>Shoring prop</b> (2 scrap): aim at the soft roof (or the floor under it) + <kbd>E</kbd>; holds every cell within 1. <kbd>E</kbd> the prop with 3 scrap bolts on a header beam + braces (reach 2).<br>
+      <b>Dig breach</b>: digging the soil bank against ARK-01's east hull tears the plate open — air (and any liquid) equalises through the hole, which hisses. Hold <kbd>E</kbd> with a <b>hull wall patch</b> (4 scrap, 1.5 s) or 3 bare scrap (4 s) to weld it shut.</div>
     <div class="sec"><h4>AIR SAFETY, SCRAP &amp; HOSE</h4>
       <b>O2 regulator</b> (5 scrap): <kbd>E</kbd> place on a ceiling vent riser in the base; <kbd>E</kbd> on it cycles the setpoint 23 / 25 / 28 %. It only bleeds air above the setpoint — the dial's green arc is safe, red (30 %+) is fire risk, the LCD shows SET and live O2.<br>
       <b>Fire</b>: rich air (30 %+) plus a spark — strained or shorted cable, burst pipe, running generator — can light one. Hold <kbd>E</kbd> to douse it (base tank water, else your canteen). Below 17 % O2 it starves; above 24 % it grows and cooks the cable it sits on.<br>
@@ -253,7 +258,7 @@
   <p id="starthint"><b>Click to begin</b> &nbsp; <span style="opacity:.6">(<kbd>Shift</kbd>+click replays the intro · <kbd>Space</kbd> skips it)</span></p>
   <div id="savebox" style="display:none"><div class="row"><button id="btnContinue" class="sbtn main">Continue</button><button id="btnNew" class="sbtn">New game</button></div><div class="row"><button id="btnSetT" class="sbtn small">Settings</button></div><div id="saveinfo"></div></div>
   <div id="savenote" style="display:none"></div>
-  <div class="ver">v0.4.0 · BREATHING ROOM</div>
+  <div class="ver">v0.4.1 · BREATHING ROOM</div>
 </div>
 <div id="settings"><div class="card"><h3>SETTINGS</h3>
 <label>Mouse sensitivity <input id="setSens" type="range" min="0.25" max="3" step="0.05"></label>
@@ -272,7 +277,9 @@
 import * as THREE from './lib/three.module.js';
 
 /* =====================================================================
-   BREATHLESS v0.4.0  (v0.4.0: crew routes — a zone + door graph over the base, airlock, surface lanes and ARK-01/02/03 with waypoint paths; crew on FOLLOW walk through doors with you, cycle the airlock and hatches themselves safely, refuse crossings their air won't cover, take orders for another zone ([Z] site), and resume a trip after save/load.  v0.3.9: crew-labour pacing — 1 scrap / 20 s per LABOR worker, +10 % per bench tier, +25 % per extra worker (max 4), a 4-slot bench craft queue crew labour funds while you are away, a lit job board on the bench, one-time replant toast, landfill payoff once + LUCID gas tip after ARK-03, fled ferals calm when left alone; v0.3.8: Cell 4 landfill — methane wellhead T1-T3 + flare, gas burner on generators, CH4 ceiling layer / flash / blast, refuse dig with gas pockets; v0.3.7: visible fire FX, readable regulator gauge, flight-log continuity, hint gate, crash-walk saves; versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.6: rich air is a
+   BREATHLESS v0.4.1  (v0.4.1: rock stress + cave-ins from unsupported soft spans (quiet dust/creak tells, 3x3 rubble falls that hurt you/crew and pinch
+   pipes/hoses/cables, rubble re-dig, tiered shoring props), dig breaches through ARK-01's east hull (gas/liquid equalise, hiss, weld patch);
+   HISTORY — v0.4.0: crew routes — a zone + door graph over the base, airlock, surface lanes and ARK-01/02/03 with waypoint paths; crew on FOLLOW walk through doors with you, cycle the airlock and hatches themselves safely, refuse crossings their air won't cover, take orders for another zone ([Z] site), and resume a trip after save/load.  v0.3.9: crew-labour pacing — 1 scrap / 20 s per LABOR worker, +10 % per bench tier, +25 % per extra worker (max 4), a 4-slot bench craft queue crew labour funds while you are away, a lit job board on the bench, one-time replant toast, landfill payoff once + LUCID gas tip after ARK-03, fled ferals calm when left alone; v0.3.8: Cell 4 landfill — methane wellhead T1-T3 + flare, gas burner on generators, CH4 ceiling layer / flash / blast, refuse dig with gas pockets; v0.3.7: visible fire FX, readable regulator gauge, flight-log continuity, hint gate, crash-walk saves; versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.6: rich air is a
    fire risk (O2 > 30 %: quiet RICH tell, sparks from strained cables / burst pipes / generators can start a small fire; O2 regulator bleeds
    the excess), starter hose weeps ~12 min before it bursts (drips, hiss, creaks), scannable salvage caches (surface + ARKs), crew-labour hint;
    HISTORY — v0.3.5: full scripted
@@ -443,6 +450,9 @@ const CFG = {
       { id: 'sump_pump', name: 'Sump pump',                tier: 1, scrap: 5, note: 'Aim at a flooded dig floor + [E]: submersible, powered from the base surface intake; [E] cycles HOME (water up the umbilical — pipe the intake to a tank) / FUEL (crude to a generator) / DUMP', startUnlocked: true },
       { id: 'hose_reel', name: 'Sump hose reel (25 m)',     tier: 1, scrap: 3, note: 'Carry it: [E] the sump pump to clip the hose on, walk it home, [E] the base surface intake to connect. T1 hose runs ~28% over a sump (slow crack, growing leak) — hold E to patch, [G] + reinforce collar to step it up', startUnlocked: true },
       { id: 'seal_hatch', name: 'Seal hatch',               tier: 1, scrap: 4, note: 'Aim at a dug pocket floor + [E]: solid hatch (nearly sealed closed; [E] open/close to walk through)', startUnlocked: true },
+      // v0.4.1 (slice 43): shoring + hull patch
+      { id: 'shoring', name: 'Shoring prop', tier: 1, scrap: 2, note: 'Aim at a soft tunnel roof (or the dug floor under it) + [E]: a steel prop holds the roof 1 cell round it; [E] the prop with 3 scrap to bolt on a header beam + braces (2 cells)', startUnlocked: true },
+      { id: 'wall_patch', name: 'Hull wall patch', tier: 1, scrap: 4, note: 'Hold [E] on a hull breach: weld a plate over it in 1.5 s (bare scrap takes 3 scrap and 4 s)', startUnlocked: true },
       { id: 'pocket_scrubber', name: 'Pocket scrubber',     tier: 2, scrap: 6, note: 'Aim at a dug pocket floor + [E] (no seal in pack): place a CO2→O2 scrubber that sustains one occupant', startUnlocked: true },
       // slice 20/21: ARK-02 robotics lab — LUCID torso chassis (seat orb into chest bay)
       { id: 'orb_torso', name: 'LUCID torso chassis', tier: 4, scrap: 14, note: 'Place with [E] on floor, or assemble at ARK-02 bay; then [E] seat awake orb into chest', scan: 'torso_chassis' },
@@ -557,6 +567,21 @@ const CFG = {
     maxPressure: 1.15,      // a sealed pocket fed past this bleeds the excess out through its seals
     co2SuitMul: 1.35,       // suit scrubber load in CO2-heavy pocket air (slice 25: 1.5→1.35, pocket TTD ~28→~31 s)
   },
+  // v0.4.1 (slice 43): rock stress + cave-ins (neglect only — never random) and dig breaches through sealed hulls
+  rock: {
+    safeSpan: 2,            // a roofed dug cell this many cells (or fewer) from a wall / support never moves (2-wide tunnels = 1)
+    rate: .02,              // stress per s per cell of span past safeSpan (span 3 ≈ 50 s, span 4 ≈ 25 s)
+    maxEx: 3,               // cap on the excess span that counts
+    relax: .05,             // stress bleeds off per s once the span is supported / shored
+    dustAt: .3, creakAt: .6,// quiet tells: dust sifting, then creaks + pebbles + one monitor line
+    fallR: 1,               // collapse footprint: Chebyshev radius round the failing cell (3x3 columns)
+    suit: 30,               // suit reserve torn off whoever stands under a fall (crew there go DOWN)
+    propR: [1, 2],          // shoring prop T1 / T2 reach (Chebyshev cells, every layer of those columns)
+    propUp: 3,              // scrap to bolt the T2 header beam + braces onto a T1 prop
+    rubbleDig: .6,          // rubble digs faster than virgin ground (x digTime)
+    breach: { q: 3, rubbleMul: .1, liqLps: 2, patchScrap: 3, holdScrap: 4, holdKit: 1.5 },   // q = gas exchange (units/s per unit density gap)
+    drift: { i0: 600, k0: 600, ni: 3, nj: 5, nk: 4, gap: .2, zOff: 3.0, wallC: .055, wallTh: .25 },   // soil bank on ARK-01's east hull
+  },
   ark: {
     x: 3.5,                 // hatch / grow-lab center X on the surface pad
     zOff: 14.2,             // metres beyond airlock outer door (z0)
@@ -667,6 +692,7 @@ const CFG = {
     breaker: { tripW: 100, foot: { ni: 1, nk: 1, nj: 1 } },   // trips before T1 burst (~100 W) or on cable fail
   },
   invLabels: {
+    shoring: 'Shoring props', wall_patch: 'Wall patches',
     repair_kit: 'Repair kits', filter_cart: 'Filter cartridges', reinforce: 'Reinforce collars',
     outlet_kit: 'Outlet kits', intake_up: 'Intake upgrades', pipe_seg: 'Pipe segments',
     cable: 'Power cable', fuel_brick: 'Fuel briquettes', generator: 'Generators', battery: 'Batteries',
@@ -1016,6 +1042,7 @@ class PipeNetwork {
   route(p, rate, from, visited, real){
     visited.add(p);
     let out = rate;
+    if (real && p.crushed){ p.inflow += rate; return 0; }   // v0.4.1: rubble pinches it shut (no spill)
     if (real){ p.inflow += rate; const leak = rate * p.leakFrac(); p.leakRate += leak; out -= leak; if (p.burst) return 0; }
     else p.rated += rate;
     const br = [];
@@ -5420,12 +5447,14 @@ class DigBlock extends Entity {
       mat: this.mat, entity: this, soft: this.mat !== 'rock', zone: this.zone,
       solid: true, dug: false, berm: this.berm,
     });
+    this.rubble = false; this.hullFace = opts.hullFace ?? null;   // v0.4.1
   }
   laserAssist(game){
     const orb = game.lucid?.orb;
     return !!(game.lucid?.orbActive && orb?.laserFitted);
   }
   digNeed(game){
+    if (this.rubble) return CFG.omni.digTime * CFG.rock.rubbleDig;   // v0.4.1: loose fill
     if (this.mat === 'rock') return CFG.omni.laserRockTime;
     const base = CFG.omni.digTime;
     return this.laserAssist(game) ? base * CFG.omni.laserDigMul : base;
@@ -5444,7 +5473,12 @@ class DigBlock extends Entity {
     if (this.mat === 'rock' && !this.laserAssist(game)) return false;
     return this.inRange(game);
   }
-  prompt(game){
+  prompt(game){   // v0.4.1: + quiet roof readout / shoring action
+    const s = this.prompt0(game), R = game.rock; if (!R || !s || !this.zone?.walkIn) return s;
+    if (this.dug) return s + R.roofNote(this);
+    return game.hasItem('shoring') && game.voxels.isDug(this.i, this.j - 1, this.k) && this.mat !== 'rock' ? s + ' · [E] set shoring under it' : s;
+  }
+  prompt0(game){
     if (this.dug) return this.zone && game.pockets ? game.pockets.floorPrompt(this) : null;   // slice 17: pocket readout
     if (!game.omni) return `${this.mat === 'rock' ? 'Hard rock' : 'Soft ' + this.mat} — need the omni-tool to dig`;
     if (this.mat === 'rock' && !this.laserAssist(game)){
@@ -5471,6 +5505,7 @@ class DigBlock extends Entity {
     if (this.dug || !game.omni) return;
     if (this.mat === 'rock' && !this.laserAssist(game)) return;
     if (!this.inRange(game)) return;
+    if (this.hullFace != null) game.rock?.warnHull(this);   // v0.4.1: one missable hint before the first breach dig
     this.progress += dt;
     if (this.laserAssist(game)){
       game.lucid.orb.showDigBeam(this);
@@ -5480,6 +5515,7 @@ class DigBlock extends Entity {
   }
   // slice 17/18: [E] on a dug pocket floor hangs a seal (hatch preferred) or places a scrubber if no seal in pack
   interact(dt, game, part, first){
+    if (first && game.rock?.shoreAim(this)) return;   // v0.4.1: shoring prop under a soft roof
     if (!first || !this.dug || !this.zone || !game.pockets) return;
     const hasSeal = game.freeBuild || game.hasItem('seal_hatch') || game.hasItem('seal_curtain');
     if (game.hasItem('sump_pump') && game.liquids){   // slice 32: sump pump first when the pocket is wet (or no seals in the pack)
@@ -5542,17 +5578,20 @@ class DigBlock extends Entity {
     this.ensureDigFloor(game);
     // slice 17 walk-in zones: the cell above loses its (now floating) floor pad
     if (this.zone?.walkIn){ const up = game.voxels.get(this.i, this.j + 1, this.k); if (up?.dug && up.entity?.floorMesh) up.entity.dropFloor(game); }
-    const toLoader = this.tryAutoLoader(game);
-    if (!toLoader){
+    const rub = this.rubble;
+    const toLoader = !rub && this.tryAutoLoader(game);
+    if (rub) game.rock.cleared(this);   // v0.4.1: rubble yields scrap / ore / soil from the fall
+    else if (!toLoader){
       game.giveItem(this.drop, this.dropN);
       this.spawnGroundDrop(game);
       game.ui.toast?.(`Dug ${this.mat}. +${this.dropN} ${CFG.invLabels[this.drop] || this.drop}.`, 2200);
     }
+    if (!rub && this.hullFace != null) game.rock?.openBreach(this);   // v0.4.1: the plate behind tears open
     beep(340, .05); beep(280, .04);
     // Quiet note: digging does not vent sealed rooms / airlock gas yet (future).
     game.bus.emit('dig:block', {
       mat: this.mat, drop: this.drop, i: this.i, j: this.j, k: this.k, wx: this.wx, wz: this.wz,
-      laser: this.laserAssist(game), berm: this.berm, toLoader,
+      laser: this.laserAssist(game), berm: this.berm, toLoader, rubble: rub,
       vent: false, // CFG.dig.ventRooms reserved
     });
   }
@@ -5592,6 +5631,406 @@ class DigBlock extends Entity {
   }
 }
 
+
+// ---------- v0.4.1 (slice 43): rock stress + cave-ins, shoring props, dig breaches into sealed hulls ----------
+// Stability lives on every dug ROOFED cell of a walk-in zone (the cell above is soft, solid ground of the same zone; rock
+// roofs and open sky never fall). span = dug cells (same layer) to the nearest support: a solid zone cell or the zone's
+// back wall / hull = 1, inside a shoring prop's reach = 0. span <= safeSpan never moves. Past it the stress climbs
+// quietly — dust, then creaks + pebbles + one quiet monitor line — and at 1 the roof comes down. Never random: only a
+// span you left too wide, for long enough, falls. Rubble is soft fill: dig it again (scrap / ore in the fall).
+const _rockDown = new THREE.Vector3(0, -1, 0);
+const _rubbleMat = () => (_rubbleMat.m ||= new THREE.MeshStandardMaterial({ color: 0x564636, roughness: .97, metalness: .06, emissive: 0x060403 }));
+const CAVE_WHY = 'a cave-in blocks the way';
+class RockNet {
+  constructor(g){
+    this.g = g; this.stress = new Map(); this.span = new Map(); this.props = []; this.breaches = []; this.rubble = new Set();
+    this.grand = new Map();   // legacy saves: spans that stood at load are settled (only a wider span starts to stress)
+    this.ver = 0; this._sig = ''; this._said = false; this.worst = null; this.worstS = 0; this.fxQ = []; this.crushedN = 0;
+    this.st = { collapses: 0, refilled: 0, cleared: 0, hitPlayer: 0, hitCrew: 0, replans: 0, refusals: 0, breaches: 0, patched: 0 };
+  }
+  zoneOk(zn){ return !!(zn && zn.walkIn); }
+  key(i, j, k){ return i + ',' + j + ',' + k; }
+  roofed(i, j, k){
+    const V = this.g.voxels, zn = V.zoneAt(i, j, k), up = V.get(i, j + 1, k);
+    return !!(this.zoneOk(zn) && V.isDug(i, j, k) && up && !up.dug && up.solid !== false && up.soft && V.zoneAt(i, j + 1, k) === zn);
+  }
+  roofedCol(i, j, k){ const V = this.g.voxels; while (V.isDug(i, j + 1, k)) j++; return this.roofed(i, j, k); }
+  shoredBy(i, j, k, zn){ for (const p of this.props) if (p.zone === zn && Math.max(Math.abs(p.i - i), Math.abs(p.k - k)) <= CFG.rock.propR[p.tier - 1]) return p; return null; }
+  recompute(){
+    const V = this.g.voxels, H = [0, 1, 4, 5], layers = new Map(); this.span.clear();
+    for (const key of V.dug){
+      const c = V.cells.get(key); if (!c || !this.zoneOk(c.zone)) continue;
+      const [i, j, k] = key.split(',').map(Number), lk = c.zone.id + '|' + j;
+      if (!layers.has(lk)) layers.set(lk, []); layers.get(lk).push([i, j, k, key, c.zone]);
+    }
+    for (const cells of layers.values()){
+      const zn = cells[0][4], d = new Map(), q = [];
+      for (const [i, j, k, key] of cells){
+        let s = this.shoredBy(i, j, k, zn) ? 0 : null;
+        if (s == null) for (const di of H){
+          const [dx, , dz] = DIRS[di], nb = V.get(i + dx, j, k + dz), inZ = V.zoneAt(i + dx, j, k + dz) === zn;
+          if ((inZ && nb && !nb.dug && nb.solid !== false) || (!inZ && (zn.backWall === di || zn.hull?.dir === di))){ s = 1; break; }
+        }
+        if (s != null){ d.set(key, s); q.push([i, j, k, s]); }
+      }
+      q.sort((a, b) => a[3] - b[3]);   // sources are 0 (shored) or 1 (wall): sorted queue = plain BFS
+      for (let h = 0; h < q.length; h++){
+        const [i, j, k, s] = q[h];
+        for (const di of H){ const [dx, , dz] = DIRS[di], nk = V.key(i + dx, j, k + dz); if (d.has(nk) || !V.dug.has(nk) || V.cells.get(nk)?.zone !== zn) continue; d.set(nk, s + 1); q.push([i + dx, j, k + dz, s + 1]); }
+      }
+      for (const [i, j, k, key] of cells) if (this.roofed(i, j, k)) this.span.set(key, d.get(key) ?? 99);
+    }
+  }
+  update(dt){
+    const g = this.g, V = g.voxels, R = CFG.rock; if (!V || dt <= 0) return;
+    const sig = V.dug.size + '|' + this.ver; if (sig !== this._sig){ this._sig = sig; this.recompute(); }
+    let worst = null, ws = 0;
+    for (const [key, d] of this.span){
+      const ex = Math.min(R.maxEx, d - Math.max(R.safeSpan, this.grand.get(key) || 0)); let s = this.stress.get(key) || 0;
+      if (ex > 0) s += ex * R.rate * dt; else if (s > 0) s -= R.relax * dt;
+      if (s <= 0){ this.stress.delete(key); continue; }
+      this.stress.set(key, s); if (s > ws){ ws = s; worst = key; }
+    }
+    for (const key of this.stress.keys()) if (!this.span.has(key)) this.stress.delete(key);   // dug out / refilled / roof gone
+    this.worst = worst; this.worstS = ws;
+    if (ws >= R.creakAt && !this._said){ this._said = true; this.tells = (this.tells || 0) + 1; g.lucidLine('That roof is talking — the span is too wide. A shoring prop would hold it.', false); }   // quiet: monitor log only
+    if (!worst) this._said = false;
+    if (worst && ws >= 1) this.collapse(worst);
+  }
+  colOf(zn, p){ return [zn.i0 + Math.floor((p.x - zn.ox) / GRID.c), zn.k0 + Math.floor((p.z - zn.oz) / GRID.c)]; }
+  // the roof over the failing cell drops: its 3x3 footprint columns refill from the floor up to the roof layer. Columns
+  // with someone standing in them are not filled — whoever is there takes the hit instead (suit torn / crew DOWN).
+  collapse(key){
+    const g = this.g, V = g.voxels, R = CFG.rock, [ci, cj, ck] = key.split(',').map(Number), zn = V.zoneAt(ci, cj, ck); if (!zn) return null;
+    const pl = g.player, inZ = p => { const [i, k] = this.colOf(zn, p); return V.zoneAt(i, cj, k) === zn ? i + ',' + k : null; };
+    const pc = pl && inZ(pl.pos), crew = (g.imps || []).filter(m => m.state === 'awake' || m.state === 'down').map(m => [m, inZ(m.pos)]);
+    const fill = [], hitCrew = []; let hitPlayer = false;
+    for (let di = -R.fallR; di <= R.fallR; di++) for (let dk = -R.fallR; dk <= R.fallR; dk++){
+      const i = ci + di, k = ck + dk, ck2 = i + ',' + k; if (V.zoneAt(i, cj, k) !== zn || !this.roofed(i, cj, k)) continue;
+      if (g.pockets?.sealCols?.has(ck2)) continue;   // a seal frame braces its own column
+      if (pc === ck2){ hitPlayer = true; continue; }
+      const who = crew.filter(([m, c]) => c === ck2); if (who.length){ hitCrew.push(...who.map(w => w[0])); continue; }
+      const col = []; let blocked = false;
+      for (let j = cj; j >= zn.j0 && V.isDug(i, j, k); j--){ if (V.occ.has(V.key(i, j, k))){ blocked = true; break; } col.push(V.get(i, j, k).entity); }
+      if (!blocked) fill.push(...col.filter(Boolean));
+    }
+    for (const b of fill) this.refill(b);
+    for (let di = -R.fallR; di <= R.fallR; di++) for (let dk = -R.fallR; dk <= R.fallR; dk++) this.stress.delete(this.key(ci + di, cj, ck + dk));
+    this.stress.delete(key); this.st.collapses++; this.st.refilled += fill.length; this.ver++;
+    g.pockets?.rebuild?.(); this.recrush();
+    const wx = zn.ox + (ci - zn.i0 + .5) * GRID.c, wz = zn.oz + (ck - zn.k0 + .5) * GRID.c, wy = V.floorY(ci, cj + 1, ck);
+    this.fxQ.push(new THREE.Vector3(wx, wy, wz));
+    let msg = `Cave-in — the roof came down (${fill.length} cells of rubble).`;
+    if (hitPlayer){
+      this.st.hitPlayer++; pl.suit = Math.max(0, pl.suit - R.suit);
+      const [pi, pk] = this.colOf(zn, pl.pos), pj = zn.j0, open = [0, 1, 4, 5].some(di => { const [dx, , dz] = DIRS[di], ii = pi + dx, kk = pk + dz; return V.zoneAt(ii, pj, kk) !== zn ? zn.backWall !== di && zn.hull?.dir !== di : V.isDug(ii, pj, kk); });
+      msg = open ? `The roof came down on you — suit torn (−${R.suit}% reserve).` : `The roof came down on you — suit torn (−${R.suit}% reserve). Trapped: dig out [V].`;
+      this.trapped = !open;
+    }
+    for (const m of hitCrew){ this.st.hitCrew++; m.powerDown(g, 'cave'); }
+    // crew routes through the fall: re-plan now (CrewNav re-plans round the rubble or refuses cleanly)
+    this.replan();
+    g.crisisNote?.('cave', 'CAVE-IN');
+    g.lucidLine(hitPlayer ? msg : 'Cave-in. That span stood too wide for too long — clear the rubble with [V], prop it next time.', false);
+    if (!g._loading) g.ui?.toast?.(msg, 3600);
+    g.bus.emit('rock:collapse', { i: ci, j: cj, k: ck, cells: fill.length, hitPlayer, hitCrew: hitCrew.length, wx, wy, wz });
+    return { fill: fill.length, hitPlayer, hitCrew: hitCrew.length };
+  }
+  replan(){ for (const m of this.g.imps || []) if (m.state === 'awake' && m.nav && m.nav.ok){ const n = m.nav; m.navTo(n.goal, { zone: n.zone, kind: n.kind, thin: n.thin, force: n.force }); this.st.replans++; } }
+  // undig: the cell becomes rubble again (collider back, rubble look, floor pads re-seated, nothing left to mine but fill)
+  refill(b){
+    const g = this.g, V = g.voxels, key = V.key(b.i, b.j, b.k), cell = V.cells.get(key); if (!cell || !b.dug) return false;
+    b.dug = false; b.progress = 0; cell.dug = false; cell.solid = true; V.dug.delete(key);
+    b.dropFloor(g);
+    this.makeRubble(b);
+    g.world.addBox(b.wx, b.wz, b.size, b.size, b.wy - b.size / 2, b.wy + b.size / 2, { ref: b.colRef, walk: true });
+    const up = V.get(b.i, b.j + 1, b.k); if (up?.dug && up.entity && !up.entity.floorMesh) up.entity.ensureDigFloor(g);
+    return true;
+  }
+  makeRubble(b){
+    const V = this.g.voxels, cell = V.get(b.i, b.j, b.k);
+    if (!b.rubble){ b._mat0 = b.mat; b._drop0 = b.drop; b._dropN0 = b.dropN; }
+    b.rubble = true; b.mat = 'rubble'; if (cell){ cell.mat = 'rubble'; cell.soft = true; }
+    if ('scrapN' in b) b.scrapN = 0; if ('ch4' in b) b.ch4 = 0;
+    this.rubble.add(V.key(b.i, b.j, b.k));
+    const M = _rubbleMat(), s = b.size;
+    if (!b._bits){
+      b._bits = [];
+      for (let n = 0; n < 4; n++){
+        const h = ((b.i * 73 + b.j * 31 + b.k * 17 + n * 11) % 97) / 97;
+        const lump = new THREE.Mesh(new THREE.DodecahedronGeometry(s * (.16 + h * .1), 0), M);
+        lump.position.set((h - .5) * s * .8, -s * .36 + n * .05, ((n * .37 + h) % 1 - .5) * s * .9); lump.rotation.set(h * 3, n * 1.3, h * 2);
+        lump.userData.entity = b; b.mesh.add(lump); b._bits.push(lump);
+      }
+    }
+    b.mesh.traverse(ch => { if (ch.isMesh){ ch.material = M; ch.visible = true; } });
+    b.body.scale.set(1, .97, 1); b.body.rotation.y = .12;
+    b.hit = []; b.mesh.traverse(ch => { if (ch.isMesh) b.hit.push(ch); });
+  }
+  // the rubble cell was dug out again: yield, restore its material for the record, free whatever it was lying on
+  cleared(b){
+    const g = this.g, V = g.voxels, cell = V.get(b.i, b.j, b.k), m0 = b._mat0 || 'soil';
+    b.rubble = false; b.mat = m0; if (cell){ cell.mat = m0; cell.soft = m0 !== 'rock'; }
+    this.rubble.delete(V.key(b.i, b.j, b.k)); this.st.cleared++; this.ver++;
+    let what;
+    if (m0 === 'ore' || m0 === 'rock'){ g.giveItem('ore_scrap', 1); what = '+1 ore scrap'; }
+    else if ((b.i + b.j + b.k) % 2 === 0){ g.scrap += 1; g.ui.refreshInv?.(); what = '+1 scrap'; }
+    else { g.giveItem('soil', 1); what = '+1 soil'; }
+    g.ui.toast?.(`Cleared rubble. ${what}.`, 2000);
+    this.recrush();
+  }
+  // world point → rubble?   (pipes, cables and sump hoses under a fall are crushed / pinched until it is dug clear)
+  inRubble(v){
+    if (!this.rubble.size) return false; const V = this.g.voxels, c = GRID.c;
+    for (const zn of V.zones){ if (!zn.walkIn) continue; const i = zn.i0 + Math.floor((v.x - zn.ox) / c), j = zn.j0 + Math.floor((v.y - zn.oy) / c), k = zn.k0 + Math.floor((v.z - zn.oz) / c); if (this.rubble.has(i + ',' + j + ',' + k)) return true; }
+    return false;
+  }
+  recrush(){
+    const g = this.g, v = new THREE.Vector3(); let n = 0, pw = false;
+    for (const net of [g.pipes, g.liquidPipes]) for (const p of net?.pipes?.values?.() || []){ const c = this.inRubble(GRID.center(p.i, p.j, p.k, v)); p.crushed = c; if (c) n++; }
+    for (const cab of g.power?.cables?.values?.() || []){
+      const c = this.inRubble(GRID.center(cab.i, cab.j, cab.k, v).setY(v.y + (cab.py || 0)));
+      if (c && !cab.crushed){ cab.crushed = true; if (!cab.failed){ cab.failed = true; cab.damage = 1; cab.inflow = 0; cab.repaint?.(); pw = true; } }
+      else if (!c && cab.crushed) cab.crushed = false;   // dug clear: still FAILED — repair it like any short
+      if (c) n++;
+    }
+    if (pw){ g.power.dirty = true; g.power.rebuild?.(); }
+    for (const sp of g.sumps || []){ const h = sp.hose; if (!h || h.legacy) continue; const c = (h.pts || []).some(p => this.inRubble(Array.isArray(p) ? v.set(p[0], p[1], p[2]) : p)); h.crushed = c; if (c) n++; }
+    this.crushedN = n; return n;
+  }
+  // crew: a planned route that dies on rubble is refused cleanly (no straight-steer into the fall)
+  blocksNav(from, to){
+    if (!this.rubble.size) return false; const V = this.g.voxels, dx = to.x - from.x, dz = to.z - from.z, L2 = dx * dx + dz * dz || 1;
+    for (const key of this.rubble){ const b = V.cells.get(key)?.entity; if (!b) continue; const u = Math.max(0, Math.min(1, ((b.wx - from.x) * dx + (b.wz - from.z) * dz) / L2)); if (Math.hypot(from.x + dx * u - b.wx, from.z + dz * u - b.wz) < 1.2) return true; }
+    return false;
+  }
+  // ---- shoring ----
+  shoreAim(b){
+    const g = this.g, V = g.voxels, zn = b.zone; if (!g.hasItem('shoring') || !this.zoneOk(zn)) return false;
+    let i = b.i, j = b.j, k = b.k;
+    if (!b.dug){ if (!V.isDug(i, j - 1, k) || V.zoneAt(i, j - 1, k) !== zn || b.mat === 'rock') return false; j--; }
+    else if (!this.roofedCol(i, j, k)) return false;
+    while (V.isDug(i, j - 1, k) && V.zoneAt(i, j - 1, k) === zn) j--;
+    const r = this.placeProp(i, j, k, zn, 1);
+    g.ui.toast?.(r.msg, 3200); if (r.ok){ g.takeItem('shoring'); beep(480, .05); beep(360, .06); }
+    return true;
+  }
+  placeProp(i, j, k, zn, tier = 1){
+    const g = this.g, V = g.voxels, key = V.key(i, j, k);
+    if (!V.isDug(i, j, k)) return { ok: false, msg: 'Dig the floor out first.' };
+    if (V.occ.has(key)) return { ok: false, msg: 'Something already stands there.' };
+    if (g.pockets?.sealCols?.has(i + ',' + k)) return { ok: false, msg: 'A seal hangs in that column.' };
+    const p = g.add(new ShoringProp(g, { i, j, k, zone: zn, tier })); this.props.push(p); this.ver++;
+    const R = CFG.rock.propR[tier - 1];
+    return { ok: true, prop: p, msg: `Shoring set — it holds the roof ${R} cell${R > 1 ? 's' : ''} around it. [E] it with ${CFG.rock.propUp} scrap to brace it wider.` };
+  }
+  roofNote(b){   // quiet floor readout (only when you look at the floor of a roofed cell)
+    const V = this.g.voxels; let j = b.j; while (V.isDug(b.i, j + 1, b.k)) j++; const key = V.key(b.i, j, b.k);
+    if (!this.span.has(key)) return ''; const s = this.stress.get(key) || 0, p = this.shoredBy(b.i, j, b.k, b.zone);
+    return p ? ' · roof shored' : s >= CFG.rock.creakAt ? ' · roof creaking' : s >= CFG.rock.dustAt ? ' · dust sifting from the roof' : '';
+  }
+  // ---- hull breach ----
+  warnHull(b){ if (b.hullFace == null || b.dug || b.rubble || this.breachAt(b)) return; hint(this.g, 'hullBreach', `LUCID: That soil is packed against ${b.zone.hull.label}'s hull plating — dig it out and the plate tears open.`, 5200); }
+  breachAt(b){ const key = this.g.voxels.key(b.i, b.j, b.k); return this.breaches.find(x => x.key === key) || null; }
+  openBreach(b, quiet = false){
+    if (this.breachAt(b)) return this.breachAt(b);
+    const g = this.g, br = g.add(new HullBreach(g, b)); this.breaches.push(br); this.st.breaches++;
+    if (!quiet){
+      g.crisisNote?.('breach', 'HULL BREACH');
+      g.lucidLine(`Hull breach — ${b.zone.hull.label}'s air is bleeding through the plate. Hold [E] on the hole with scrap (or a wall patch).`, false);
+      g.bus.emit('rock:breach', { br });
+    }
+    return br;
+  }
+  fx(dt, t, P, ed2){
+    const R = CFG.rock, V = this.g.voxels, v = this._fv ||= new THREE.Vector3(); let hiss = 0;
+    for (const [key, s] of this.stress){
+      if (s < R.dustAt) continue; const b = V.cells.get(key)?.entity; if (!b) continue;
+      v.set(b.wx + (Math.random() - .5) * .4, V.floorY(b.i, b.j + 1, b.k) - .03, b.wz + (Math.random() - .5) * .4);
+      const a = 1 / (1 + ed2(v) * .5); if (a < .03) continue;
+      if (Math.random() < dt * (s - R.dustAt) * 8) P.emit(v, _rockDown, .2, .6, 2, .6);
+      if (s >= R.creakAt && Math.random() < dt * .3 * s){ AUDIO.creak(.45 * a); P.emit(v, _rockDown, .1, 2.2, 1, .4); }
+    }
+    for (const e of this.fxQ.splice(0)){ P.emit(e, _rockDown, 1.6, 1.4, 70, 1.4); const a = 1 / (1 + ed2(e) * .08); AUDIO.bang(.9 * a); setTimeout(() => AUDIO.creak(.6 * a), 260); }
+    for (const br of this.breaches){
+      if (br.patched || br.flowR < .002) continue; const a = 1 / (1 + ed2(br.pos) * .35), f = Math.min(1, br.flowR * 4);
+      hiss += (.4 + f * 2) * a; if (br.outDir) P.emit(br.pos, br.outDir, .35, 1.4 + f * 2, (4 + f * 50) * dt, .9);
+    }
+    return hiss;
+  }
+  clear(){
+    const g = this.g, V = g.voxels;
+    for (const p of this.props){ V.occ.delete(V.key(p.i, p.j, p.k)); g.world.removeRef(p.colRef); g.remove(p); g.scene.remove(p.mesh); }
+    for (const b of this.breaches){ g.remove(b); g.scene.remove(b.mesh); }
+    for (const key of this.rubble){ const b = V.cells.get(key)?.entity; if (b){ b.rubble = false; b.mat = b._mat0 || b.mat; } }
+    this.props = []; this.breaches = []; this.rubble.clear(); this.stress.clear(); this.grand.clear(); this.ver++; this._sig = '';
+  }
+  save(){
+    const r3 = x => Math.round(x * 1000) / 1000;
+    return { st: [...this.stress].map(([k, s]) => [k, r3(s)]), rub: [...this.rubble], props: this.props.map(p => [p.i, p.j, p.k, p.tier]),
+      br: this.breaches.map(b => [b.key, b.patched ? 1 : 0, r3(b.prog), b.side || 0]), gf: [...this.grand], said: this._said ? 1 : 0, n: { ...this.st } };
+  }
+  load(d){
+    const g = this.g, V = g.voxels, warn = [];
+    if (!d){   // pre-v0.4.1 save: whatever stands at load is settled — only a wider span starts to stress
+      this.recompute(); for (const [k, s] of this.span) if (s > CFG.rock.safeSpan) this.grand.set(k, s); this._sig = ''; return warn;
+    }
+    for (const key of d.rub || []){ const b = V.cells.get(key)?.entity; if (!b || b.dug){ warn.push('rubble ' + key); continue; } this.makeRubble(b); }
+    for (const [i, j, k, tier] of d.props || []){ const zn = V.zoneAt(i, j, k); const r = zn && this.placeProp(i, j, k, zn, tier); if (!r?.ok) warn.push('prop ' + i + ',' + j + ',' + k); }
+    for (const [key, patched, prog, side] of d.br || []){ const b = V.cells.get(key)?.entity; if (!b || b.hullFace == null){ warn.push('breach ' + key); continue; } const br = this.openBreach(b, true); br.prog = prog || 0; if (patched) br.setPatched(true, side || 1); }
+    for (const [k, s] of d.gf || []) this.grand.set(k, s);
+    for (const [k, s] of d.st || []) this.stress.set(k, s);
+    this._said = !!d.said; if (d.n) Object.assign(this.st, d.n); this.ver++; this._sig = ''; this.recompute(); this.recrush();
+    return warn;
+  }
+}
+// cheap steel prop: base plate, post, screw jack, head plate. T2 bolts on a header beam + two braces (visibly wider reach).
+class ShoringProp extends Entity {
+  constructor(g, o){
+    super(); this.game = g; this.interactable = true; this.kind = 'shoring';
+    this.i = o.i; this.j = o.j; this.k = o.k; this.zone = o.zone; this.tier = o.tier || 1;
+    const V = g.voxels; let rj = o.j; while (V.isDug(o.i, rj + 1, o.k)) rj++;
+    this.fy = V.floorY(o.i, o.j, o.k); this.ry = V.floorY(o.i, rj + 1, o.k);
+    const c = V.center(o.i, o.j, o.k); this.x = c.x; this.z = c.z;
+    // header beam runs along the wider dug run through this cell (that is the span it carries)
+    const run = (dx, dz) => { let n = 0; for (const s of [1, -1]) for (let q = 1; q <= 3 && V.isDug(o.i + dx * s * q, rj, o.k + dz * s * q); q++) n++; return n; };
+    this.axis = run(1, 0) >= run(0, 1) ? 'x' : 'z';
+    this.mesh = new THREE.Group(); this.mesh.position.set(this.x, this.fy, this.z); g.scene.add(this.mesh);
+    this.build();
+    this.colRef = { id: 'shore-' + V.key(o.i, o.j, o.k) }; g.world.addBox(this.x, this.z, .12, .12, this.fy, this.ry, { ref: this.colRef, walk: false });   // thin post: squeeze past (not a nav wall)
+    V.occ.set(V.key(o.i, o.j, o.k), this);
+  }
+  build(){
+    const G = this.mesh, h = Math.max(.4, this.ry - this.fy);
+    while (G.children.length){ const ch = G.children.pop(); ch.geometry?.dispose?.(); }
+    const M = ShoringProp.mats ||= {
+      steel: new THREE.MeshStandardMaterial({ color: 0x3c4248, metalness: .8, roughness: .42 }),
+      paint: new THREE.MeshStandardMaterial({ color: 0xc89a2a, metalness: .5, roughness: .5 }),
+      wood: new THREE.MeshStandardMaterial({ color: 0x6a4a2a, metalness: .05, roughness: .85 }),
+      tag: new THREE.MeshStandardMaterial({ color: 0xff7a1a, emissive: 0x4a1a00, roughness: .5 }),
+    };
+    const add = (geo, m, x, y, z, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.castShadow = true; o.userData.entity = this; G.add(o); return o; };
+    add(new THREE.BoxGeometry(.3, .03, .3), M.steel, 0, .015, 0);
+    add(new THREE.CylinderGeometry(.042, .05, h - .32, 10), M.paint, 0, .03 + (h - .32) / 2, 0);
+    add(new THREE.CylinderGeometry(.064, .064, .1, 10), M.steel, 0, h - .25, 0);
+    add(new THREE.CylinderGeometry(.022, .022, .18, 8), M.steel, 0, h - .12, 0);
+    add(new THREE.BoxGeometry(.06, .015, .2), M.steel, 0, h - .25, 0, 0, .6, 0);   // jack handle
+    add(new THREE.BoxGeometry(.32, .03, .32), M.steel, 0, h - .03 - (this.tier > 1 ? .12 : 0), 0);
+    if (this.tier > 1){
+      const L = 1.3, along = this.axis === 'x';
+      add(new THREE.BoxGeometry(along ? L : .14, .12, along ? .14 : L), M.wood, 0, h - .06, 0);
+      for (const s of [1, -1]){
+        const bl = Math.hypot(.5, .55), ang = Math.atan2(.5, .55);
+        add(new THREE.BoxGeometry(.04, bl, .04), M.steel, along ? s * .25 : 0, h - .12 - .275, along ? 0 : s * .25, along ? 0 : -s * ang, 0, along ? s * ang : 0);
+        add(new THREE.BoxGeometry(.06, .06, .06), M.steel, along ? s * .55 : 0, h - .14, along ? 0 : s * .55);   // beam end shoe
+      }
+      add(new THREE.BoxGeometry(.07, .05, .012), M.tag, 0, 1.15, .052);
+    }
+    this.hit = []; G.traverse(ch => { if (ch.isMesh) this.hit.push(ch); });
+  }
+  prompt(game){
+    const R = CFG.rock.propR[this.tier - 1];
+    return `Shoring prop T${this.tier} — holds the roof ${R} cell${R > 1 ? 's' : ''} around` + (this.tier < 2 ? ` · [E] bolt on header beam + braces (${CFG.rock.propUp} scrap)` : '');
+  }
+  interact(dt, game, part, first){
+    if (!first) return;
+    if (this.tier >= 2){ game.ui.toast?.('Fully braced.', 1600); return; }
+    const n = CFG.rock.propUp; if (game.scrap < n && !game.freeBuild){ game.ui.toast?.(`Need ${n} scrap to brace it.`, 2000); return; }
+    if (!game.freeBuild){ game.scrap -= n; game.ui.refreshInv?.(); }
+    this.tier = 2; this.build(); game.rock.ver++; game.ui.toast?.(`Prop braced — header beam + braces hold ${CFG.rock.propR[1]} cells around.`, 2600); beep(420, .06);
+  }
+}
+// a torn hole through a sealed hull: gas equalises with whatever is on the dig side (pocket, or the open surface)
+class HullBreach extends Entity {
+  constructor(g, b){
+    super(); this.game = g; this.interactable = true; this.kind = 'breach'; this.b = b; this.key = g.voxels.key(b.i, b.j, b.k);
+    const H = b.zone.hull; this.H = H; this.patched = false; this.prog = 0; this.flowR = 0; this.vented = 0; this.liqIn = 0; this.side = 0; this.t0 = g.time;
+    const ax = DIRS[H.dir];
+    this.pos = new THREE.Vector3(H.at, b.wy, b.wz);
+    this.inPt = this.pos.clone().addScaledVector(new THREE.Vector3(...ax), .6);   // a step inside the hull
+    this.mesh = new THREE.Group(); this.mesh.position.copy(this.pos); this.mesh.rotation.y = Math.PI / 2; g.scene.add(this.mesh);
+    const th = H.th / 2 + .006, M = HullBreach.mats ||= {
+      hole: new THREE.MeshBasicMaterial({ color: 0x030202, side: THREE.DoubleSide }),
+      scorch: new THREE.MeshStandardMaterial({ color: 0x1a120c, roughness: 1, transparent: true, opacity: .8, side: THREE.DoubleSide, depthWrite: false }),
+      petal: new THREE.MeshStandardMaterial({ color: 0x737a80, metalness: .85, roughness: .38, side: THREE.DoubleSide }),
+      plate: new THREE.MeshStandardMaterial({ color: 0x8a9298, metalness: .85, roughness: .32 }),
+      weld: new THREE.MeshStandardMaterial({ color: 0xa88450, metalness: .6, roughness: .5, emissive: 0x1a0c02 }),
+    };
+    this.rimMat = new THREE.MeshStandardMaterial({ color: 0x402010, emissive: 0xff6a1a, emissiveIntensity: 2.2, roughness: .6 });
+    const add = (geo, m, x, y, z, rx = 0, ry = 0, rz = 0, p = this.mesh) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.userData.entity = this; p.add(o); return o; };
+    for (const s of [1, -1]){ add(new THREE.CircleGeometry(.15, 20), M.hole, 0, 0, s * th); add(new THREE.RingGeometry(.15, .3, 24), M.scorch, 0, 0, s * (th + .002)); }
+    add(new THREE.CylinderGeometry(.15, .15, H.th + .01, 20, 1, true), M.hole, 0, 0, 0, Math.PI / 2);
+    for (let n = 0; n < 8; n++){   // torn plate petals, curled inward (cut from the dig side)
+      const a = n / 8 * Math.PI * 2 + .2, pg = new THREE.Group(); pg.rotation.z = a; this.mesh.add(pg);
+      add(new THREE.BoxGeometry(.075 + (n % 3) * .02, .12, .01), M.petal, 0, .17, -th - .03, -.75 - (n % 2) * .35, 0, (n % 3 - 1) * .2, pg);
+    }
+    this.rim = add(new THREE.TorusGeometry(.155, .012, 6, 26), this.rimMat, 0, 0, th + .004);
+    this.patch = new THREE.Group(); this.mesh.add(this.patch); this.patch.visible = false;
+    add(new THREE.BoxGeometry(.52, .48, .022), M.plate, 0, 0, 0, 0, 0, 0, this.patch);
+    add(new THREE.TorusGeometry(.25, .011, 5, 4), M.weld, 0, 0, .012, 0, 0, Math.PI / 4, this.patch).scale.set(1.04, .96, 1);
+    for (const [x, y] of [[-.2, -.18], [.2, -.18], [-.2, .18], [.2, .18]]) add(new THREE.CylinderGeometry(.018, .018, .02, 8), M.weld, x, y, .014, Math.PI / 2, 0, 0, this.patch);
+    this.hit = []; this.mesh.traverse(ch => { if (ch.isMesh) this.hit.push(ch); });
+    this.outDir = null;
+  }
+  vols(){ const g = this.game; return [g.volumeAt(this.inPt), g.pockets.byCell.get(this.key)?.gas || g.outdoor]; }
+  update(dt, g){
+    if (g.time - (this._holdT ?? -1e9) > .35 && this.prog > 0 && !this.patched) this.prog = Math.max(0, this.prog - dt);
+    this.flowR = 0; if (this.patched || dt <= 0) return;
+    const B = CFG.rock.breach, [A, O] = this.vols(); if (!A || !O || A === O) return;
+    const q = B.q * (this.b.dug ? 1 : B.rubbleMul) * dt; let moved = 0, sgn = 0;
+    for (const k of GAS_KEYS){
+      const dA = (A.gases[k] || 0) / A.volume, dB = (O.gases[k] || 0) / O.volume, eq = (dA - dB) * A.volume * O.volume / (A.volume + O.volume);
+      const amt = Math.sign(eq) * Math.min(Math.abs(eq), Math.abs(dA - dB) * q); if (!amt) continue;
+      if (amt > 0) O.add(k, A.take(k, amt)); else A.add(k, O.take(k, -amt));
+      moved += Math.abs(amt); sgn += amt;
+    }
+    this.flowR = moved / dt; this.vented += sgn > 0 ? sgn : 0;
+    const out = new THREE.Vector3(...DIRS[this.H.dir]); this.outDir = sgn >= 0 ? out.negate() : out;
+    // liquid standing over the breach in the drift pours through into the hull (dry drift = nothing)
+    const pk = g.pockets.byCell.get(this.key), L = g.liquids;
+    if (pk && L && pk.wet?.has(this.key) && LiquidNet.liqTot(pk.liq) > 1e-6){ const m = L.takeMix(pk, B.liqLps * dt); L.led.spilled += m.n; this.liqIn += m.n; L.bump?.(); }
+  }
+  visual(dt, t, g){
+    const age = g.time - this.t0; this.rimMat.emissiveIntensity = Math.max(0, 2.2 - age * .35); this.rim.visible = !this.patched && age < 7;
+  }
+  setPatched(on, side){ this.patched = on; this.side = side; this.patch.visible = on; this.patch.position.z = side * (this.H.th / 2 + .02); if (on) this.flowR = 0; }
+  prompt(game){
+    if (this.patched) return `Hull patch — welded plate (${this.H.label})`;
+    const kit = game.hasItem('wall_patch'), B = CFG.rock.breach, need = kit ? B.holdKit : B.holdScrap;
+    const pct = this.prog > 0 ? ` ${Math.round(this.prog / need * 100)}%` : '';
+    return `HULL BREACH — ${this.H.label} air hissing through · hold [E] to patch (${kit ? 'wall patch, ' + B.holdKit + ' s' : B.patchScrap + ' scrap, ' + B.holdScrap + ' s'})${pct}`;
+  }
+  interact(dt, game, part, first){
+    if (this.patched){ if (first) game.ui.toast?.('Welded shut. It holds.', 1600); return; }
+    const B = CFG.rock.breach, kit = game.hasItem('wall_patch');
+    if (!kit && game.scrap < B.patchScrap && !game.freeBuild){ if (first) game.ui.toast?.(`Need ${B.patchScrap} scrap (or a hull wall patch) to close the hole.`, 2400); return; }
+    this._holdT = game.time; this.prog += dt;
+    if (this.prog >= (kit ? B.holdKit : B.holdScrap)){
+      if (kit) game.takeItem('wall_patch'); else if (!game.freeBuild){ game.scrap -= B.patchScrap; game.ui.refreshInv?.(); }
+      const s = Math.sign((game.player.pos.x - this.pos.x) * DIRS[this.H.dir][0] * -1) || 1;   // plate on the side you stand
+      this.setPatched(true, s); this.prog = 0; game.rock.st.patched++;
+      game.ui.toast?.('Breach patched — plate welded over the hole.', 2600); game.bus.emit('rock:patch', { br: this });
+    }
+  }
+}
+// hull drift: a soil bank piled against ARK-01's east hull (walk-in, back wall = the hull plate). Its inner column is
+// packed onto the plating, so digging it out tears the plate: the one place a dig can breach a sealed hull.
+function buildHullDrift(game){
+  const b = game.arkBounds, D = CFG.rock.drift, c = GRID.c; if (!b) return null;
+  const ox = b.maxX + D.gap, oz = b.minZ + D.zOff;
+  const zone = makeDigZone({ id: 'hull_drift', i0: D.i0, j0: 0, k0: D.k0, ni: D.ni, nj: D.nj, nk: D.nk, ox, oy: 0, oz, label: 'Hull drift', walkIn: true, backWall: 1 });
+  zone.hull = { vol: 'ark', label: 'ARK-01', dir: 1, at: b.maxX + D.wallC, th: D.wallTh };
+  game.voxels.registerZone(zone); D.ox = ox; D.oz = oz;
+  const digs = [];
+  for (let li = 0; li < zone.ni; li++) for (let lj = 0; lj < zone.nj; lj++) for (let lk = 0; lk < zone.nk; lk++){
+    if (lj === zone.nj - 1 && li === zone.ni - 1) continue;   // slumped shoulder away from the hull
+    const i = zone.i0 + li, j = lj, k = zone.k0 + lk, mat = (li * 5 + lk * 3 + lj) % 13 === 0 ? 'ore' : 'soil';
+    const d = game.add(new DigBlock(game, { i, j, k, mat, zone, plain: true, size: c * .985, berm: true, pos: new THREE.Vector3(ox + (li + .5) * c, (lj + .5) * c, oz + (lk + .5) * c) }));
+    if (li === 0) d.hullFace = 1;
+    digs.push(d);
+  }
+  return { zone, digs };
+}
 
 
 // ---------- Slice 32 (v0.3.0): underground liquid — reservoirs, flooding, wading / drowning, sump pumps ----------
@@ -5861,6 +6300,7 @@ class SumpPump extends Entity {
     const ik = game.intakes?.[0];   // slice 33: grid power arrives down the umbilical from the base SURFACE INTAKE
     if (!this.hose){ this.stall = this.game.hoseLay?.pump === this ? 'LAYING HOSE — walk it to the base surface intake' : 'NO HOSE — [E] here with a hose reel, walk it home'; return; }
     if (this.hose.burst){ this.stall = 'HOSE BURST — hold [E] on the pump to patch'; return; }
+    if (this.hose.crushed){ this.stall = 'HOSE PINCHED — rubble on the line; dig it clear [V]'; return; }   // v0.4.1
     if (!ik || !ik.live()){ this.stall = 'NO POWER — wire the base surface intake'; return; }
     if (!pk || !this.submerged()){ this.stall = 'DRY — nothing at the intake'; return; }
     const want = CFG.cave.sump.flow * dt, type = L.bottomType(pk), tank = game.tanks?.[0];
@@ -9792,7 +10232,7 @@ class Imp extends Entity {
     if (this.state !== 'awake') return;
     this.state = 'down'; this.downs++; this.working = false; this.moving = 0; this.nav = null;
     if (this.haul.pile && this.haul.pile.claim === this) this.haul.pile.claim = null;
-    const msg = `${this.tag} collapsed — not enough air. Still breathing, barely. Fix the air, then rouse it.`;
+    const msg = why === 'cave' ? `${this.tag} went down under the fall — pinned and bruised, still breathing. Rouse it.` : `${this.tag} collapsed — not enough air. Still breathing, barely. Fix the air, then rouse it.`;
     impSay(game, msg, !game._impDownOnce); game._impDownOnce = true;
     game.crisisNote?.('imp', `${this.tag} down`, { quiet: true });   // slice 25: counts on the monitor ALERT line
     game.bus.emit('imp:down', { imp: this, why });
@@ -9927,7 +10367,13 @@ class Imp extends Entity {
       // close by (bench, plant, pile at arm's length) or a clear line: plain steering, as before v0.4.0
       if (!gr || Math.hypot(t.x - this.pos.x, t.z - this.pos.z) < 3 || gr.los(this.pos.x, this.pos.z, t.x, t.z)){ this.nav = null; return this.moveTo(t, dt, arrive); }
       const r = this.navGo(t, dt, { ...opt, arrive });
-      if (this.nav && !this.nav.ok){ this.nav = null; return this.moveTo(t, dt, arrive); }   // no grid path inside one room: steer as before
+      if (this.nav && !this.nav.ok){
+        if (g.rock?.blocksNav(this.pos, t)){   // v0.4.1: rubble in the way — refuse cleanly, no straight-steer into the fall
+          const n = this.nav; if (!n.cave){ n.cave = true; n.why = CAVE_WHY; g.rock.st.refusals++; if (this._navWhyNoted !== CAVE_WHY){ this._navWhyNoted = CAVE_WHY; g.lucidLine(`${this.tag} can't get through: ${CAVE_WHY}.`, false); } }
+          this.moving = 0; return false;
+        }
+        this.nav = null; return this.moveTo(t, dt, arrive);
+      }   // no grid path inside one room: steer as before
       return r;
     }
     return this.navGo(t, dt, { ...opt, arrive });
@@ -11498,7 +11944,7 @@ class Game {
     this.bus.on('crisis:note', () => { this._crisisN = (this._crisisN || 0) + 1; });
     this.bus.on('dig:block', d => impDigSpoil(this, d));   // slice 16: hauling imps sift dig spoil
     // slice 17: dug cells in outdoor DigZones join pocket air volumes (PocketNet); quiet monitor notes only
-    this.pockets = new PocketNet(this);
+    this.pockets = new PocketNet(this); this.rock = new RockNet(this);   // v0.4.1: rock stress / cave-ins / hull breaches
     this.bus.on('dig:block', d => this.pockets.onDig(d));
     this.liquids = new LiquidNet(this); this.sumps = [];   // slice 32: underground liquid
     this.bus.on('pocket:sealed', pk => {
@@ -11554,7 +12000,7 @@ class Game {
   alertSummary(){
     const t = this.time, recent = (this.alerts || []).filter(a => t - a.t <= CFG.ui.alertWindow);
     if (!recent.length) return null;
-    const label = { pipe: 'PIPE BURST', cable: 'CABLE SHORT', breaker: 'BREAKER TRIP', supply: 'NO SUPPLY', imp: 'CREW DOWN', collar: 'COLLAR' }, counts = {};
+    const label = { pipe: 'PIPE BURST', cable: 'CABLE SHORT', breaker: 'BREAKER TRIP', supply: 'NO SUPPLY', imp: 'CREW DOWN', collar: 'COLLAR', cave: 'CAVE-IN', breach: 'HULL BREACH' }, counts = {};
     for (const a of recent) counts[a.kind] = (counts[a.kind] || 0) + 1;
     const text = Object.entries(counts).map(([k, n]) => (label[k] || k.toUpperCase()) + (n > 1 ? ' ×' + n : '')).join(' · ');
     return { text, age: Math.max(0, Math.round(t - recent[recent.length - 1].t)), n: recent.length };
@@ -11647,7 +12093,7 @@ class Game {
     this.pipes.update(dt);                            // gas network routes, stresses pipes
     this.liquidPipes.update(dt);                      // liquid network routes, stresses pipes → puddle on leak
     this.lucidNet.update(dt);                         // slice 8: quiet watch over linked units
-    this.pockets.update(dt);                          // slice 17: dig pockets exchange with the outdoors / seep / bleed
+    this.pockets.update(dt); this.rock.update(dt);                          // slice 17: dig pockets exchange with the outdoors / seep / bleed
     this.liquids.update(dt);                          // slice 32: reservoirs breach, floods spread, runoff, open hatches equalise
   }
 }
@@ -12234,6 +12680,7 @@ placeCrashPod(game, slice);   // slice 33: the escape pod you came down in
   // slice 17: walk-in spoil ridge (west side of the pad) — tunnel in, the tunnel is a pocket air volume
   const ridge = buildDigRidge(game);
   { const seep = buildSeepRidge(game); slice.seepZone = seep.zone; slice.seepDigs = seep.digs; }   // slice 32: the wet bluff
+  { const hd = buildHullDrift(game); if (hd){ slice.hullZone = hd.zone; slice.hullDigs = hd.digs; } }   // v0.4.1: soil bank on ARK-01's east hull
   slice.ridgeZone = ridge.zone; slice.ridgeDigs = ridge.digs; digs.push(...ridge.digs);
   // dim interior plaque
   const plaque = new THREE.Mesh(new THREE.BoxGeometry(1.6, .4, .04),
@@ -14018,6 +14465,7 @@ function visuals(dt, t){
   for (const r of game.regs || []){ const a = 1 / (1 + eyeDist2(r.mesh.position) * .6); hum += .12 * a; if (r.rate > .02){ const b = 1 / (1 + eyeDist2(r.outlet) * .3); hiss += Math.min(1, r.rate * 1.5) * .9 * b; hum += .25 * a; } }   // v0.3.7: regulator bleed hiss at the riser
   particles.update(dt);
   liquidView.update(dt, performance.now() / 1000);   // slice 32
+  if (game.rock) hiss += game.rock.fx(dt, t, particles, eyeDist2);   // v0.4.1: roof dust / creaks, cave-in burst, breach hiss
   AUDIO.set(Math.min(.25, hiss * .08), Math.min(.1, hum * .05));
   AUDIO.breathe(dt, game.player, game.over);
 }
@@ -14462,11 +14910,12 @@ function saveCapture(g){
   d.obj = g.objective ? { d: g.objective.done ? 1 : 0, s: g.objective.secs ?? null, e: g.objective.done ? undefined : Math.round(g.time - (g.objective.t0 || 0)) } : null;   // v0.3.7: e = seconds on the bottle so far
   d.pod = g._slice?.pod ? [g._slice.pod.salvage, g._slice.pod.logRead ? 1 : 0] : null;
   d.piles = (g.piles || []).map(p => ({ p: [sR(p.pos.x), sR(p.pos.z)], n: p.n, l: p.label }));
+  d.cave = g.rock ? g.rock.save() : null;   // v0.4.1: stress, rubble, shoring props, hull breaches
   // summary for the title card
   const placedN = pl.pumps.length + pl.gens.length + pl.bats.length + pl.brks.length + pl.tables.length + pl.belts.length + pl.drills.length + pl.refs.length + pl.torsos.length + pl.consoles.length;
   const sum = { zone: P.zone, scrap: g.scrap, items: Object.values(g.inv).reduce((a, b) => a + (+b || 0), 0), placed: placedN, pipes: pl.pipes.length + pl.lpipes.length, cables: pl.cables.length,
     recipes: d.unlocks.recipes.length, tier: g.unlocks.craftTable, imps: d.imps.filter(i => i.r).length, t: d.time };
-  return { schema: SAVE_SCHEMA, proto: '0.4.0', saved: Date.now(), t: d.time, sum, d };
+  return { schema: SAVE_SCHEMA, proto: '0.4.1', saved: Date.now(), t: d.time, sum, d };
 }
 
 // remove every placed thing (free build: no refunds) so the saved layout can be rebuilt on top of the static world
@@ -14483,6 +14932,7 @@ function saveClearPlaced(g){
   g.torsoChassis = []; g.controlRooms = [];
   for (const s of [...new Set(g.pockets.seals.values())]) g.pockets.takeDown(s);
   for (const e of [...(g.sumps || [])]) removeSump(g, e);   // slice 32
+  g.rock?.clear();   // v0.4.1
   for (const e of [...(g.regs || []), ...(g.fires || []), ...(g.scorches || [])]){ g.remove(e); g.scene.remove(e.mesh); }   // v0.3.6
   g.regs = []; g.fires = []; g.scorches = [];
   for (const e of g.entities.filter(x => x instanceof PocketScrubber)){ g.voxels.clearOcc(e.i, e.j, e.k); g.world.removeRef(e); g.remove(e); g.scene.remove(e.mesh); }
@@ -14590,6 +15040,7 @@ function saveApply(g, snap, sl = (typeof slice !== 'undefined' ? slice : null)){
       L._dugN = -1; L.bump();   // next tick re-checks: a reservoir touching a dug cell is breached
     });
     // 4. static world (finds, crates, pickups, lore, orb cradle, flora tanks…)
+    step('cave', () => { warn.push(...(g.rock?.load(d.cave) || [])); });   // v0.4.1: missing row (older save) = all stable
     step('static', () => {
       const seen = new Map(), T = saveStaticTable(), st = d.st || {};
       for (const e of [...g.entities]){ const row = T.find(r => e.constructor === r[0]); if (!row) continue; const key = saveStaticKey(e, seen); if (key && st[key] !== undefined) row[2](e, st[key], g); }
@@ -14794,6 +15245,7 @@ saveBoot();
 window.__breathless.save = { saveCapture, saveApply, saveWrite, saveRead, saveClear, saveEncode, saveDecode, saveMigrate, SAVE_LZ, SAVE_RT, SAVE_SCHEMA, SAVE_MIGRATIONS, saveTitleRefresh, saveNow };
 window.__breathless.survivors = { Imp, spawnImp, SnareCage, CollarDock, placeCollarDock, SumpIntake, sumpTestRig, EscapePod, placeCrashPod, crashStart, objectiveTick, quickGrid, tryPlacePlanterInFront, OxygenPlant, placeSump, THREE };   // slice 33
 window.__breathless.liquid = { liquidView, LiquidNet, SumpPump, placeSump, buildSeepRidge, carveSeepTunnel, seepSpot, LIQV };   // slice 32
+window.__breathless.rock = { RockNet, ShoringProp, HullBreach, buildHullDrift };   // v0.4.1 (slice 43)
 
 // ---------- Debug: ?preview, ?shot=NAME (screenshots), ?selftest ----------
 if (location.search.includes('preview')){ $('start').style.display = 'none'; game.player.pos.set(-1.5, 0, 0.5); game.player.yaw = 0.61; game.player.pitch = -0.1; }
@@ -20763,7 +21215,7 @@ if (location.search.includes('selftest')){
         const T = saveStaticTable().find(x => x[0] === SalvageCache), c1 = g2.add(new SalvageCache(g2, new THREE.Vector3(3, 0, 3))); c1.scanned = true; c1.stock = 1; const v = JSON.parse(JSON.stringify(T[1](c1)));
         const c2 = g2.add(new SalvageCache(g2, new THREE.Vector3(3, 0, 3))); T[2](c2, v, g2);
         s38.F_save = { proto: snap.proto, regs: (g2.regs || []).map(x => [x.setIdx, x.vented]), fires: (g2.fires || []).map(x => r3(x.I)), richT: g2._o2RichT, hinted: g2._laborHinted, cache: [c2.scanned, c2.stock, c2.caseG.visible, c2.ring.visible],
-          ok: /^0\.(3\.[7-9]|4\.0)$/.test(snap.proto) && g2.regs?.length === 1 && g2.regs[0].setIdx === 2 && Math.abs(g2.regs[0].vented - 12.3) < .11 && g2.fires?.length === 1 && Math.abs(g2.fires[0].I - .42) < .002 && g2._o2RichT === 321 && g2._laborHinted === true && c2.scanned && c2.stock === 1 && c2.caseG.visible && !c2.ring.visible };
+          ok: /^0\.(3\.[7-9]|4\.\d)$/.test(snap.proto) && g2.regs?.length === 1 && g2.regs[0].setIdx === 2 && Math.abs(g2.regs[0].vented - 12.3) < .11 && g2.fires?.length === 1 && Math.abs(g2.fires[0].I - .42) < .002 && g2._o2RichT === 321 && g2._laborHinted === true && c2.scanned && c2.stock === 1 && c2.caseG.visible && !c2.ring.visible };
         SV.saveApply(g2, snap, s2); s38.F_save.reloadNoDup = g2.regs.length === 1 && g2.fires.length === 1; s38.F_save.ok = s38.F_save.ok && s38.F_save.reloadNoDup; }
       // G: salvage caches in the world — 3 surface + 1 per ARK, clear of colliders / other things; scan → strip
       { const C = slice.salvage || [], bad = [];
@@ -20812,8 +21264,8 @@ if (location.search.includes('selftest')){
           s39.D_lucid = { said: said.length, fire: said.some(m => /Fire/.test(m)), out: said.some(m => /Out\.|choked/.test(m)), flags: [g._lucidFireSaid, g._lucidFireOutSaid],
             ok: said.some(m => /Fire/.test(m)) && said.some(m => /Out\.|choked/.test(m)) && g._lucidFireSaid === true && g._lucidFireOutSaid === true }; }
         { const fns = ['setFire', 'douse', 'valve', 'unlock', 'clank']; s39.E_sound = { have: fns.filter(k => typeof AUDIO[k] === 'function'), ok: fns.every(k => typeof AUDIO[k] === 'function') }; }
-        { const h = $('help')?.textContent || ''; s39.F_help = { ver: /v0\.(3\.[7-9]|4\.0)/.test(h), sec: /AIR SAFETY/.test(h), reg: /regulator/i.test(h), fire: /douse/i.test(h), cache: /Salvage caches/i.test(h), hose: /hose reel/i.test(h), noOne: !/v1\.0/.test(h),
-            ok: /v0\.(3\.[7-9]|4\.0)/.test(h) && /AIR SAFETY/.test(h) && /regulator/i.test(h) && /douse/i.test(h) && /Salvage caches/i.test(h) && /hose reel/i.test(h) && !/v1\.0/.test(h) }; }
+        { const h = $('help')?.textContent || ''; s39.F_help = { ver: /v0\.(3\.[7-9]|4\.\d)/.test(h), sec: /AIR SAFETY/.test(h), reg: /regulator/i.test(h), fire: /douse/i.test(h), cache: /Salvage caches/i.test(h), hose: /hose reel/i.test(h), noOne: !/v1\.0/.test(h),
+            ok: /v0\.(3\.[7-9]|4\.\d)/.test(h) && /AIR SAFETY/.test(h) && /regulator/i.test(h) && /douse/i.test(h) && /Salvage caches/i.test(h) && /hose reel/i.test(h) && !/v1\.0/.test(h) }; }
         // G: a save made during the crash walk resumes FIND SHELTER (was: always loaded as done); a done objective stays done
         { const SV = window.__breathless.save; const [g] = mk38(); g.time = 50; g.objective = { id: 'shelter', label: 'FIND SHELTER', t0: 20, done: false, doneT: null };
           const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))); const [g2, s2] = mk38(); g2.time = 50; SV.saveApply(g2, snap, s2);
@@ -20887,7 +21339,7 @@ if (location.search.includes('selftest')){
           const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))), [g2, s2] = mk40(); SV.saveApply(g2, snap, s2);
           const w2 = g2.landfill.well, i2 = g2.landfill.inlet, gn2 = (g2.generators || []).find(x => x.gasKit) || null;
           const got = { tier: w2.tier, blower: w2.blower, flare: w2.flare, lat: w2.laterals, rem: w2.rem, main: w2.main, io: i2.open, fi: i2.filter, kit: !!gn2, buf: gn2?.gasBuf, sinkOn: !!(gn2 && g2.pipes.sinkAt.has(gn2.gasSink.key)), side: g2._lfSide, sideT: g2._lfSideT, ch4: r3(g2.room.frac('ch4')), ev: g2.ch4Events, proto: snap.proto };
-          s40.E_save = { ...got, ok: got.tier === 2 && got.blower && got.flare && !got.lat && Math.abs(got.rem - 5123) < .1 && Math.abs(got.main - 33.3) < .01 && got.io && got.fi === 120 && got.kit && Math.abs(got.buf - 7.5) < .01 && got.sinkOn && got.side === 1 && got.sideT === 44 && got.ch4 === .004 && got.ev === 2 && /^0\.(3\.[89]|4\.0)$/.test(got.proto) }; }
+          s40.E_save = { ...got, ok: got.tier === 2 && got.blower && got.flare && !got.lat && Math.abs(got.rem - 5123) < .1 && Math.abs(got.main - 33.3) < .01 && got.io && got.fi === 120 && got.kit && Math.abs(got.buf - 7.5) < .01 && got.sinkOn && got.side === 1 && got.sideT === 44 && got.ch4 === .004 && got.ev === 2 && /^0\.(3\.[89]|4\.\d)$/.test(got.proto) }; }
         // F: scanning the vent once unlocks the family (no tier jump), optional side job pays out but never gates the chain
         { const [g] = mk40(), tier0 = g.unlocks.craftTable, find = g.landfill.ventFind; g.lucid.online = true; find.complete(g);
           const fam = ['gas_well', 'well_blower', 'well_laterals', 'flare_stack', 'gas_filter', 'gas_burner'].map(k => [k, g.recipeUnlocked(k)]);
@@ -20901,7 +21353,7 @@ if (location.search.includes('selftest')){
           const b0 = blocks.find(b => b.scrapN > 0), sc0 = g.scrap; b0?.finish(g); const gain = g.scrap - sc0;
           s40.G_dig = { blocks: blocks.length, pockets, metal, salvage: salv, gain, prompt: (b0 && b0.prompt ? '' : '-'), ok: blocks.length > 100 && pockets === 5 && metal > 10 && salv > 0 && gain === b0?.scrapN && gain > 0 }; }
         // H: help + version
-        { const h = $('help')?.textContent || ''; s40.H_help = { ver: /v0\.(3\.[89]|4\.0)/.test(h), sec: /LANDFILL GAS/.test(h), flam: /5 and 15 %/.test(h), flare: /flare/i.test(h), noOne: !/v1\.0/.test(h) }; s40.H_help.ok = Object.values(s40.H_help).every(Boolean); }
+        { const h = $('help')?.textContent || ''; s40.H_help = { ver: /v0\.(3\.[89]|4\.\d)/.test(h), sec: /LANDFILL GAS/.test(h), flam: /5 and 15 %/.test(h), flare: /flare/i.test(h), noOne: !/v1\.0/.test(h) }; s40.H_help.ok = Object.values(s40.H_help).every(Boolean); }
         s40.SUCCESS = !!(s40.A_gas.ok && s40.B_extract.ok && s40.C_gen.ok && s40.D_risk.ok && s40.E_save.ok && s40.F_scan.ok && s40.G_dig.ok && s40.H_help.ok);
       } catch (err){ s40.error = String(err?.stack || err).slice(0, 600); s40.SUCCESS = false; }
       // ---------- v0.3.9 (slice 41): crew-labour pacing — bench rate, craft queue, toast dedupe, save ----------
@@ -20937,7 +21389,7 @@ if (location.search.includes('selftest')){
           t.queue = [{ id: ids[0], f: 2 }, { id: ids[1] || ids[0], f: 0 }]; g._lfPaid = true; g._hint_replant = true;
           const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))), [g2, s2] = mk38(); SV.saveApply(g2, snap, s2); const q2 = s2.table.queue || [];
           s41.D_save = { ids, q: q2.map(e => e.id + ':' + e.f).join(','), lfPaid: !!g2._lfPaid, hint: !!g2._hint_replant, proto: snap.proto,
-            ok: q2.length === 2 && q2[0].id === ids[0] && q2[0].f === 2 && q2[1].f === 0 && !!g2._lfPaid && !!g2._hint_replant && /^0\.(3\.9|4\.0)$/.test(snap.proto) }; }
+            ok: q2.length === 2 && q2[0].id === ids[0] && q2[0].f === 2 && q2[1].f === 0 && !!g2._lfPaid && !!g2._hint_replant && /^0\.(3\.9|4\.\d)$/.test(snap.proto) }; }
         { const LF = CFG.landfill, mk41 = () => { const [g, s] = mk38(); buildLandfill(g, { art: false }); g.rng = lcg; return [g, s]; };
           const [g] = mk41(); g.lucid.online = true; g.landfill.ventFind.complete(g); const gen = quickGrid(g, g._slice, 0); fitGasKit(g, gen, { free: true }); gen.out = 120; gen._gasUse = .5; const sc0 = g.scrap;
           for (let t = 0; t < 125; t += .5) lfSideTick(g, .5); const paid1 = g.scrap - sc0; g._lfSide = 1; g._lfSideT = 0;
@@ -20949,7 +21401,7 @@ if (location.search.includes('selftest')){
           const helpGas = /LUCID points it out once you reach ARK-03/.test($('help')?.textContent || '');
           s41.E_lf = { paid1, paid2, lfPaid: !!g._lfPaid, side: g._lfSide, tipBefore: before, tipEarly: early, tipOnce: one, tipTotal: tips(), tipIfSide: k.ui.all.filter(m => /vents methane/.test(m)).length, helpGas, reSide,
             ok: paid1 === LF.side.scrap && paid2 === LF.side.scrap && !!g._lfPaid && reSide === 0 && before === 0 && early === 0 && one === 1 && tips() === 1 && k.ui.all.filter(m => /vents methane/.test(m)).length === 0 && helpGas }; }
-        { const h = $('help')?.textContent || ''; s41.F_help = { ver: /v0\.(3\.9|4\.0)/.test(h), bench: /Bench labour/.test(h), queue: /queue/i.test(h), noOne: !/v1\.0/.test(h), title: /v0\.(3\.9|4\.0)/.test(document.title) || document.title === 'SELFTEST' }; s41.F_help.ok = Object.values(s41.F_help).every(Boolean); }
+        { const h = $('help')?.textContent || ''; s41.F_help = { ver: /v0\.(3\.9|4\.\d)/.test(h), bench: /Bench labour/.test(h), queue: /queue/i.test(h), noOne: !/v1\.0/.test(h), title: /v0\.(3\.9|4\.\d)/.test(document.title) || document.title === 'SELFTEST' }; s41.F_help.ok = Object.values(s41.F_help).every(Boolean); }
         s41.SUCCESS = !!(s41.A_rate.ok && s41.B_queue.ok && s41.C_toast.ok && s41.D_save.ok && s41.E_lf.ok && s41.F_help.ok);
       } catch (err){ s41.error = String(err?.stack || err).slice(0, 600); s41.SUCCESS = false; }
       s38.SUCCESS = !!(s38.A_hose.ok && s38.B_rich.ok && s38.C_ignite.ok && s38.D_fire.ok && s38.E_reg.ok && s38.F_save.ok && s38.G_salvage.ok && s38.H_labor.ok && s38.I_gate.ok);
@@ -21006,11 +21458,125 @@ if (location.search.includes('selftest')){
         ok: o2.ok && tMid != null && !!row?.nv && row.nv.k === 'job' && row.wz === 'ark2' && resumed && at?.z === 'surface' && tArr2 != null };
       // B: airlock safety over every step above
       s42.B_lock = { steps: B.steps, both: B.both, crewCycles: (al.crewCycles || 0) - cyc0, holds: (al.holds || 0) - holds0, ok: B.steps > 1000 && B.both === 0 && (al.crewCycles || 0) - cyc0 >= 3 };
-      { const h = $('help')?.textContent || ''; s42.E_help = { ver: /v0\.4\.0/.test(h), routes: /Crew routes/.test(h), site: /Z picks the order site/.test(h), noOne: !/v1\.0/.test(h) && !/v1\.0/.test(document.querySelector('.ver')?.textContent || ''), proto: snap.proto };
+      { const h = $('help')?.textContent || ''; s42.E_help = { ver: /v0\.4\.\d/.test(h), routes: /Crew routes/.test(h), site: /Z picks the order site/.test(h), noOne: !/v1\.0/.test(h) && !/v1\.0/.test(document.querySelector('.ver')?.textContent || ''), proto: snap.proto };
         s42.E_help.ok = s42.E_help.ver && s42.E_help.routes && s42.E_help.site && s42.E_help.noOne && /^0\.4\.\d$/.test(snap.proto); }
       SV.saveApply(g, orig); g.ui = ui0; g.lucid.online = luc0.on; g.lucid.orbActive = luc0.orb; if (h3 && h3s) h3.state = h3s;
       s42.SUCCESS = !!(s42.A_doors.ok && s42.B_lock.ok && s42.C_order.ok && s42.D_save.ok && s42.E_help.ok);
     } catch (err){ s42.error = String(err?.stack || err).slice(0, 600); s42.SUCCESS = false; } }
+    // ---- slice43 (v0.4.1): rock stress + cave-ins, shoring props, rubble, crew re-plan, dig breaches, save ----
+    { const s43 = out.slice43 = {}; try {
+      const g = game, P = g.player, R = g.rock, V = g.voxels, SV = window.__breathless.save, S = window.__breathless.survivors, c = GRID.c, r3 = v => Math.round(v * 1000) / 1000;
+      const top = () => { const v = g.room, G = v.gases; G.co2 = Math.min(G.co2 || 0, 1); let o = 0; for (const k in G) if (k !== 'o2') o += G[k] || 0; G.o2 = Math.max(G.o2 || 0, .26 * o / .74, .26 * v.volume); if (P.suit < 60) P.suit = 100; g.over = false; }, stp = () => { top(); g.step(.05, { keys: {} }); };
+      const orig = SV.saveCapture(g), scrap0 = g.scrap, suit0 = P.suit, st0 = { ...R.st };
+      // three sealed-off test drifts (7 x 3 x 8 soil, walk-in) on the open ground west of the lane: 5x5 room + a corridor out
+      const mk = (id, i0, ox, oz) => {
+        const zone = makeDigZone({ id, i0, j0: 0, k0: i0, ni: 7, nj: 3, nk: 8, ox, oy: 0, oz, label: 'Test drift', walkIn: true }); V.registerZone(zone);
+        const cells = {};
+        for (let li = 0; li < 7; li++) for (let lj = 0; lj < 3; lj++) for (let lk = 0; lk < 8; lk++)
+          cells[li + ',' + lj + ',' + lk] = g.add(new DigBlock(g, { i: i0 + li, j: lj, k: i0 + lk, mat: 'soil', zone, plain: true, size: c * .985, berm: true, pos: new THREE.Vector3(ox + (li + .5) * c, (lj + .5) * c, oz + (lk + .5) * c) }));
+        const at = (li, lk, lj = 0) => cells[li + ',' + lj + ',' + lk];
+        for (let li = 1; li <= 5; li++) for (let lk = 1; lk <= 5; lk++) at(li, lk).finish(g);
+        at(3, 6).finish(g); at(3, 7).finish(g);
+        return { zone, at, i0, key: (li, lk) => V.key(i0 + li, 0, i0 + lk) };
+      };
+      const ZA = mk('t43a', 700, -10.6, 9.2), ZB = mk('t43b', 720, -10.6, 13.6), ZC = mk('t43c', 740, -6.6, 9.2);
+      R.recompute(); for (const [k, v] of R.span){ const i = +k.split(',')[0]; if (i >= 720 && i < 740) R.grand.set(k, v); }   // room B is the direct-hit test: settled, so it can't ramp on its own during A
+      P.pos.set(0, 0, 1.2); stp();
+      // C: a T1 prop in the middle of room C (placed before the clock runs) — nothing there may move
+      const pc = R.placeProp(ZC.i0 + 3, 0, ZC.i0 + 3, ZC.zone, 1);
+      stp();
+      const spanA = R.span.get(ZA.key(3, 3)), spanA2 = R.span.get(ZA.key(3, 2)), spanCmax = Math.max(0, ...[...R.span].filter(([k]) => +k.split(',')[0] >= 740 && +k.split(',')[0] < 760).map(([, v]) => v));
+      // A: stress ramps quietly on the one over-wide cell (span 3) — dust, then creaks + one monitor line, then the fall (no randomness)
+      const smp = [], tells0 = R.tells || 0; let tFall = null, dustT = null, creakT = null, fall = null; const n0 = R.st.collapses;
+      const onFall = e => { fall ||= e; }; g.bus.on?.('rock:collapse', onFall);
+      for (let t = 0; t < 70; t += .05){
+        stp(); const s = R.stress.get(ZA.key(3, 3)) || 0;
+        if (dustT == null && s >= CFG.rock.dustAt) dustT = Math.round(t); if (creakT == null && s >= CFG.rock.creakAt) creakT = Math.round(t);
+        if (Math.abs(t % 10) < .05) smp.push(r3(s));
+        if (R.st.collapses > n0){ tFall = Math.round(t); break; }
+      }
+      const mono = smp.every((v, i) => !i || v >= smp[i - 1]);
+      const fillA = [[2, 2], [3, 3], [4, 4], [2, 4], [4, 2]].every(([a, b]) => !V.isDug(ZA.i0 + a, 0, ZA.i0 + b) && ZA.at(a, b).rubble);
+      const ringOpen = [[1, 1], [5, 5], [3, 5], [3, 1]].every(([a, b]) => V.isDug(ZA.i0 + a, 0, ZA.i0 + b));
+      s43.A_stress = { spanA, spanA2, smp, dustT, creakT, tFall, mono, tells: (R.tells || 0) - tells0, cells: fall?.cells, fillA, ringOpen,
+        ok: spanA === 3 && spanA2 === 2 && mono && dustT != null && creakT != null && dustT < creakT && tFall >= 45 && tFall <= 55 && (R.tells || 0) - tells0 >= 1 && fall?.cells === 9 && fillA && ringOpen && R.st.collapses - n0 === 1 };
+      // C result (same 50+ s): the propped room never loaded up
+      const stC = Math.max(0, ...[...R.stress].filter(([k]) => +k.split(',')[0] >= 740 && +k.split(',')[0] < 760).map(([, v]) => v));
+      const kids1 = pc.prop?.mesh.children.length || 0; g.scrap = 5; pc.prop?.interact(0, g, null, true);
+      const kids2 = pc.prop?.mesh.children.length || 0, sc2 = g.scrap;
+      s43.C_prop = { placed: pc.ok, spanCmax, stC: r3(stC), tier: pc.prop?.tier, kids1, kids2, scrapAfter: sc2, occ: V.occ.get(ZC.key(3, 3)) === pc.prop,
+        ok: pc.ok && spanCmax <= CFG.rock.safeSpan && stC === 0 && pc.prop.tier === 2 && kids2 > kids1 + 3 && sc2 === 2 && V.occ.get(ZC.key(3, 3)) === pc.prop };
+      // B: the fall hurts whoever stands under it — your suit, a survivor DOWN — and their columns stay open
+      const im = S.spawnImp(g, new THREE.Vector3(ZB.zone.ox + 3.5 * c, 0, ZB.zone.oz + 4.5 * c)); im.state = 'awake';
+      P.pos.set(ZB.zone.ox + 3.5 * c, 0, ZB.zone.oz + 2.5 * c); P.suit = 80;
+      R.update(.01); const rB = R.collapse(ZB.key(3, 3));
+      s43.B_hurt = { r: rB, suit: r3(P.suit), imp: im.state, trapped: R.trapped, pOpen: V.isDug(ZB.i0 + 3, 0, ZB.i0 + 2), iOpen: V.isDug(ZB.i0 + 3, 0, ZB.i0 + 4),
+        ok: rB?.hitPlayer && rB.hitCrew === 1 && rB.fill === 7 && Math.abs(P.suit - (80 - CFG.rock.suit)) < .01 && im.state === 'down' && V.isDug(ZB.i0 + 3, 0, ZB.i0 + 2) && V.isDug(ZB.i0 + 3, 0, ZB.i0 + 4) };
+      P.suit = suit0; P.pos.set(0, 0, 1.2); R.trapped = false;
+      // D: rubble pinches a pipe and a sump hose lying in it; digging it again clears it (faster than virgin ground) and yields
+      const rb = ZA.at(2, 2), ctr = new THREE.Vector3(rb.wx, rb.wy, rb.wz), [pi, pj, pk] = GRID.cellOf(ctr);
+      const fp = { i: pi, j: pj, k: pk, key: 'x43', links: new Set(), inflow: 0, leakRate: 0, rated: 0, burst: false, leakFrac: () => 0 };
+      const fs = { hose: { tier: 1, pts: [[rb.wx, rb.wy, rb.wz]] } };
+      g.pipes.pipes.set('x43', fp); (g.sumps ||= []).push(fs);
+      R.recrush(); const crushed = !!fp.crushed, pinched = !!fs.hose.crushed, flowed = g.pipes.route(fp, 1, null, new Set(), true);
+      const need = rb.digNeed(g), inv0 = JSON.stringify(g.inv), sc0 = g.scrap, cl0 = R.st.cleared;
+      rb.finish(g); R.update(.01);
+      const gain = g.scrap > sc0 || JSON.stringify(g.inv) !== inv0;
+      s43.D_rubble = { crushed, pinched, flowed, need: r3(need), dug: rb.dug, rubble: rb.rubble, gain, freed: !fp.crushed && !fs.hose.crushed,
+        ok: crushed && pinched && flowed === 0 && need < CFG.omni.digTime && rb.dug && !rb.rubble && R.st.cleared === cl0 + 1 && gain && !fp.crushed && !fs.hose.crushed };
+      g.pipes.pipes.delete('x43'); g.sumps.splice(g.sumps.indexOf(fs), 1);
+      // E: crew route through the fall — a plan round the rubble, then (corridor filled) a clean refusal: no steering into it
+      // (a crew-sized drift: 3 m room + a 1.5 m corridor out north — a 0.5 m crawl is too tight for crew paths anyway)
+      const zD = makeDigZone({ id: 't43d', i0: 760, j0: 0, k0: 760, ni: 8, nj: 1, nk: 8, ox: 2.0, oy: 0, oz: 14.6, label: 'Test drift', walkIn: true }); V.registerZone(zD);
+      const cD = {}; for (let li = 0; li < 8; li++) for (let lk = 0; lk < 8; lk++) cD[li + ',' + lk] = g.add(new DigBlock(g, { i: 760 + li, j: 0, k: 760 + lk, mat: 'soil', zone: zD, plain: true, size: c * .985, berm: true, pos: new THREE.Vector3(2.0 + (li + .5) * c, .5 * c, 14.6 + (lk + .5) * c) }));
+      for (let li = 1; li <= 6; li++) for (let lk = 1; lk <= 4; lk++) cD[li + ',' + lk].finish(g);
+      for (let li = 3; li <= 5; li++) for (let lk = 5; lk <= 7; lk++) cD[li + ',' + lk].finish(g);
+      const im2 = S.spawnImp(g, new THREE.Vector3(2.0 + 2.5 * c, 0, 14.6 + 2.5 * c)); im2.state = 'awake';
+      const goal = new THREE.Vector3(2.0 + 4.5 * c, 0, 14.6 + 10 * c);
+      const n1 = im2.navTo(goal, { kind: 'job', thin: true }), via = n1.ok ? n1.steps.flatMap(s => s.pts || []).length : 0;
+      const viaCorr = n1.ok && n1.steps.flatMap(s => s.pts || []).some(p => p.z > 14.6 + 2.4 && p.z < 14.6 + 4 && p.x > 2.0 + 1.4 && p.x < 2.0 + 3);
+      const rp0 = R.st.replans, rf0 = R.st.refusals;
+      for (let li = 3; li <= 5; li++) R.refill(cD[li + ',6']); R.ver++; R.replan();
+      const n2 = im2.nav, p0 = im2.pos.clone(), tr = im2.travel(goal, .05), moved = im2.pos.distanceTo(p0);
+      s43.E_crew = { viaCorr, pts1: n1.ok ? n1.steps.flatMap(s => s.pts || []).map(p => [r3(p.x), r3(p.z)]) : null, pts2: n2?.ok ? n2.steps.flatMap(s => s.pts || []).map(p => [r3(p.x), r3(p.z)]) : null, plan1: n1.ok, why1: n1.why, via, replans: R.st.replans - rp0, plan2: n2?.ok, why: im2.nav?.why, travel: tr, moved: r3(moved), refusals: R.st.refusals - rf0,
+        ok: n1.ok && viaCorr && R.st.replans - rp0 === 1 && n2 && !n2.ok && tr === false && im2.nav?.why === CAVE_WHY && R.st.refusals - rf0 === 1 && moved < .01 };
+      for (const m of [im, im2]){ g.imps.splice(g.imps.indexOf(m), 1); g.remove(m); g.scene.remove(m.mesh); }
+      // F: dig breach — one missable hint, the plate tears, ARK-01 air bleeds out (hiss), weld it (kit 1.5 s, bare scrap 4 s)
+      const sl = window.__breathless.slice, HD = sl.hullDigs, hd = (li, lk) => V.get(600 + li, 0, 600 + lk)?.entity;
+      const seal = b => { if (!b?.dug) return; R.refill(b); const n = R.st.cleared, sc = g.scrap, inv = { ...g.inv }; R.cleared(b); R.st.cleared = n; g.scrap = sc; g.inv = inv; for (const m of b._bits || []) m.visible = false; };   // an earlier save-perf slice leaves every drift cell dug — close these six again
+      for (const lk of [1, 2]) for (const li of [0, 1, 2]) seal(hd(li, lk)); R.recompute();
+      g._hint_hullBreach = false; g._hintQ = []; g._hintT = -1e9; R.warnHull(hd(0, 1)); const hinted = !!g._hint_hullBreach;
+      const br0 = R.st.breaches; hd(2, 1).finish(g); hd(1, 1).finish(g); const noBr = R.breaches.length === 0; hd(0, 1).finish(g);
+      const br = R.breaches[R.breaches.length - 1]; if (!br) throw new Error('nobr ' + JSON.stringify({ hf: hd(0, 1)?.hullFace, same: hd(0, 1) === HD.find(d => d.i === 600 && d.k === 601), dug: hd(0, 1)?.dug, n: HD?.length, lab: hd(0, 1)?.zone?.hull?.label, ids: HD?.slice(0, 3).map(d => [d.i, d.j, d.k, d.hullFace]) })); const A = g.volumeAt(br.inPt), o2a = A.gases.o2;
+      for (let t = 0; t < 3; t += .05) stp();
+      const flow = br.flowR, o2b = A.gases.o2, hiss = R.fx(.05, 0, { emit(){} }, () => 1);
+      g.giveItem('wall_patch', 1); P.pos.set(br.pos.x + .6, 0, br.pos.z);
+      for (let i = 0; i < 34; i++){ br.interact(.05, g, null, i === 0); stp(); }
+      const pk1 = br.patched, kitLeft = g.inv.wall_patch || 0; stp(); const flowP = br.flowR;
+      hd(2, 2).finish(g); hd(1, 2).finish(g); hd(0, 2).finish(g); const br2 = R.breaches[R.breaches.length - 1]; g.scrap = 5;
+      let pS = null; for (let i = 0; i < 90; i++){ br2.interact(.05, g, null, i === 0); stp(); if (br2.patched && pS == null) pS = r3((i + 1) * .05); }
+      s43.F_breach = { hinted, noBr, n: R.st.breaches - br0, flow: r3(flow), o2a: r3(o2a), o2b: r3(o2b), hiss: r3(hiss), out: br.outDir?.toArray().map(r3), pk1, kitLeft, flowP, pS, scrap: g.scrap,
+        ok: hinted && noBr && R.st.breaches - br0 === 2 && flow > .01 && o2b < o2a - .01 && hiss > .3 && pk1 && kitLeft === 0 && flowP === 0 && br2.patched && pS >= 3.9 && g.scrap === 2 };
+      P.pos.set(0, 0, 1.2);
+      // G: save round-trip (stress, rubble, props + tier, breaches + patch side), and an old save loads with everything stable
+      R.stress.set(ZB.key(1, 1), .42);
+      const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))), cv = snap.d.cave;
+      const want = { rub: R.rubble.size, props: R.props.map(p => p.tier).join(), br: R.breaches.map(b => (b.patched ? 1 : 0) + ':' + b.side).join() };
+      SV.saveApply(g, snap);
+      const got = { rub: R.rubble.size, props: R.props.map(p => p.tier).join(), br: R.breaches.map(b => (b.patched ? 1 : 0) + ':' + b.side).join(), st: r3(R.stress.get(ZB.key(1, 1)) || 0), rubLook: ZA.at(3, 3).rubble && !V.isDug(ZA.i0 + 3, 0, ZA.i0 + 3) };
+      const old = JSON.parse(JSON.stringify(snap)); delete old.d.cave; old.proto = '0.4.0';
+      SV.saveApply(g, old); const nOld = R.st.collapses;
+      for (let t = 0; t < 12; t += .05) stp();
+      const stOld = Math.max(0, ...R.stress.values()), gf = R.grand.size;
+      s43.G_save = { proto: snap.proto, row: !!cv, want, got, stOld, gf, oldFalls: R.st.collapses - nOld,
+        ok: /^0\.4\.\d$/.test(snap.proto) && !!cv && want.rub === got.rub && want.rub > 0 && want.props === got.props && want.props === '2' && want.br === got.br && got.st === .42 && got.rubLook
+          && stOld === 0 && gf >= 1 && R.st.collapses === nOld };
+      { const h = $('help')?.textContent || ''; s43.H_help = { ver: /v0\.4\.1/.test(h), cave: /Cave-in/.test(h), prop: /Shoring prop/.test(h), breach: /Dig breach/.test(h), noOne: !/v1\.0/.test(h) && !/v1\.0/.test(document.title) };
+        s43.H_help.ok = s43.H_help.ver && s43.H_help.cave && s43.H_help.prop && s43.H_help.breach && s43.H_help.noOne; }
+      g.bus.off?.('rock:collapse', onFall);
+      SV.saveApply(g, orig); g.scrap = scrap0;
+      s43.SUCCESS = !!(s43.A_stress.ok && s43.B_hurt.ok && s43.C_prop.ok && s43.D_rubble.ok && s43.E_crew.ok && s43.F_breach.ok && s43.G_save.ok && s43.H_help.ok);
+    } catch (err){ out.slice43.error = String(err?.stack || err).slice(0, 600); out.slice43.SUCCESS = false; } }
     document.title = 'SELFTEST'; const pre = document.createElement('pre'); pre.id = 'selftest'; pre.textContent = JSON.stringify(out); pre.style.cssText = 'position:fixed;z-index:99;background:#000;color:#0f0;top:0;white-space:pre-wrap;max-width:100%'; document.body.append(pre);
 }
 </script>
