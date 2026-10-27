@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>BREATHLESS - v0.3.6 (rich air &amp; salvage)</title>
+<title>BREATHLESS - v0.3.7 (air safety polish)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   /* slice 25: shared UI tokens — every panel / HUD box / button pulls from these */
@@ -167,7 +167,7 @@
   <div id="lucidui" class="panel"><span class="close">[Esc] close</span><h2 id="lucidtitle">LUCID LINK</h2><div class="meta" id="lucidmeta"></div><div class="ctrlcmds" id="ctrlcmds" style="display:none"></div><div id="lucidlist"></div><div class="crew sect" id="crewlist" style="display:none"></div><div class="orbcmds" id="orbcmds" style="display:none"></div><div class="last" id="lucidlast"></div></div>
   <div id="hint"><kbd>H</kbd> controls &nbsp; <kbd>B</kbd> build &nbsp; <kbd>Esc</kbd> pause</div>
   <div id="help">
-    <div class="ttl">CONTROLS<span>[H] close · v0.3.6</span></div>
+    <div class="ttl">CONTROLS<span>[H] close · v0.3.7</span></div>
     <div class="hcols">
     <div class="sec"><h4>MOVE &amp; ACT</h4>
       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>Esc</kbd> pause<br>
@@ -214,6 +214,13 @@
     <div class="sec"><h4>ARKS &amp; DIGGING</h4>
       ARK-01: hatch → restore power junction → close gate breaker → bulkhead. Claim the omni-tool (faster <kbd>F</kbd>, enables <kbd>V</kbd>).<br>
       ARK-02 (west, further out): dig the soil-packed rails with <kbd>V</kbd>. ARK-03 (furthest, past ARK-01): seat 2 batteries, sleeve the ram feeder to T3, cycle the blast door. Clear the dig-laser cave-in → scan the drill head → craft a mining drill (T5) → <kbd>E</kbd> place; cable 150 W; faces ore/berm. Scan the briquette die → table press (2→3) or craft ore refinery (2→4, 100 W). Restart the hall turbine (repair kit, control chip, T3 export, briquettes) and repair/sleeve the outdoor pylons to T3 — station feed gains bulk watts when the line holds. Dug pockets hold their own (bad) air: <kbd>E</kbd> on the pocket floor hangs a seal hatch / curtain, scrubbers clean it.</div>
+    <div class="sec"><h4>AIR SAFETY, SCRAP &amp; HOSE</h4>
+      <b>O2 regulator</b> (5 scrap): <kbd>E</kbd> place on a ceiling vent riser in the base; <kbd>E</kbd> on it cycles the setpoint 23 / 25 / 28 %. It only bleeds air above the setpoint — the dial's green arc is safe, red (30 %+) is fire risk, the LCD shows SET and live O2.<br>
+      <b>Fire</b>: rich air (30 %+) plus a spark — strained or shorted cable, burst pipe, running generator — can light one. Hold <kbd>E</kbd> to douse it (base tank water, else your canteen). Below 17 % O2 it starves; above 24 % it grows and cooks the cable it sits on.<br>
+      <b>Salvage caches</b>: half-buried debris (orange beacon) on the surface and in the ARKs. Hold <kbd>F</kbd> once to scan, then <kbd>E</kbd> strips +2 scrap until it is bare. Crew on LABOR stay the main scrap source.<br>
+      <b>Sump hose reel</b> (3 scrap): <kbd>E</kbd> the sump pump to clip on, walk it home, <kbd>E</kbd> the base surface intake. T1 runs ~28 % over — it weeps before it bursts: hold <kbd>E</kbd> to patch, <kbd>G</kbd> to collar it up a tier.</div>
+    <div class="sec"><h4>NOW</h4><div id="helpObj">—</div></div>
+    <div class="sec"><h4>FLIGHT LOG</h4><div id="helpLog">No logs recovered yet. Read the pod log and the ARK records terminals.</div></div>
     <div class="sec"><h4>INTRO</h4>
       <kbd>Space</kbd> / <kbd>Esc</kbd> skip &nbsp; <kbd>Shift</kbd>+click start = replay &nbsp; <kbd>Shift</kbd>+<kbd>N</kbd> replay anytime</div>
     <div class="sec dbg"><h4>DEBUG</h4>
@@ -239,7 +246,7 @@
   <p id="starthint"><b>Click to begin</b> &nbsp; <span style="opacity:.6">(<kbd>Shift</kbd>+click replays the intro · <kbd>Space</kbd> skips it)</span></p>
   <div id="savebox" style="display:none"><div class="row"><button id="btnContinue" class="sbtn main">Continue</button><button id="btnNew" class="sbtn">New game</button></div><div class="row"><button id="btnSetT" class="sbtn small">Settings</button></div><div id="saveinfo"></div></div>
   <div id="savenote" style="display:none"></div>
-  <div class="ver">v0.3.6 · BREATHING ROOM</div>
+  <div class="ver">v0.3.7 · BREATHING ROOM</div>
 </div>
 <div id="settings"><div class="card"><h3>SETTINGS</h3>
 <label>Mouse sensitivity <input id="setSens" type="range" min="0.25" max="3" step="0.05"></label>
@@ -258,7 +265,7 @@
 import * as THREE from './lib/three.module.js';
 
 /* =====================================================================
-   BREATHLESS v0.3.6  (versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.6: rich air is a
+   BREATHLESS v0.3.7  (v0.3.7: visible fire FX, readable regulator gauge, flight-log continuity, hint gate, crash-walk saves; versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.6: rich air is a
    fire risk (O2 > 30 %: quiet RICH tell, sparks from strained cables / burst pipes / generators can start a small fire; O2 regulator bleeds
    the excess), starter hose weeps ~12 min before it bursts (drips, hiss, creaks), scannable salvage caches (surface + ARKs), crew-labour hint;
    HISTORY — v0.3.5: full scripted
@@ -837,7 +844,7 @@ const CFG = {
   // are sparse: at most one per crisisGap s overall and one per kind per crisisKindGap s. Everything else lands on the
   // wall monitor's single ALERT line (counts over alertWindow s). Identical quiet LUCID notes within noteRepeat s are dropped;
   // a linked unit's "no supply" / "offline" line repeats at most every offlineNoteCd s (flapping brownouts stay quiet).
-  ui: { crisisGap: 8, crisisKindGap: 45, alertWindow: 90, noteRepeat: 20, offlineNoteCd: 60 },
+  ui: { crisisGap: 8, crisisKindGap: 45, alertWindow: 90, noteRepeat: 20, offlineNoteCd: 60, hintGap: 9, hintStale: 40 },   // v0.3.7 hint gate
   timeScale: 1,
   intro: {                  // slice 19: opening cutscene stub (skippable, localStorage)
     storageKey: 'breathless_seenIntro',
@@ -1468,7 +1475,7 @@ class OxygenPlant extends Entity {
       const got = src.kind === 'tank' ? src.tank.liquid.take(want) : want;
       this.water = Math.min(CFG.plant.waterMax, this.water + got);
       this.watered = (this.watered || 0) + got; this.wateringT = .4; if (got > 0) game._wateredOnce = true;   // v0.3.2 objective chain
-      if (!this._waterTold && game.ui?.toast){ this._waterTold = true; game.ui.toast(src.kind === 'tank' ? 'Watering from the base tank.' : 'Watering from the suit canteen.', 1800); }
+      if (!this._waterTold && game.ui?.toast){ this._waterTold = true; hint(game, src.kind === 'tank' ? 'waterTank' : 'waterCanteen', src.kind === 'tank' ? 'Watering from the base tank.' : 'Watering from the suit canteen.', 1800); }
     }
   }
 }
@@ -9550,6 +9557,41 @@ function tryPlacePlanterInFront(game){
   game.ui.toast?.(`O2 planter set. Mature it makes ${CFG.plant.o2Rate} O2/s — enough for about two resting survivors.`, 3600); return pl;
 }
 
+// ---------- v0.3.7: shared FX canvas textures (flame teardrop, soft dot, soft ring, regulator dial, LCD readout) ----------
+const FXTEX = {
+  _c: {},
+  cv(w, h){ const c = document.createElement('canvas'); c.width = w; c.height = h; return c; },
+  tex(cv){ const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; },
+  flame(){ return this._c.flame ||= (() => {   // white teardrop, blurred edges, alpha fading to the tip; sprites tint it (outer licks / body / core)
+    const cv = this.cv(64, 128), c = cv.getContext('2d'); c.filter = 'blur(4px)'; c.fillStyle = '#fff';
+    c.beginPath(); c.moveTo(32, 4); c.bezierCurveTo(38, 36, 56, 66, 53, 96); c.bezierCurveTo(50, 120, 14, 120, 11, 96); c.bezierCurveTo(8, 66, 26, 36, 32, 4); c.fill();
+    c.filter = 'none'; c.globalCompositeOperation = 'destination-in';
+    const v = c.createLinearGradient(0, 0, 0, 128); v.addColorStop(0, 'rgba(255,255,255,0)'); v.addColorStop(.3, 'rgba(255,255,255,.45)'); v.addColorStop(.72, 'rgba(255,255,255,1)'); v.addColorStop(1, 'rgba(255,255,255,.55)');
+    c.fillStyle = v; c.fillRect(0, 0, 64, 128);
+    const h = c.createLinearGradient(0, 0, 64, 0); h.addColorStop(0, 'rgba(255,255,255,.2)'); h.addColorStop(.5, 'rgba(255,255,255,1)'); h.addColorStop(1, 'rgba(255,255,255,.2)');
+    c.fillStyle = h; c.fillRect(0, 0, 64, 128); c.globalCompositeOperation = 'source-over';
+    return this.tex(cv); })(); },
+  dot(){ return this._c.dot ||= (() => { const cv = this.cv(64, 64), c = cv.getContext('2d'), gr = c.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.4, 'rgba(255,255,255,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.fillRect(0, 0, 64, 64); return this.tex(cv); })(); },
+  ring(){ return this._c.ring ||= (() => { const cv = this.cv(128, 128), c = cv.getContext('2d'), gr = c.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(.62, 'rgba(255,255,255,0)'); gr.addColorStop(.82, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.fillRect(0, 0, 128, 128); return this.tex(cv); })(); },
+  // O2 gauge face, 0-50 % O2. Needle angle θ(f) = 2.2 - f/.5*4.4 (rad, +z CCW from 12 o'clock); canvas point = (cx - sinθ·r, cy - cosθ·r)
+  dial(){ return this._c.dial ||= (() => {
+    const S = 256, cv = this.cv(S, S), c = cv.getContext('2d'), cx = S / 2, cy = S / 2, th = f => 2.2 - f / .5 * 4.4, pt = (f, r) => [cx - Math.sin(th(f)) * r, cy - Math.cos(th(f)) * r];
+    const bg = c.createRadialGradient(cx, cy - 20, 10, cx, cy, S / 2); bg.addColorStop(0, '#f4f1e6'); bg.addColorStop(1, '#cfc9b6'); c.fillStyle = bg; c.fillRect(0, 0, S, S);
+    const arc = (f0, f1, r, w, col) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); const a0 = -Math.PI / 2 - th(f0), a1 = -Math.PI / 2 - th(f1); c.arc(cx, cy, r, a0, a1, false); c.stroke(); };
+    arc(.19, .25, 98, 14, '#2e9a4a');    // breathable band
+    arc(.30, .50, 98, 14, '#c8281c');    // rich = fire risk
+    arc(0, .16, 98, 14, '#5a6470');      // hypoxic
+    c.strokeStyle = '#1a1a1a'; c.lineCap = 'round';
+    for (let v = 0; v <= 50; v += 2.5){ const maj = v % 10 === 0, mid = v % 5 === 0, [x0, y0] = pt(v / 100, 90), [x1, y1] = pt(v / 100, maj ? 66 : mid ? 74 : 80);
+      c.lineWidth = maj ? 5 : mid ? 3 : 1.6; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); }
+    c.fillStyle = '#111'; c.font = 'bold 26px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (let v = 0; v <= 50; v += 10){ const [x, y] = pt(v / 100, 46); c.fillText(String(v), x, y); }
+    c.font = 'bold 22px sans-serif'; c.fillStyle = '#1c5fb0'; c.fillText('O\u2082 %', cx, cy + 58);
+    c.font = '13px sans-serif'; c.fillStyle = '#7a2018'; c.fillText('FIRE RISK', ...pt(.4, 116 - 6).map((q, i) => i ? q + 2 : q));
+    return this.tex(cv); })(); },
+};
 // ---------- v0.3.6: salvage caches, O2-rich fire risk, O2 regulator, small fires, crew-labour hint ----------
 // Salvage cache: dust-buried debris on the surface / in the ARKs. Reads as junk until the omni scans it ([F]); then [E] strips it for scrap.
 class SalvageCache extends Entity {
@@ -9562,7 +9604,9 @@ class SalvageCache extends Entity {
     const M = SalvageCache.mats();
     const mk = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); m.castShadow = m.receiveShadow = true; g.add(m); return m; };
     // dust mound the debris sank into
-    const dust = mk(new THREE.SphereGeometry(.5, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2), M.dust, 0, -.01, 0); dust.scale.set(1.2, .2, .92); dust.castShadow = false;
+    const dust = mk(new THREE.SphereGeometry(.5, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2), M.dust, 0, -.01, 0); dust.scale.set(1.25, .15, .95); dust.castShadow = false;
+    // v0.3.7: soft dust skirt so the mound fades into the ground instead of a hard edge
+    const skirt = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 1.7), M.skirt); skirt.rotation.x = -Math.PI / 2; skirt.position.y = .006; skirt.renderOrder = 1; g.add(skirt);
     // buckled hull panel with ribs + rivet heads
     const panel = new THREE.Group(); panel.position.set(-.06, .1, -.04); panel.rotation.set(.34, .2, -.2); g.add(panel);
     const pm = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; panel.add(m); return m; };
@@ -9584,22 +9628,35 @@ class SalvageCache extends Entity {
     this.plates = [];
     for (let i = 0; i < 3; i++) this.plates.push(mk(new THREE.BoxGeometry(.16 + i * .03, .012, .1), M.hull, .38 - i * .07, .02 + i * .012, -.2 + i * .05, 0, i * .7, .05));
     // faint dust-stirred ring (only a close look gives it away); a small amber tag pops up once scanned
-    this.ring = new THREE.Mesh(new THREE.RingGeometry(.5, .54, 40), M.ring); this.ring.rotation.x = -Math.PI / 2; this.ring.position.y = .012; g.add(this.ring);
+    this.ring = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 1.25), M.ring.clone()); this.ring.rotation.x = -Math.PI / 2; this.ring.position.y = .012; g.add(this.ring);
     this.tag = new THREE.Mesh(new THREE.OctahedronGeometry(.045), M.tag); this.tag.position.set(.2, .42, .18); this.tag.visible = false; g.add(this.tag);
-    this.hit = []; g.traverse(c => { if (c.isMesh && c !== this.ring && c !== this.tag){ c.userData.entity = this; this.hit.push(c); } });
+    this.tagGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: FXTEX.dot(), color: 0xffa030, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false })); this.tagGlow.scale.setScalar(.32); this.tag.add(this.tagGlow);
+    // v0.3.7: a dying emergency beacon on the wreck — a slow amber blink is what you spot from a distance in the dark
+    this.lensMat = M.lens.clone(); const lens = mk(new THREE.SphereGeometry(.028, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), this.lensMat, 0, 0, 0); lens.position.set(-.28, .185, -.1); lens.rotation.set(.34, .2, -.2);
+    mk(new THREE.CylinderGeometry(.034, .038, .02, 12), M.rib, -.28, .17, -.1, .34, .2, -.2);
+    this.beacon = new THREE.Sprite(new THREE.SpriteMaterial({ map: FXTEX.dot(), color: 0xff7a28, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })); this.beacon.position.set(-.28, .21, -.1); this.beacon.scale.setScalar(.55); g.add(this.beacon);
+    this._blinkPh = Math.random() * 2.4;
+    // v0.3.7: omni scan sweep (cyan, grows with progress) + unlock pulse
+    this.sweep = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: FXTEX.ring(), color: 0x40e8ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+    this.sweep.rotation.x = -Math.PI / 2; this.sweep.position.y = .03; this.sweep.visible = false; g.add(this.sweep);
+    this.pulse = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), this.sweep.material.clone()); this.pulse.rotation.x = -Math.PI / 2; this.pulse.position.y = .035; this.pulse.visible = false; g.add(this.pulse); this._pulseT = 0;
+    const fx = new Set([this.ring, this.tag, this.tagGlow, this.beacon, this.sweep, this.pulse, skirt]);
+    this.hit = []; g.traverse(c => { if (c.isMesh && !fx.has(c)){ c.userData.entity = this; this.hit.push(c); } });
     game.scene.add(g);
   }
   static mats(){
     return SalvageCache._m ||= {
-      dust: new THREE.MeshStandardMaterial({ color: 0x3a2f27, roughness: 1, metalness: 0 }),
-      hull: new THREE.MeshStandardMaterial({ color: 0x6d7276, metalness: .72, roughness: .52 }),
+      dust: new THREE.MeshStandardMaterial({ color: 0x30281f, roughness: 1, metalness: 0 }),
+      hull: new THREE.MeshStandardMaterial({ color: 0x555b5f, metalness: .62, roughness: .64 }),   /* v0.3.7: was blowing out white under the suit lamp */
+      skirt: new THREE.MeshStandardMaterial({ color: 0x33291f, roughness: 1, metalness: 0, map: FXTEX.dot(), transparent: true, opacity: .85, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }),
+      lens: new THREE.MeshStandardMaterial({ color: 0x5a2a10, emissive: 0xff6a18, emissiveIntensity: 0, roughness: .25, metalness: .1 }),
       rib: new THREE.MeshStandardMaterial({ color: 0x3e4448, metalness: .8, roughness: .45 }),
       burn: new THREE.MeshStandardMaterial({ color: 0x1b1512, metalness: .3, roughness: .9 }),
       case: new THREE.MeshStandardMaterial({ color: 0x8a5a1e, metalness: .45, roughness: .55 }),
       brass: new THREE.MeshStandardMaterial({ color: 0xb08a4a, metalness: .7, roughness: .35 }),
       pipe: new THREE.MeshStandardMaterial({ color: 0x7f8d98, metalness: .75, roughness: .4 }),
       cable: new THREE.MeshStandardMaterial({ color: 0x1d1f22, metalness: .1, roughness: .7 }),
-      ring: new THREE.MeshBasicMaterial({ color: 0xc8b080, transparent: true, opacity: .1, depthWrite: false }),
+      ring: new THREE.MeshBasicMaterial({ color: 0xc8b080, map: FXTEX.ring(), transparent: true, opacity: .1, depthWrite: false }),
       tag: new THREE.MeshStandardMaterial({ color: 0xffb040, emissive: 0xff9a20, emissiveIntensity: 1.2, metalness: .2, roughness: .4 }),
     };
   }
@@ -9612,8 +9669,9 @@ class SalvageCache extends Entity {
   tickScan(dt, game){
     if (this.scanned){ this.progress = 0; return 'done'; }
     this.progress += dt; if (this.progress < this.need(game)) return 'scanning';
-    this.scanned = true; this.progress = 0; this.refresh();
-    game.ui.toast?.(`Scan: ${this.what} under the dust — about ${this.stock * CFG.salvage.perStrip} scrap. [E] to strip it.`, 3200); beep(760, .05);
+    this.scanned = true; this.progress = 0; this.refresh(); this._pulseT = 1;
+    game.ui.toast?.(`Scan: ${this.what} under the dust — about ${this.stock * CFG.salvage.perStrip} scrap. [E] to strip it.`, 3200); if (!SAVEQ.quiet) AUDIO.unlock?.();
+    if (!game._lucidCacheSaid && game.lucid?.orbActive && !game._loading){ game._lucidCacheSaid = true; game.lucidLine?.('Pre-collapse kit under that dust. The surface is full of it if you scan what looks like junk — and your crew can earn the rest.', false); }
     game.bus.emit('salvage:scanned', this); return 'done';
   }
   decay(dt){ this.progress = Math.max(0, this.progress - dt * 1.8); }
@@ -9621,19 +9679,27 @@ class SalvageCache extends Entity {
     if (!first) return;
     if (!this.scanned){ game.ui.toast?.('Just wreckage at a glance. The omni might read what is under it — hold [F].', 2400); return; }
     if (this.stock <= 0){ game.ui.toast?.('Nothing useful left in it.', 1600); return; }
-    this.stock--; game.scrap += CFG.salvage.perStrip; game.ui.refreshInv?.(); this.refresh(); beep(420, .05);
+    this.stock--; game.scrap += CFG.salvage.perStrip; game.ui.refreshInv?.(); this.refresh(); if (!SAVEQ.quiet) AUDIO.clank?.();
+    if (typeof particles !== 'undefined') particles.emit(new THREE.Vector3(this.pos.x, .25, this.pos.z), null, .5, .35, 6, 1.3);   // dust kicked up
     game.bus.emit('salvage:stripped', this);
     game.ui.toast?.(`+${CFG.salvage.perStrip} scrap stripped${this.stock > 0 ? ` (${this.stock} left)` : ' — cache empty'}.`, 1800);
   }
   refresh(){
-    this.ring.visible = !this.scanned; this.tag.visible = this.scanned && this.stock > 0;
+    this.ring.visible = !this.scanned; this.tag.visible = this.scanned && this.stock > 0; if (this.stock <= 0){ this.beacon.material.opacity = 0; this.lensMat.emissiveIntensity = 0; }
     const left = this.stock / Math.max(1, this.stock0);
     this.caseG.visible = this.stock > 0; this.coil.visible = left > .34;
     this.plates.forEach((p, i) => { p.visible = left > i / 3; });
   }
-  visual(dt, t){
-    if (this.tag.visible){ this.tag.rotation.y += dt * 1.4; this.tag.position.y = .42 + Math.sin(t * 2.2) * .03; }
-    if (this.ring.visible) this.ring.material.opacity = .07 + .05 * (.5 + .5 * Math.sin(t * .9));
+  visual(dt, t, game){
+    if (this.tag.visible){ this.tag.rotation.y += dt * 1.4; this.tag.position.y = .42 + Math.sin(t * 2.2) * .03; this.tagGlow.material.opacity = .4 + .2 * Math.sin(t * 3); }
+    if (this.ring.visible) this.ring.material.opacity = .16 + .1 * (.5 + .5 * Math.sin(t * .9));
+    // beacon: a short amber flash every ~2.4 s while anything is left (a dying battery — dimmer once scanned and tagged)
+    if (this.stock > 0){ const ph = (t + this._blinkPh) % 2.4, on = ph < .16 ? 1 : ph < .5 ? Math.max(0, 1 - (ph - .16) / .34) * .35 : 0;
+      this.beacon.material.opacity = on * .95; this.lensMat.emissiveIntensity = .15 + on * 2.6; }
+    // scan sweep: a cyan ring that tightens on the wreck as the scan fills
+    const k = this.scanned ? 0 : Math.min(1, this.progress / this.need(game || this.game));
+    this.sweep.visible = k > 0.001; if (this.sweep.visible){ const w = (t * 1.6) % 1; this.sweep.scale.setScalar(1.6 - w * (1.1 - k * .4)); this.sweep.material.opacity = (.35 + k * .55) * (.4 + .6 * Math.sin(w * Math.PI)); }
+    if (this._pulseT > 0){ this._pulseT = Math.max(0, this._pulseT - dt * 1.25); const u = 1 - this._pulseT; this.pulse.visible = this._pulseT > 0; this.pulse.scale.setScalar(.6 + u * 2.4); this.pulse.material.opacity = this._pulseT * .9; }
   }
 }
 
@@ -9653,18 +9719,33 @@ class O2Regulator extends Entity {
     mk(new THREE.SphereGeometry(.16, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), M.body, 0, .87, 0);   // dome
     mk(new THREE.CylinderGeometry(.05, .05, .1, 12), M.steel, 0, 1.0, 0);
     // gauge (face + bezel + needle) on the front
-    const gz = .17; mk(new THREE.CylinderGeometry(.085, .085, .03, 24), M.steel, 0, .5, gz, Math.PI / 2, 0, 0);
-    this.face = mk(new THREE.CircleGeometry(.072, 24), M.face, 0, .5, gz + .017);
-    const needleG = new THREE.Group(); needleG.position.set(0, .5, gz + .02); g.add(needleG); this.needle = needleG;
-    mk(new THREE.BoxGeometry(.008, .062, .004), M.needle, 0, .026, 0, 0, 0, 0, needleG);
-    mk(new THREE.CylinderGeometry(.008, .008, .01, 8), M.dark, 0, .5, gz + .024, Math.PI / 2, 0, 0);
+    // v0.3.7: printed 0-50 % dial (green breathable band, red fire-risk band), glass, green setpoint pointer, LCD readout
+    const gc0 = g.children.length;   // v0.3.7: everything from here to the glass is the gauge head — re-seated on a tilted boss below
+    const gz = .19, gr = .125; mk(new THREE.CylinderGeometry(.06, .07, .12, 20), M.steel, 0, .5, .125, Math.PI / 2, 0, 0);   /* gauge boss (stem into the body) */ mk(new THREE.CylinderGeometry(gr + .014, gr + .014, .034, 32), M.steel, 0, .5, gz, Math.PI / 2, 0, 0);
+    mk(new THREE.TorusGeometry(gr + .008, .008, 8, 32), M.dark, 0, .5, gz + .018);
+    this.face = mk(new THREE.CircleGeometry(gr, 40), M.face, 0, .5, gz + .0175); this.face.castShadow = false;
+    const needleG = new THREE.Group(); needleG.position.set(0, .5, gz + .021); g.add(needleG); this.needle = needleG;
+    mk(new THREE.BoxGeometry(.007, gr * .86, .003), M.needle, 0, gr * .36, 0, 0, 0, 0, needleG);
+    mk(new THREE.BoxGeometry(.012, gr * .22, .003), M.needle, 0, -gr * .1, 0, 0, 0, 0, needleG);   // counterweight tail
+    const setG = new THREE.Group(); setG.position.set(0, .5, gz + .02); g.add(setG); this.setMark = setG;
+    { const sh = new THREE.Shape(); sh.moveTo(0, gr * .99); sh.lineTo(-.011, gr * .8); sh.lineTo(.011, gr * .8); sh.closePath(); mk(new THREE.ShapeGeometry(sh), M.setp, 0, 0, 0, 0, 0, 0, setG); }
+    mk(new THREE.CylinderGeometry(.009, .009, .008, 10), M.dark, 0, .5, gz + .024, Math.PI / 2, 0, 0);
+    const glass = mk(new THREE.CircleGeometry(gr + .004, 32), M.glass, 0, .5, gz + .027); glass.castShadow = glass.receiveShadow = false;
+    { // v0.3.7: tilt the gauge head up ~24° and lift it so the dial reads from standing eye height (it faced the floor at knee level)
+      const head = new THREE.Group(); head.position.set(0, .56, .2); head.rotation.x = -.42; g.add(head);
+      for (const o of g.children.slice(gc0)) if (o !== head){ o.position.y -= .5; o.position.z -= .165; head.add(o); }
+      this.gaugeHead = head; }
+    this.lcdCv = FXTEX.cv(256, 96); this.lcdTex = FXTEX.tex(this.lcdCv); this._lcdKey = '';
+    const lcdMat = new THREE.MeshStandardMaterial({ color: 0x0a1410, map: this.lcdTex, emissive: 0xffffff, emissiveMap: this.lcdTex, emissiveIntensity: .9, roughness: .3 });
+    mk(new THREE.BoxGeometry(.22, .088, .03), M.dark, 0, .79, .158, -.3);   // v0.3.7: LCD above the dial, angled up at the eye
+    const lcd = mk(new THREE.PlaneGeometry(.2, .075), lcdMat, 0, .794, .174, -.3); lcd.castShadow = false;
     // setpoint handwheel on the side (turns when the setpoint changes)
     const wh = new THREE.Group(); wh.position.set(.2, .72, 0); wh.rotation.z = Math.PI / 2; g.add(wh); this.wheel = wh;
     mk(new THREE.TorusGeometry(.075, .012, 8, 22), M.red, 0, 0, 0, Math.PI / 2, 0, 0, wh);
     for (let i = 0; i < 3; i++) mk(new THREE.BoxGeometry(.15, .012, .012), M.red, 0, 0, 0, 0, i * Math.PI / 3, 0, wh);
     mk(new THREE.CylinderGeometry(.02, .02, .06, 10), M.steel, -.03, 0, 0, 0, 0, Math.PI / 2, wh);
     // status LED
-    this.ledMat = M.led.clone(); mk(new THREE.SphereGeometry(.018, 10, 8), this.ledMat, -.1, .78, .13);
+    this.ledMat = M.led.clone(); mk(new THREE.SphereGeometry(.018, 10, 8), this.ledMat, -.135, .68, .1);
     // vent riser to the ceiling: elbow, pipe, ceiling flange + louvre
     mk(new THREE.TorusGeometry(.06, .035, 10, 16, Math.PI / 2), M.steel, -.06, 1.05, 0, 0, 0, 0);
     mk(new THREE.CylinderGeometry(.035, .035, H - 1.1, 12), M.steel, -.12, 1.05 + (H - 1.1) / 2, 0);
@@ -9682,8 +9763,10 @@ class O2Regulator extends Entity {
       dark: new THREE.MeshStandardMaterial({ color: 0x1c2328, metalness: .6, roughness: .5 }),
       brass: new THREE.MeshStandardMaterial({ color: 0xb08a4a, metalness: .7, roughness: .35 }),
       red: new THREE.MeshStandardMaterial({ color: 0xa8261e, metalness: .4, roughness: .45 }),
-      face: new THREE.MeshStandardMaterial({ color: 0xe8e4d6, roughness: .6, emissive: 0x30302a, emissiveIntensity: .4 }),
-      needle: new THREE.MeshStandardMaterial({ color: 0xd02a18, roughness: .5 }),
+      face: new THREE.MeshStandardMaterial({ color: 0xffffff, map: FXTEX.dial(), roughness: .55, emissive: 0xffffff, emissiveMap: FXTEX.dial(), emissiveIntensity: .32 }),
+      needle: new THREE.MeshStandardMaterial({ color: 0x111111, roughness: .45, metalness: .3 }),
+      setp: new THREE.MeshStandardMaterial({ color: 0x20c050, emissive: 0x20c050, emissiveIntensity: .6, roughness: .4, side: THREE.DoubleSide }),
+      glass: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: .05, metalness: 0, transparent: true, opacity: .14, clearcoat: 1, depthWrite: false }),
       led: new THREE.MeshStandardMaterial({ color: 0x30ff80, emissive: 0x30ff80, emissiveIntensity: 1.6 }),
     };
   }
@@ -9694,14 +9777,20 @@ class O2Regulator extends Entity {
     const n = Math.min(S.ventFrac * r.volume * dt, ex * r.volume * S.k * dt, r.gases.o2); r.take('o2', n); this.vented += n; this.rate = n / dt;
   }
   prompt(){
-    return `O2 regulator — set ${Math.round(this.setpoint() * 100)}% · ${this.rate > .02 ? `venting ${this.rate.toFixed(2)}/s` : 'idle'} · vented ${this.vented.toFixed(0)} — [E] change setpoint`;
+    return `O2 regulator — set ${Math.round(this.setpoint() * 100)}% · ${this.rate > .02 ? `venting ${this.rate.toFixed(2)}/s` : 'idle'} · vented ${this.vented.toFixed(0)} — [E] change setpoint (keep base under 30%)`;
   }
   interact(dt, game, part, first){
-    if (!first) return; this.setIdx = (this.setIdx + 1) % CFG.o2rich.reg.sets.length; this._turn = 1; beep(520, .04);
+    if (!first) return; this.setIdx = (this.setIdx + 1) % CFG.o2rich.reg.sets.length; this._turn = 1; if (!SAVEQ.quiet) AUDIO.valve?.();
     game.ui.toast?.(`Regulator setpoint ${Math.round(this.setpoint() * 100)}% O2 — anything above it bleeds out the riser.`, 2200);
   }
   visual(dt, t, game){
-    const f = game.room.frac('o2'); this.needle.rotation.z = 2.2 - Math.max(0, Math.min(.5, f)) / .5 * 4.4;
+    const f = game.room.frac('o2'), th = v => 2.2 - Math.max(0, Math.min(.5, v)) / .5 * 4.4;
+    this._nf = this._nf == null ? f : this._nf + (f - this._nf) * Math.min(1, dt * 4);   // damped needle
+    this.needle.rotation.z = th(this._nf) + Math.sin(t * 31) * (this.rate > .02 ? .012 : 0); this.setMark.rotation.z = th(this.setpoint());
+    const key = `${Math.round(this.setpoint() * 100)}|${this.rate > .02 ? 1 : 0}|${(f * 100).toFixed(1)}`;
+    if (key !== this._lcdKey){ this._lcdKey = key; const c = this.lcdCv.getContext('2d'), v = this.rate > .02; c.setTransform(2, 0, 0, 2, 0, 0); c.fillStyle = '#04100a'; c.fillRect(0, 0, 128, 48);
+      c.font = 'bold 21px monospace'; c.textBaseline = 'middle'; c.fillStyle = '#6dff9a'; c.fillText(`SET ${Math.round(this.setpoint() * 100)}%`, 6, 15);
+      c.font = 'bold 15px monospace'; c.fillStyle = v ? '#ffb040' : '#4fc878'; c.fillText(`${v ? 'VENT' : 'IDLE'} ${(f * 100).toFixed(1)}%`, 6, 36); this.lcdTex.needsUpdate = true; }
     if (this._turn > 0){ this._turn = Math.max(0, this._turn - dt * 2); this.wheel.rotation.x += dt * 6; }
     const venting = this.rate > .02; this._ledT += dt;
     this.ledMat.color.setHex(venting ? 0xffb030 : 0x30ff80); this.ledMat.emissive.setHex(venting ? 0xffa020 : 0x30ff80);
@@ -9722,14 +9811,20 @@ class SmallFire extends Entity {
     // fuel: charred insulation / debris the spark caught
     const char = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: .95, emissive: 0xff3a08, emissiveIntensity: .6 }); this.charMat = char;
     for (let i = 0; i < 5; i++){ const m = new THREE.Mesh(new THREE.BoxGeometry(.12 + i * .02, .03, .05), char); m.position.set(Math.cos(i * 1.3) * .12, .02, Math.sin(i * 1.3) * .12); m.rotation.y = i * .9; g.add(m); }
+    // v0.3.7: soft billboard flames (blurred teardrop sprites, outer licks → body → white-hot core), embers and a floor glow
+    // replace the v0.3.6 cones, which read as low-poly geometry up close
     this.flames = [];
-    const fm = (c, o) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false });
-    const layers = [[0xff4a10, .55, .22, .7], [0xff8a20, .6, .15, .55], [0xffd070, .7, .08, .38]];
-    for (let k = 0; k < 3; k++) for (let i = 0; i < 3; i++){
-      const [c, o, r, h] = layers[k], m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 12, 1, true), fm(c, o));
-      const a = i / 3 * Math.PI * 2 + k; m.position.set(Math.cos(a) * .06 * (2 - k), h / 2, Math.sin(a) * .06 * (2 - k)); m.userData.h = h; m.userData.ph = a * 3;
-      g.add(m); this.flames.push(m);
-    }
+    const layers = [[0xff3a0c, .62, .5, 1.05, 4, .13], [0xff8a24, .75, .34, .78, 4, .08], [0xfff0c8, .9, .17, .44, 3, .03]];
+    layers.forEach(([c, o, w, h, n, r], k) => { for (let i = 0; i < n; i++){
+      const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: FXTEX.flame(), color: c, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false }));
+      const a = i / n * Math.PI * 2 + k * .9; m.center.set(.5, .08); m.position.set(Math.cos(a) * r, .01, Math.sin(a) * r); m.renderOrder = 3 + k;
+      m.userData = { w: w * (.85 + .3 * ((i * 37 % 10) / 10)), h: h * (.8 + .35 * ((i * 53 % 10) / 10)), ph: a * 3 + k * 1.7, o, x: m.position.x, z: m.position.z };
+      g.add(m); this.flames.push(m); } });
+    this.glow = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 1.9), new THREE.MeshBasicMaterial({ map: FXTEX.dot(), color: 0xff5a18, transparent: true, opacity: .4, blending: THREE.AdditiveBlending, depthWrite: false }));
+    this.glow.rotation.x = -Math.PI / 2; this.glow.position.y = .02; g.add(this.glow);
+    this.embers = [];
+    for (let i = 0; i < 10; i++){ const e = new THREE.Sprite(new THREE.SpriteMaterial({ map: FXTEX.dot(), color: 0xffb050, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+      e.scale.setScalar(.035); e.userData = { life: Math.random() * 1.4, max: 1.4, v: new THREE.Vector3() }; g.add(e); this.embers.push(e); }
     this.light = new THREE.PointLight(0xff8a3a, 0, 7, 1.6); this.light.position.set(0, .5, 0); g.add(this.light);
     const hb = new THREE.Mesh(new THREE.CylinderGeometry(.35, .4, .7, 10), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
     hb.position.y = .35; g.add(hb); hb.userData.entity = this; this.hit = [hb];
@@ -9746,7 +9841,7 @@ class SmallFire extends Entity {
   }
   prompt(game){
     const src = (game.tanks || []).find(t => t.liquid && t.liquid.amount > CFG.o2rich.fire.douseL);
-    return `FIRE (${Math.round(this.I * 100)}%) — hold [E] to douse it${this.douse > 0 ? ` ${Math.min(100, Math.round(this.douse / CFG.o2rich.fire.douseS * 100))}%` : ''} (${src ? 'base tank water' : 'suit canteen'})`;
+    return `FIRE (${Math.round(this.I * 100)}%) — hold [E] to douse it (or starve it under 17% O2)${this.douse > 0 ? ` ${Math.min(100, Math.round(this.douse / CFG.o2rich.fire.douseS * 100))}%` : ''} (${src ? 'base tank water' : 'suit canteen'})`;
   }
   interact(dt, game){
     if (this.out) return; const F = CFG.o2rich.fire; this.douse += dt; this.I = Math.max(.02, this.I - dt * .15);
@@ -9754,18 +9849,25 @@ class SmallFire extends Entity {
     if (this.douse >= F.douseS){ const tk = (game.tanks || []).find(t => t.liquid && t.liquid.amount > F.douseL); if (tk) tk.liquid.take(F.douseL); this.extinguish(game, 'doused'); }
   }
   extinguish(g, how){
-    if (this.out) return; this.out = true; this.I = 0; this.light.intensity = 0; this.flames.forEach(m => m.visible = false); this.charMat.emissiveIntensity = 0; this.hit = [];
+    if (this.out) return; this.out = true; this.I = 0; this.light.intensity = 0; this.flames.forEach(m => m.visible = false); this.embers.forEach(m => m.visible = false); this.glow.visible = false; this.charMat.emissiveIntensity = 0; this.hit = [];
+    if (!g._loading && !SAVEQ.quiet && how === 'doused') AUDIO.douse?.();
     g.fires = (g.fires || []).filter(x => x !== this); g.remove(this); this.interactable = false;
     g.bus.emit('fire:out', { fire: this, how });
+    if (!g._loading && !g._lucidFireOutSaid){ g._lucidFireOutSaid = true; g.lucidLine?.(how === 'doused' ? 'Out. Check what sparked it — a cooked cable shorts the next time it is loaded.' : 'It choked itself on the air it burned. That is the CO2 you are breathing now.', false); }
     if (!g._loading) g.ui?.toast?.(how === 'doused' ? 'Fire out. The scorch stays.' : 'The fire guttered out — not enough O2 left to feed it.', 2400);
     this._smokeLeft = 6;   // the scorch decal + a last wisp of smoke stay as a quiet reminder
     (g.scorches ||= []).push(this); if (g.scorches.length > 6){ const old = g.scorches.shift(); g.scene.remove(old.mesh); }
   }
   visual(dt, t){
-    if (this.out) return; this._ft += dt; const I = this.I, s = .35 + I * .95;
-    for (const m of this.flames){ const fl = .8 + .25 * Math.sin(this._ft * 11 + m.userData.ph) + .12 * Math.sin(this._ft * 23 + m.userData.ph * 2);
-      m.scale.set(s, s * fl, s); m.position.y = m.userData.h * s * fl / 2; m.rotation.y += dt * 1.5; }
-    this.light.intensity = (2 + I * 9) * (.85 + .15 * Math.sin(this._ft * 17)); this.charMat.emissiveIntensity = .4 + I * .9;
+    if (this.out) return; this._ft += dt; const I = this.I, s = .35 + I * .95, T = this._ft, dz = this.douse > 0 ? .55 : 1;
+    for (const m of this.flames){ const u = m.userData, fl = .78 + .22 * Math.sin(T * 9.3 + u.ph) + .12 * Math.sin(T * 21.7 + u.ph * 2.3) + .06 * Math.sin(T * 37 + u.ph);
+      m.scale.set(u.w * s * (1.05 - fl * .12), u.h * s * fl * dz, 1); m.material.rotation = Math.sin(T * 3.1 + u.ph) * .12;
+      m.position.x = u.x * s + Math.sin(T * 5 + u.ph) * .015; m.position.z = u.z * s; m.material.opacity = u.o * (.75 + .25 * fl) * (.55 + .45 * Math.min(1, I * 2)); }
+    this.glow.material.opacity = (.22 + I * .4) * (.85 + .15 * Math.sin(T * 17)); this.glow.scale.setScalar(.7 + I * .7);
+    for (const e of this.embers){ const u = e.userData; u.life += dt;
+      if (u.life >= u.max){ u.life = 0; u.max = .8 + Math.random() * 1.2; e.position.set((Math.random() - .5) * .25 * s, .1 + Math.random() * .2, (Math.random() - .5) * .25 * s); u.v.set((Math.random() - .5) * .25, .5 + Math.random() * .7 * (.4 + I), (Math.random() - .5) * .25); }
+      e.position.addScaledVector(u.v, dt); u.v.x += Math.sin(T * 3 + u.max * 9) * dt * .3; const k = u.life / u.max; e.material.opacity = I > .05 ? Math.sin(k * Math.PI) * (.6 + .4 * Math.sin(T * 30 + u.max * 20)) : 0; }
+    this.light.intensity = (2 + I * 9) * (.85 + .15 * Math.sin(this._ft * 17)); this.charMat.emissiveIntensity = .12 + I * .4 + .08 * Math.sin(T * 7);
     this.scorch.scale.setScalar(.6 + Math.min(1, this.burned / 40) * .9);
     if (Math.random() < dt * (4 + I * 18)) particles.emit(this.smokeAt, null, .35, .7 + I * .5, 1, 1.4);
   }
@@ -9786,6 +9888,7 @@ function o2Ignite(g, s){
   const f = g.add(new SmallFire(g, p, CFG.o2rich.fire.start, s.src, s.why)); (g.fires ||= []).push(f);
   const n = g.crisisNote('fire', `fire: ${s.why} sparked in O2-rich air`);
   if (n.toast) g.ui?.toast?.('Something is burning in the base.', 3000);
+  if (!g._lucidFireSaid){ g._lucidFireSaid = true; g.lucidLine?.(`Fire — ${s.why} caught in the rich air. Hold [E] on it to douse it, then bleed the O2 down or it will find the next spark.`, false); }
   g.bus.emit('fire:start', f); return f;
 }
 function o2RichTick(g, dt){
@@ -9805,17 +9908,37 @@ function tryPlaceRegulatorInFront(game){
   if (game.zoneAt(pos) !== 'base'){ game.ui.toast?.('The regulator bleeds base air — it goes inside the base.', 2200); return false; }
   if (game.world.hit(pos.x, pos.z, .3)){ game.ui.toast?.('No room for the regulator there.', 1800); return false; }
   if (!game.freeBuild) game.takeItem('o2_regulator');
-  const r = game.add(new O2Regulator(game, pos)); (game.regs ||= []).push(r);
+  const r = game.add(new O2Regulator(game, pos)); (game.regs ||= []).push(r); if (!SAVEQ.quiet) AUDIO.valve?.();
+  if (!game._lucidRegSaid){ game._lucidRegSaid = true; game.lucidLine?.('Regulator on the riser. It only bleeds what sits above the setpoint — 23 to 25 % keeps the plant happy and the sparks hungry.', false); }
   game.ui.toast?.(`O2 regulator set at ${Math.round(r.setpoint() * 100)}%. [E] it to change the setpoint.`, 3200); return r;
+}
+// v0.3.7: one gate for tutorial-style hints. One-time hints persist (g._hint_<key> rides the save flags) so they never repeat
+// after a reload; hints never stack on top of another toast or each other (min gap, deduped queue of 3, stale ones dropped);
+// objective-guidance hints ({ obj: true }) stay silent while the objective strip is switched off in Settings.
+function hintOk(g, o){ return !o.obj || SETTINGS.objStrip; }
+function hintBusy(g){ return g.time - (g._hintT ?? -1e9) < CFG.ui.hintGap || !!g.ui?.toastBusy?.(); }
+function hint(g, key, msg, ms = 4800, o = {}){
+  if (g._loading || SAVEQ.quiet) return false;
+  const once = o.once !== false, fk = '_hint_' + key;
+  if (once && g[fk]) return false;
+  if (!hintOk(g, o)) return false;
+  const Q = g._hintQ ||= [];
+  if (hintBusy(g) || Q.length){ const i = Q.findIndex(q => q.key === key); const e = { key, msg, ms, o, t: g.time }; if (i >= 0) Q[i] = e; else { Q.push(e); if (Q.length > 3) Q.shift(); } if (once) g[fk] = true; return 'queued'; }
+  if (once) g[fk] = true; g._hintT = g.time; g.hintsShown = (g.hintsShown || 0) + 1; g.ui?.toast?.(msg, ms); return 'shown';
+}
+function hintTick(g){
+  const Q = g._hintQ; if (!Q?.length || hintBusy(g)) return;
+  while (Q.length){ const e = Q.shift(); if (g.time - e.t > CFG.ui.hintStale || !hintOk(g, e.o)){ if (e.o.once !== false) g['_hint_' + e.key] = false; e.o.onDrop?.(g); continue; }   // dropped one-time hints may fire again later
+    g._hintT = g.time; g.hintsShown = (g.hintsShown || 0) + 1; g.ui?.toast?.(e.msg, e.ms); return; }
 }
 // gentle nudge once you have crew but no one is working for scrap
 function laborIdle(g){ return crewCount(g) >= 1 && !(g.imps || []).some(im => im.collar && (im.job === 'labor' || im.job === 'haul')); }
 function laborHintTick(g, dt){
   if (g._laborHinted || !laborIdle(g)){ g._laborIdleT = 0; return; }
   g._laborIdleT = (g._laborIdleT || 0) + dt;
-  if (g._laborIdleT >= CFG.salvage.laborHintS){ g._laborHinted = true; g.ui?.toast?.(`Crew can earn scrap: [E] a collared survivor until it is on LABOR at the craft table (~1 scrap / ${CFG.imp.laborEvery} s), or HAUL.`, 5200); }
+  if (g._laborIdleT >= CFG.salvage.laborHintS && hint(g, 'labor', `Crew can earn scrap: [E] a collared survivor until it is on LABOR at the craft table (~1 scrap / ${CFG.imp.laborEvery} s), or HAUL.`, 5200, { obj: true, onDrop: g => { g._laborHinted = false; } })) g._laborHinted = true;
 }
-function laborTip(g){ return g._laborHinted && laborIdle(g) ? ` · tip: set a collared survivor to LABOR (craft table) for ~1 scrap / ${CFG.imp.laborEvery} s` : ''; }
+function laborTip(g){ return g._laborHinted && SETTINGS.objStrip && laborIdle(g) ? ` · tip: set a collared survivor to LABOR (craft table) for ~1 scrap / ${CFG.imp.laborEvery} s` : ''; }
 
 // ---------- Slice 33 (slice 32 leftover): the sump's surface intake bulkhead ----------
 // A fixed bulkhead on the base +x wall. The sump umbilical (power + water hose, laid through the airlock) ends here.
@@ -9857,6 +9980,7 @@ class SumpIntake extends Entity {
     const L = game.hoseLay; if (!first || !L) return;
     L.pts.push([this.pos.x - .05, .04, this.pos.z + .16]); const p = L.pump; p.hose = { tier: 1, dmg: 0, burst: false, pts: L.pts.map(q => q.map(v => Math.round(v * 100) / 100)) }; game.hoseLay = null; p.buildHose();
     game._hoseLaidOnce = true; game.ui.toast?.(`Hose connected: ${p.hose.len.toFixed(0)} m, T1 (${CFG.cave.sump.hoseTiers[0]} L/s). A sump pushes ${CFG.cave.sump.flow} — it will strain. Watch it.`, 5200); beep?.(620, .06);
+    if (!game._lucidHoseSaid){ game._lucidHoseSaid = true; game.lucidLine?.('Water is coming home. That T1 hose runs hot on a sump — it will weep at the seams long before it bursts. Patch it [E] or collar it [G].', false); }
   }
   prompt(){
     const ref = this.refused && this.game.time - this.refusedT < 6;
@@ -9964,7 +10088,7 @@ class EscapePod extends Entity {
     this.locker.userData.part = 'locker'; this.logScr.userData.part = 'log';
     this.hit = [this.locker, this.logScr]; for (const h of this.hit) h.userData.entity = this;
     // smoke column + spark spray
-    this.puffs = []; for (let n = 0; n < 26; n++){ const sp = new THREE.Sprite(M.smoke.clone()); sp.position.set(-.5, .6, -.7); sp.userData.t = n / 26 * 7; g.add(sp); this.puffs.push(sp); }
+    this.puffs = []; for (let n = 0; n < 26; n++){ const sp = new THREE.Sprite(M.smoke.clone()); sp.position.set(-.5, .6, -.7); sp.userData.t = n / 26 * 7; sp.userData.fx = true; g.add(sp); this.puffs.push(sp); }
     this.sparkN = 60; const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(this.sparkN * 3), 3)); this.sparkV = new Float32Array(this.sparkN * 4);
     this.sparks = new THREE.Points(sg, M.spark); this.sparks.frustumCulled = false; g.add(this.sparks); this.sparkT = 0;
     game.scene.add(g); game.world.addBox(x, z, 1.9, 1.9, 0, 1.6, { ref: this });
@@ -9995,6 +10119,60 @@ class EscapePod extends Entity {
     for (let n = 0; n < this.sparkN; n++){ const o = n * 4; if (V[o + 3] <= 0){ P.setXYZ(n, 0, -50, 0); continue; } V[o + 3] -= dt; V[o + 1] -= 9.8 * dt; P.setXYZ(n, P.getX(n) + V[o] * dt, Math.max(.01, P.getY(n) + V[o + 1] * dt), P.getZ(n) + V[o + 2] * dt); }
     P.needsUpdate = true;
   }
+}
+// ---------- v0.3.7: flight-log continuity — paged logs at the pod and every ARK records terminal ----------
+// Entry 1 is the original first read; [E] again pages the next entry. Read counts are g._log_<src> (saved flags).
+const FLIGHT_LOG = {
+  pod: { name: 'POD 7', e: [
+    'Station lost pressure at 04:12. Seven pods away, mine the last. Shelter hatch 9 m south-east — BUNKER 1. Some of them were us.',
+    'NAV: descent burn short by 40 s. Overflew the ARK beacon chain — ARK-01 GROW (live, faint), ARK-02 BODY (silent), ARK-03 POWER (dark). They were built to keep each other alive. Something broke the chain.',
+    'PASSENGER: manifest lists you as TELEPORT TRIAL SUBJECT 1 — status MISSING, 61 YEARS. The station AI that loaded you aboard copied itself into your suit before the hull went.'],
+    lucid: 'Sixty-one years. You stepped into the tester and out of the war. I am what is left of the station that waited for you.' },
+  ark1: { name: 'ARK-01', e: [
+    'Primary directive: grow, hold atmosphere, wait for retrieval. Retrieval never came.',
+    'DAY 3,112: retrieval window closed again. We sent our six strongest to ARK-02 for chassis labour. The plants do not care who is left to breathe.',
+    'DAY 4,870: the ARK-03 feed is down to a trickle — one grow row lit. If anyone reads this: ARK-02 has the bodies, ARK-03 has the watts. Get them talking again.'],
+    lucid: 'They kept the lights on for each other until they could not. Bodies west, watts past this one.' },
+  ark2: { name: 'ARK-02', e: [
+    'Primary directive: fabricate companion chassis, host LUCID-class cores, wait for retrieval.',
+    'SHIFT LOG: the ARK-01 six arrived thin. We fitted mood-dampener collars so they could work the line without the panic. It worked. It worked too well.',
+    'LAST ENTRY: collar charge failed when the ARK-03 feed went dark. Without the dampeners they forgot us. They are still out there, still breathing our air. The feed is ARK-03, past ARK-01.'],
+    lucid: 'The collars. Your crew were ARK people. Keep them charged — that is all that stands between them and the dark.' },
+  ark3: { name: 'ARK-03', e: [
+    'Primary directive: generate, store and mine power for the ARK chain. Ore → briquettes → watts.',
+    'TURBINE LOG: the pylon run home shorted at T1 under full push. We sleeved cable until the scrap ran out. The turbine was fine — the line was never strong enough.',
+    'FINAL: we are walking to BUNKER 1 with what air we have. If the turbine turns again, sleeve every pylon to T3 and the bunker will breathe. Tell ARK-01 we tried.'],
+    lucid: 'BUNKER 1 is your base. They were walking to it. Finish the line they started.' },
+};
+function logCount(g, src, was){ const n = g['_log_' + src] | 0; return was ? Math.max(1, n) : n; }
+function logPage(g, src, was){
+  const L = FLIGHT_LOG[src], N = L.e.length, n = logCount(g, src, was); if (n >= N) return false;
+  g['_log_' + src] = n + 1; g.ui?.toast?.(`${L.name} LOG ${n + 1}/${N} · ${L.e[n]}`, 9000); if (typeof beep === 'function') beep(640, .05);
+  if (n + 1 === N && L.lucid) g.lucidLine?.(L.lucid, false);
+  g.bus?.emit?.('log:page', { src, n: n + 1 }); return true;
+}
+(function installFlightLog(){
+  for (const [C, src] of [[ArkLoreTerminal, 'ark1'], [Ark2LoreTerminal, 'ark2'], [Ark3LoreTerminal, 'ark3'], [EscapePod, 'pod']]){
+    const P = C.prototype, pi = P.interact, pp = P.prompt, isLog = part => src !== 'pod' || part === 'log', wasRead = o => !!(src === 'pod' ? o.logRead : o.read);
+    P.interact = function(dt, game, part, first){
+      if (!first || !isLog(part)) return pi.call(this, dt, game, part, first);
+      const was = wasRead(this); if (was && logPage(game, src, true)) return;
+      pi.call(this, dt, game, part, first); if (!was) game['_log_' + src] = Math.max(1, game['_log_' + src] | 0);
+    };
+    P.prompt = function(game, part){
+      const s = pp.call(this, game, part); if (!isLog(part) || !wasRead(this)) return s;
+      const n = logCount(game, src, true), N = FLIGHT_LOG[src].e.length;
+      return n < N ? `${s.split(' — ')[0]} — [E] next log entry (${n + 1}/${N})` : `${s.split(' — ')[0]} — all ${N} entries read · [H] flight log`;
+    };
+  }
+})();
+function refreshHelp(g){
+  const o = $('helpObj'), l = $('helpLog'); if (!o || !l) return;
+  const ob = g.objective && !g.objective.done ? `${g.objective.label} — reach the base airlock, cycle in and seal it.` : g._chainOn && !g._won && (g._objStep | 0) > 0 ? (() => { const st = chainStep(g); return `${st.t} — ${st.h}`; })() : g._won ? 'The base breathes on its own. You made it.' : 'Keep the base breathing.';
+  o.textContent = ob;
+  const rows = []; for (const [src, L] of Object.entries(FLIGHT_LOG)){ const n = Math.min(L.e.length, g['_log_' + src] | 0); for (let k = 0; k < n; k++) rows.push(`<b>${L.name} ${k + 1}/${L.e.length}</b> ${L.e[k]}`); }
+  if (rows.length) l.innerHTML = rows.join('<br>');
+  else l.textContent = 'No logs recovered yet. Read the pod log and the ARK records terminals.';
 }
 // the start: you, the pod, and a short bottle. FIND SHELTER = through the base airlock and seal it behind you.
 function placeCrashPod(game, slice){
@@ -10083,6 +10261,7 @@ const CHAIN = [
 function chainStep(g){ return CHAIN[Math.min(g._objStep | 0, CHAIN.length - 1)]; }
 function chainTick(g, dt){
   laborHintTick(g, dt);   // v0.3.6
+  hintTick(g);            // v0.3.7
   if (g._won && (g._objStep | 0) >= CHAIN.length) return;
   let n = g._objStep | 0, adv = 0;
   if (CHAIN[n]?.id === 'hold'){
@@ -10093,14 +10272,14 @@ function chainTick(g, dt){
     // v0.3.5: one quiet line per lapse (what slipped), never a siren; re-arms once the hold is counting again
     const why = !feed ? 1 : !crewOk ? 2 : !air ? 3 : 0;
     if (okNow) g._holdWhy = 0;
-    else if (lapsing && why !== (g._holdWhy | 0) && !g._loading){ g._holdWhy = why; g.ui?.toast?.(HOLD_HINT[why](g), 5200); }
+    else if (lapsing && why !== (g._holdWhy | 0) && !g._loading){ g._holdWhy = why; hint(g, 'hold', HOLD_HINT[why](g), 5200, { obj: true, once: false }); }
   }
   while (n < CHAIN.length && CHAIN[n].ok(g)){ n++; adv++; }
   if (!adv) return;
   const quiet = g._loading || g._chainSilent; g._objStep = n; g._chainSilent = false;
   if (n >= CHAIN.length){ g._won = true; g._wonT = g.time; g.bus.emit('game:won', chainStats(g)); return; }
   g._objT = g.time; g.bus.emit('objective:step', CHAIN[n]);
-  if (!quiet){ g.ui?.toast?.(`NEW OBJECTIVE · ${CHAIN[n].t} — ${CHAIN[n].h}`, 7000); g.bus.emit('objective:chime', CHAIN[n]); }   // v0.3.5: soft two-note chime (UI)
+  if (!quiet){ if (SETTINGS.objStrip){ g.ui?.toast?.(`NEW OBJECTIVE · ${CHAIN[n].t} — ${CHAIN[n].h}`, 7000); g._hintT = g.time; } g.bus.emit('objective:chime', CHAIN[n]); }   // v0.3.7: strip off = chime only (objective stays in [H])   // v0.3.5: soft two-note chime (UI)
 }
 // v0.3.5: why the BREATHING ROOM hold slipped (1 feed · 2 crew · 3 air)
 const HOLD_HINT = [null,
@@ -11348,6 +11527,43 @@ const AUDIO = {
     this.breathG.gain.setTargetAtTime(amp * env, t, .04); this.breathBP.frequency.setTargetAtTime(f * (s > 0 ? 1 : .8), t, .1); this.ambLP.frequency.setTargetAtTime(muff, t, .35);
     this.breathState = { rate, amp, muff };
   },
+  // ---- v0.3.7: fire, extinguishing, regulator valve, cache unlock + strip ----
+  setFire(v, dt = .016){   // low rumbling roar (lowpassed noise) + random dry crackles scaled by the nearest fire's heat
+    if (!this.ctx) return; const c = this.ctx, t = c.currentTime;
+    if (!this.fireG){ const s = c.createBufferSource(); s.buffer = this.noise; s.loop = true; s.playbackRate.value = .6; const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 480; lp.Q.value = .4;
+      const pk = c.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 160; pk.gain.value = 8; this.fireG = c.createGain(); this.fireG.gain.value = 0; s.connect(lp); lp.connect(pk); pk.connect(this.fireG); this.fireG.connect(this.ambB); s.start(); }
+    v = SAVEQ.quiet ? 0 : Math.max(0, Math.min(1, v)); this.fireV = v; this.fireG.gain.setTargetAtTime(v * .22, t, .25);
+    if (v > .02 && Math.random() < dt * (3 + v * 14)) this.crackle(v);
+  },
+  crackle(v = 1){
+    if (!this.ctx) return; const c = this.ctx, t = c.currentTime, s = c.createBufferSource(), hp = c.createBiquadFilter(), g = c.createGain(), d = .015 + Math.random() * .03;
+    s.buffer = this.noise; s.playbackRate.value = 1.5 + Math.random(); hp.type = 'bandpass'; hp.frequency.value = 1800 + Math.random() * 2600; hp.Q.value = 1.2;
+    g.gain.setValueAtTime(.12 * v * (.4 + Math.random() * .6), t); g.gain.exponentialRampToValueAtTime(.0005, t + d);
+    s.connect(hp); hp.connect(g); g.connect(this.sfxB); s.start(t, Math.random()); s.stop(t + d + .01);
+  },
+  douse(){   // water on embers: a hissing steam burst that tails off, plus a soft low thump
+    if (!this.ctx || SAVEQ.quiet) return; const c = this.ctx, t = c.currentTime, s = c.createBufferSource(), hp = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = this.noise; hp.type = 'highpass'; hp.frequency.setValueAtTime(2400, t); hp.frequency.exponentialRampToValueAtTime(900, t + 1.3);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.16, t + .05); g.gain.exponentialRampToValueAtTime(.001, t + 1.4);
+    s.connect(hp); hp.connect(g); g.connect(this.sfxB); s.start(t); s.stop(t + 1.5); this.bang?.(.18);
+  },
+  valve(){   // regulator handwheel: detent click + short gas chuff
+    if (!this.ctx || SAVEQ.quiet) return; const c = this.ctx, t = c.currentTime;
+    const o = c.createOscillator(), og = c.createGain(); o.type = 'square'; o.frequency.setValueAtTime(1900, t); o.frequency.exponentialRampToValueAtTime(700, t + .02);
+    og.gain.setValueAtTime(.05, t); og.gain.exponentialRampToValueAtTime(.0005, t + .04); o.connect(og); og.connect(this.sfxB); o.start(t); o.stop(t + .05);
+    const s = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain(); s.buffer = this.noise; bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = .8;
+    g.gain.setValueAtTime(0, t + .03); g.gain.linearRampToValueAtTime(.06, t + .06); g.gain.exponentialRampToValueAtTime(.0005, t + .32); s.connect(bp); bp.connect(g); g.connect(this.sfxB); s.start(t); s.stop(t + .35);
+  },
+  unlock(){   // omni read a cache: rising two-note chime
+    if (!this.ctx || SAVEQ.quiet) return; const c = this.ctx, t = c.currentTime;
+    [[660, 0], [990, .11]].forEach(([f, d]) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(.07, t + d + .015); g.gain.exponentialRampToValueAtTime(.0005, t + d + .45); o.connect(g); g.connect(this.sfxB); o.start(t + d); o.stop(t + d + .5); });
+  },
+  clank(){   // stripping a plate off the wreck: metallic ping + scrape
+    if (!this.ctx || SAVEQ.quiet) return; const c = this.ctx, t = c.currentTime;
+    [430, 1170, 2290].forEach((f, i) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = f * (.97 + Math.random() * .06); g.gain.setValueAtTime(.05 / (i + 1), t); g.gain.exponentialRampToValueAtTime(.0005, t + .35 - i * .08); o.connect(g); g.connect(this.sfxB); o.start(t); o.stop(t + .4); });
+    const s = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain(); s.buffer = this.noise; bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 2;
+    g.gain.setValueAtTime(.05, t + .05); g.gain.exponentialRampToValueAtTime(.0005, t + .3); s.connect(bp); bp.connect(g); g.connect(this.sfxB); s.start(t + .05); s.stop(t + .32);
+  },
   applyVol(){ if (!this.masterB) return; this.masterB.gain.value = SETTINGS.master; this.sfxB.gain.value = SETTINGS.sfx; this.ambB.gain.value = SETTINGS.amb; },
   chord(){   // v0.3.3: the win chord — slow open fifths
     if (!this.ctx) return; const c = this.ctx, t = c.currentTime;
@@ -12035,7 +12251,8 @@ function showPaused(){
   $('start').style.display = (!busy && !playedOnce) ? 'flex' : 'none';
 }
 const ui = game.ui = {
-  toast(t, ms = 5000){ if (SAVEQ.quiet) return; $('msg').textContent = t; clearTimeout(ui._t); ui._t = setTimeout(() => $('msg').textContent = '', ms); },
+  toast(t, ms = 5000){ if (SAVEQ.quiet) return; $('msg').textContent = t; clearTimeout(ui._t); ui._tEnd = t ? performance.now() + ms : 0; ui._t = setTimeout(() => $('msg').textContent = '', ms); },
+  toastBusy(){ return performance.now() < (ui._tEnd || 0) - 400; },   // v0.3.7: hints wait for the current message
   craftTable: null,
   openCraft(table){
     this.craftTable = table; table.open = true;
@@ -12391,7 +12608,7 @@ document.addEventListener('keydown', e => {
     const m = /^Digit([1-9])$/.exec(e.code); if (m){ ui.lucidToggle(+m[1] - 1, ui.lucidVia || 'panel'); return; }
   }
   // slice 25: [H] help works while paused too (the PAUSED card points at it)
-  if (!e.repeat && e.code === 'KeyH' && !intro.active && !ui.craftTable && !ui.lucidOpen){ $('help').style.display = $('help').style.display === 'block' ? 'none' : 'block'; return; }
+  if (!e.repeat && e.code === 'KeyH' && !intro.active && !ui.craftTable && !ui.lucidOpen){ const op = $('help').style.display !== 'block'; if (op) refreshHelp(game); $('help').style.display = op ? 'block' : 'none'; return; }
   if (e.repeat || !(locked || autorun)) return;
   // slice 8: looking at the wall monitor (not in build mode) - number keys switch linked units remotely
   // slice 24: looking at the wall monitor — Tab picks an imp, Shift+1-5 assigns its job remotely
@@ -12588,7 +12805,9 @@ function visuals(dt, t){
     else if (lk > 0 && sp.flow > 0){ particles.emit(c, _hoseDown, .6, .35, (2 + lk * 70) * dt, .55); hiss += lk * 2.4 * att; if (Math.random() < dt * (.04 + lk * .9)) AUDIO.creak(.6 / (1 + eyeDist2(c) * .3)); }
     else if (sp.flow > 0 && sp.hoseOver() > CFG.pipe.safeOver && Math.random() < dt * .05) AUDIO.creak(.35 / (1 + eyeDist2(c) * .3));
   }
-  for (const f of game.fires || []) hiss += f.I * .8 / (1 + eyeDist2(f.mesh.position) * .4);   // fire roar rides the hiss bus
+  let fireV = 0; for (const f of game.fires || []){ const a = 1 / (1 + eyeDist2(f.mesh.position) * .25); hiss += f.I * .25 * a; fireV = Math.max(fireV, f.I * a * 1.4); }   // v0.3.7: own roar + crackle loop
+  AUDIO.setFire(fireV, dt);
+  for (const r of game.regs || []){ const a = 1 / (1 + eyeDist2(r.mesh.position) * .6); hum += .12 * a; if (r.rate > .02){ const b = 1 / (1 + eyeDist2(r.outlet) * .3); hiss += Math.min(1, r.rate * 1.5) * .9 * b; hum += .25 * a; } }   // v0.3.7: regulator bleed hiss at the riser
   particles.update(dt);
   liquidView.update(dt, performance.now() / 1000);   // slice 32
   AUDIO.set(Math.min(.25, hiss * .08), Math.min(.1, hum * .05));
@@ -12624,7 +12843,7 @@ function projectRect(obj, wHalf, hHalf){   // screen rect of a camera-facing qua
 }
 function declutterLabels(dt = 1 / 60, force = false){
   LABELS.t += dt; LABELS.hudT += dt;
-  if (LABELS.t > 1 || force){ LABELS.t = 0; LABELS.list = []; scene.traverse(o => { if (o.isSprite && o.material?.map){ o.material.transparent = true; if (o.userData.baseOp == null) o.userData.baseOp = o.material.opacity; LABELS.list.push(o); } }); }
+  if (LABELS.t > 1 || force){ LABELS.t = 0; LABELS.list = []; scene.traverse(o => { if (o.isSprite && o.material?.map && !o.userData.fx && o.material.blending !== THREE.AdditiveBlending){   /* v0.3.7: FX sprites (flames, embers, beacons, smoke) are not labels — decluttering them zeroed the fire */ o.material.transparent = true; if (o.userData.baseOp == null) o.userData.baseOp = o.material.opacity; LABELS.list.push(o); } }); }
   if (LABELS.hudT > .25 || force){ LABELS.hudT = 0; LABELS.hud = labelRects(); }
   const cand = []; LABELS.mon = visibleDeep(monitor) ? projectRect(monitor, 1.2, .6) : null;
   for (const s of LABELS.list){
@@ -13017,17 +13236,18 @@ function saveCapture(g){
   pl.docks = (g.docks || []).map(k => [k.i, k.k, sR(k.yaw, 3)]);
   pl.planters = (g.planters || []).map(p => [sR(p.pos.x), sR(p.pos.z), sR(p.age, 2), sR(p.water, 2)]);
   pl.regs = (g.regs || []).map(r => [sR(r.pos.x), sR(r.pos.z), r.setIdx, sR(r.vented, 1)]);   // v0.3.6
-  pl.fires = (g.fires || []).filter(f => !f.out).map(f => [sR(f.pos.x), sR(f.pos.z), sR(f.I, 3)]);
+  pl.fires = (g.fires || []).filter(f => !f.out).map(f => { let ck = null; if (f.src) for (const [k, c] of g.power.cables) if (c === f.src){ ck = k; break; }
+    return [sR(f.pos.x), sR(f.pos.z), sR(f.I, 3), ck, sR(f.burned, 1), f.why || 'spark']; });   // v0.3.7: + the cable it is cooking, burn, cause
   d.o2r = [sR(g._o2RichT || 0, 1), g._laborHinted ? 1 : 0];
   d.ik = g.intakes?.[0] ? sR(g.intakes[0].buffer.amount, 3) : 0;
-  d.obj = g.objective ? { d: g.objective.done ? 1 : 0, s: g.objective.secs ?? null } : null;
+  d.obj = g.objective ? { d: g.objective.done ? 1 : 0, s: g.objective.secs ?? null, e: g.objective.done ? undefined : Math.round(g.time - (g.objective.t0 || 0)) } : null;   // v0.3.7: e = seconds on the bottle so far
   d.pod = g._slice?.pod ? [g._slice.pod.salvage, g._slice.pod.logRead ? 1 : 0] : null;
   d.piles = (g.piles || []).map(p => ({ p: [sR(p.pos.x), sR(p.pos.z)], n: p.n, l: p.label }));
   // summary for the title card
   const placedN = pl.pumps.length + pl.gens.length + pl.bats.length + pl.brks.length + pl.tables.length + pl.belts.length + pl.drills.length + pl.refs.length + pl.torsos.length + pl.consoles.length;
   const sum = { zone: P.zone, scrap: g.scrap, items: Object.values(g.inv).reduce((a, b) => a + (+b || 0), 0), placed: placedN, pipes: pl.pipes.length + pl.lpipes.length, cables: pl.cables.length,
     recipes: d.unlocks.recipes.length, tier: g.unlocks.craftTable, imps: d.imps.filter(i => i.r).length, t: d.time };
-  return { schema: SAVE_SCHEMA, proto: '0.3.6', saved: Date.now(), t: d.time, sum, d };
+  return { schema: SAVE_SCHEMA, proto: '0.3.7', saved: Date.now(), t: d.time, sum, d };
 }
 
 // remove every placed thing (free build: no refunds) so the saved layout can be rebuilt on top of the static world
@@ -13130,12 +13350,14 @@ function saveApply(g, snap, sl = (typeof slice !== 'undefined' ? slice : null)){
       for (const [x, z, tier, st] of pl.traps || []){ const t = g.add(new SnareCage(g, new THREE.Vector3(x, 0, z), tier || 1)); if (st === 'broken') t.state = 'broken'; }
       for (const [i, k, yaw] of pl.docks || []){ if (!placeCollarDock(g, i, k, yaw)) warn.push('collar dock: cell taken'); }
       for (const [x, z, si, v] of pl.regs || []){ const r = g.add(new O2Regulator(g, new THREE.Vector3(x, 0, z), si | 0)); r.vented = v || 0; (g.regs ||= []).push(r); }   // v0.3.6
-      for (const [x, z, I] of pl.fires || []){ const f = g.add(new SmallFire(g, new THREE.Vector3(x, 0, z), I)); (g.fires ||= []).push(f); }
+      for (const [x, z, I, ck, burned, why] of pl.fires || []){ const src = ck != null ? g.power.cables.get(ck) || null : null; const f = g.add(new SmallFire(g, new THREE.Vector3(x, 0, z), I, src && !src.failed ? src : null, why || 'spark')); f.burned = burned || 0; (g.fires ||= []).push(f); }
       if (d.o2r){ g._o2RichT = d.o2r[0]; g._laborHinted = !!d.o2r[1]; }
       for (const [x, z, age, w] of pl.planters || []){ const p = g.add(new OxygenPlant(g, new THREE.Vector3(x, 0, z))); p.placed = true; p.age = age; p.water = w; (g.planters ||= []).push(p); }
       if (g.intakes?.[0] && d.ik != null) g.intakes[0].buffer.amount = d.ik;
       if (d.pod && g._slice?.pod){ g._slice.pod.salvage = d.pod[0]; g._slice.pod.logRead = !!d.pod[1]; }
-      g.objective = d.obj ? { id: 'shelter', label: 'FIND SHELTER', t0: 0, done: true, secs: d.obj.s } : null;   // a loaded game is always past the crash
+      g.objective = d.obj ? (d.obj.d === 0   /* v0.3.7: a save made during the crash walk (quit / autosave before the airlock) resumes FIND SHELTER instead of skipping it */
+        ? { id: 'shelter', label: 'FIND SHELTER', t0: (g.time || 0) - (d.obj.e || 0), done: false, doneT: null }
+        : { id: 'shelter', label: 'FIND SHELTER', t0: 0, done: true, secs: d.obj.s }) : null;
       const Lq = d.liq, L = g.liquids; if (!Lq) return;
       (Lq.res || []).forEach((a, n) => { const r = L.res[n]; if (!r) return; r.amount = a[0]; r.reserve = a[1]; r.breached = !!a[2]; r.scanned = !!a[3]; });
       for (const pk of g.pockets.list){ pk.liq = { water: 0, brine: 0, oil: 0 }; pk.wet = new Set(); }
@@ -13365,12 +13587,13 @@ $('btnKeep').addEventListener('click', ev => { ev.stopPropagation(); $('win').st
 $('btnWinNew').addEventListener('click', ev => { ev.stopPropagation(); saveClear(); location.reload(); });
 if (SHOT) runShot(SHOT);
 if (/[?&]playthrough\b/.test(location.search)) setTimeout(runPlaythrough, 400);
-// ---------- v0.3.6: scripted headless playthrough (?playthrough) — new game → BREATHING ROOM with real game actions ----------
+// ---------- v0.3.6/7: scripted headless playthrough (?playthrough, ?playthrough&labor = no scrap top-ups, crew labour only) — new game → BREATHING ROOM with real game actions ----------
 // Walks with held W + steering, cycles doors / hatches through their own interact(), crafts at the real table, traps and collars
 // real ferals. Concessions (counted in the report): teleport when a straight walk is blocked, scrap top-ups, suit top-ups.
 async function runPlaythrough(){
   const g = game, P = g.player, S = slice, al = g.airlock, CH = CHAIN;
-  const out = { mode: 'playthrough', steps: [], concessions: { teleports: [], scrap: 0, suitTopups: 0, unlocks: [], items: [] }, issues: [], tend: [], sounds: { beep: 0, chord: 0 }, toastsN: 0, edge: {} };
+  const LABOR = /[?&]labor\b/.test(location.search);
+  const out = { mode: LABOR ? 'playthrough-labor' : 'playthrough', labor: { waits: [], waitSecs: 0, crankS: 0, shortBeforeCrew: 0, fuelCrafted: 0 }, steps: [], concessions: { teleports: [], scrap: 0, suitTopups: 0, unlocks: [], items: [] }, issues: [], tend: [], sounds: { beep: 0, chord: 0 }, toastsN: 0, edge: {} };
   const toasts = []; const t0 = ui.toast; ui.toast = function(m, d){ toasts.push({ t: Math.round(g.time), m: String(m).slice(0, 110) }); out.toastsN++; return t0.call(this, m, d); };
   const ab = AUDIO.beep, ac = AUDIO.chord; AUDIO.beep = function(...a){ out.sounds.beep++; return ab?.apply(this, a); }; AUDIO.chord = function(...a){ out.sounds.chord++; return ac?.apply(this, a); };
   const wins = []; g.bus.on('game:won', st => wins.push(st)); const stepEv = []; g.bus.on('objective:step', st => stepEv.push({ id: st.id, t: Math.round(g.time) }));
@@ -13402,7 +13625,22 @@ async function runPlaythrough(){
     e.interact(.1, g, part, true); for (let t = .1; t < hold; t += .1){ e.interact(.1, g, part, false); sim(.1); } return true; };
   const posOf = e => e.pos || e.mesh?.position || e.group?.position;
   const goNear = (e, why, off = 1.1) => { const p = posOf(e); const dx = P.pos.x - p.x, dz = P.pos.z - p.z, L = Math.hypot(dx, dz) || 1; return walkTo(p.x + dx / L * off, p.z + dz / L * off, why); };
-  const scrapNeed = (n, why) => { if (g.scrap < n){ out.concessions.scrap += n - g.scrap; g.scrap = n; out.concessions.items.push('scrap for ' + why); } };
+  const crewLive = () => (g.imps || []).filter(im => im.collar && !im.collar.dead && im.state !== 'feral').map(im => { if (!im._ptW){ im._ptW = true; const pd = im.powerDown.bind(im);
+      im.powerDown = (gm, why) => { if (im.state === 'awake'){ const a = im.airAt(); (out.labor.downs ||= []).push({ t: Math.round(g.time), why, tag: im.tag, zone: g.zoneAt(im.pos), vol: a.vol === g.room ? 'room' : (a.vol?.name || a.vol?.id || 'other'), o2: r1(a.o2f * 100), co2: r1(a.co2f * 100), at: stepId(), pz: g.zoneAt(P.pos), pos: [r1(im.pos.x), r1(im.pos.z)] }); } return pd(gm, why); }; } return im; });
+  const crank = () => {   // hold [R] on any crew whose collar is under 40 % (real time passes; the others keep working)
+    for (const im of crewLive()) if (im.state === 'down' && g.zoneAt(posOf(im)) === g.zoneAt(P.pos) && im.airAt().good){ goNear(im, 'rouse crew', .9); const w = im.wake(g); (out.labor.rouses ||= []).push({ t: Math.round(g.time), ok: w.ok }); }
+    for (const im of crewLive()) if (im.collarPct() < .4){ if (g.zoneAt(posOf(im)) !== g.zoneAt(P.pos)) continue; goNear(im, 'crank collar', .9);
+      for (let t = 0; t < 400 && im.collarPct() < .97; t += .25){ im.handCharge(.25, g); sim(.25, {}, null, .25); out.labor.crankS += .25; } } };
+  const scrapNeed = (n, why) => { if (g.scrap >= n) return;
+    if (!LABOR){ out.concessions.scrap += n - g.scrap; g.scrap = n; out.concessions.items.push('scrap for ' + why); return; }
+    const crew = crewLive(); if (!crew.length){ out.labor.shortBeforeCrew += n - g.scrap; out.concessions.scrap += n - g.scrap; g.scrap = n; out.concessions.items.push('NO CREW YET: scrap for ' + why); return; }
+    for (const im of crew){ for (let k = 0; k < 6 && im.job !== 'labor'; k++) im.cycleJob(); }
+    const w0 = g.time, s0 = g.scrap, inBase = () => g.zoneAt(P.pos) === 'base';
+    while (g.scrap < n && g.time - w0 < 3600){ sim(30, {}, () => g.scrap >= n, .25); if (inBase()){ crank(); if (Math.round(g.time) % 240 < 30) tendBase(); }
+      if (!crewLive().length){ out.issues.push('labor wait: crew lost while waiting for ' + why); break; } }
+    const w = Math.round(g.time - w0); out.labor.waitSecs += w; out.labor.waits.push({ why, need: n, had: s0, secs: w, crew: crew.length, at: stepId(), o2: r1(g.room.frac('o2') * 100), co2: r1(g.room.frac('co2') * 100),
+      st: (g.imps || []).filter(im => im.collar).map(im => [im.state, im.job, g.zoneAt(posOf(im)), r1(im.collarPct() * 100), r1(im.workMul ?? -1), im.scrapMade | 0, !!im.working].join('/')) });
+    if (g.scrap < n){ out.issues.push(`labor wait for ${why} timed out (${g.scrap}/${n})`); out.concessions.scrap += n - g.scrap; g.scrap = n; } };
   const table = () => g.tables[0];
   const exitBase = (why) => { if (P.pos.z > al.zOuter + .3) return; walkTo(0, al.zInner - 1.2, why + ' (to inner door)'); walkTo(0, al.zMid, why + ' (into airlock)'); al.interact(0, g, 'panel', true); sim(14, {}, () => al.state === 'surface'); walkTo(0, al.zOuter + 1.3, why + ' (out)'); };
   const enterBase = (why) => { walkTo(0, al.zOuter + 1.3, why + ' (to outer door)'); walkTo(0, al.zMid, why + ' (into airlock)'); al.interact(0, g, 'panel', true); sim(14, {}, () => al.state === 'base'); walkTo(0, al.zInner - 1.2, why + ' (in)'); };
@@ -13553,7 +13791,7 @@ async function runPlaythrough(){
     sim(1); out.hold0 = { step: stepId(), crew: crewCount(g), feed: arkFeedCap(g), airGood: baseAirGood(g), o2: r1(g.room.frac('o2') * 100), co2: r1(g.room.frac('co2') * 100) };
     // 10 hold — keep the base for holdSecs; edge cases mid-hold: power loss, collar relapse, save/load
     const holdLog = []; const holdFor = (secs, tag) => { const h0 = g._holdT || 0; for (let q = 0; q < secs && !g._won; q += 30){ sim(Math.min(30, secs - q), {}, () => g._won); if (tag !== 'tripped' && tag !== 'relapse') tendBase(); } holdLog.push({ tag, from: Math.round(h0), to: Math.round(g._holdT || 0), crew: crewCount(g), cap: Math.round(arkFeedCap(g)), air: baseAirGood(g), o2: r1(g.room.frac('o2') * 100), co2: r1(g.room.frac('co2') * 100), run: T.running, trip: T.tripped, why: T.tripWhy || T.last, fuel: Math.round(T.fuel), pyl: pyl.map(p => p.tier + (p.failed ? 'X' : '') + Math.round((p.damage || 0) * 100)).join(','), avail: Math.round(T.availW(g)), heat: r1(T.heat || 0), ml: r1(g.mineLab.frac('o2') * 100) }); };
-    const keepFed = () => { if (T.fuel < CFG.ark3.turbine.brickJ * 2){ g.giveItem('fuel_brick', 4); out.concessions.items.push('fuel x4'); while (g.hasItem('fuel_brick') && T.fuel < T.tank() - CFG.ark3.turbine.brickJ) { g.takeItem('fuel_brick'); T.addFuel(); } } };
+    const keepFed = () => { if (T.fuel < CFG.ark3.turbine.brickJ * 2){ if (LABOR){ craft('fuel_brick', 2); out.labor.fuelCrafted += 4; } else { g.giveItem('fuel_brick', 4); out.concessions.items.push('fuel x4'); } while (g.hasItem('fuel_brick') && T.fuel < T.tank() - CFG.ark3.turbine.brickJ) { g.takeItem('fuel_brick'); T.addFuel(); } }  if (LABOR && !T.running && !T.tripped && T.fuel > CFG.ark3.turbine.brickJ){ const rs = T.tryStart(g); (out.restarts ||= []).push({ t: Math.round(g.time), ok: rs.ok, why: rs.why || rs.msg || null }); } };
     keepFed(); holdFor(60, 'steady');
     // power loss: the turbine trips — the hold must stop counting and bleed
     T.trip(g, 'heat'); const capOff = arkFeedCap(g); holdFor(10, 'tripped');
@@ -13567,7 +13805,20 @@ async function runPlaythrough(){
     if (re.collared){ out.edge.relapse.wake = crew2.wake(g).ok; } walkTo(P0.x, P0.z, 'back');
     keepFed(); holdFor(20, 'recollared');
     out.edge.saveMidHold = roundtrip('hold');
-    for (let i = 0; i < 8 && !g._won; i++){ keepFed(); for (const im of [crew1, crew2]) if (im.collar && im.collar.charge < 300) im.collar.charge = CFG.survivor.collarLife; holdFor(60, 'hold'); await yieldUI(); }
+    { // v0.3.7: save/load mid-fire and mid-regulator (test rig — free regulator, forced spark; not part of the economy)
+      const r0 = g.room, o2was = r0.gases.o2, fb = g.freeBuild; let rg = null;
+      for (const yaw of [0, Math.PI / 2, Math.PI, -Math.PI / 2]){ P.yaw = yaw; g.freeBuild = true; rg = tryPlaceRegulatorInFront(g); g.freeBuild = fb; if (rg) break; }
+      if (rg) rg.setIdx = 2; r0.gases.o2 = .33 * Math.max(r0.volume, r0.total());
+      const f0 = o2Ignite(g, { p: P.pos.clone().add(new THREE.Vector3(.8, 0, .8)), src: null, why: 'a test spark' }); sim(2);
+      const cap = () => ({ regs: (g.regs || []).length, set: (g.regs || []).map(r => r.setIdx).join(','), fires: (g.fires || []).length, I: r1((g.fires || [])[0]?.I || 0), o2: r1(r0.frac('o2') * 100) });
+      const before = cap(), rt = roundtrip('mid-fire+regulator'), after = cap();
+      const fz = (g.fires || [])[0]; let doused = false; if (fz){ for (let t = 0; t < 12 && !fz.out; t += .1) fz.interact(.1, g); doused = fz.out; }
+      r0.gases.o2 = o2was; sim(1);
+      out.edge.saveMidFireReg = { placed: !!rg, before, after, rt, doused, firesLeft: (g.fires || []).length,
+        ok: !!rg && !!f0 && rt.ok && after.regs === before.regs && after.set === before.set && after.fires === before.fires && Math.abs(after.I - before.I) < .1 && doused && !(g.fires || []).length };
+      if (!out.edge.saveMidFireReg.ok) out.issues.push('mid-fire/regulator save: ' + JSON.stringify(out.edge.saveMidFireReg));
+    }
+    for (let i = 0; i < 8 && !g._won; i++){ keepFed(); if (LABOR) crank(); else for (const im of [crew1, crew2]) if (im.collar && im.collar.charge < 300) im.collar.charge = CFG.survivor.collarLife; holdFor(60, 'hold'); await yieldUI(); }
     out.holdLog = holdLog;
     out.won = { won: !!g._won, events: wins.length, winShown: $('win').style.display === 'flex', chord: out.sounds.chord, stats: wins[0] || null };
     mark('hold', 'hold timer');
@@ -13579,7 +13830,7 @@ async function runPlaythrough(){
   } catch (err){ out.error = String(err?.stack || err).slice(0, 900); }
   delete out._deathTest; out.minSuit = Math.round(minSuit); out.stepEvents = stepEv; out.toastTail = toasts.slice(-12);
   out.econ = { topups: out.concessions.scrap, labor: g.entities.reduce((a, e) => a + (e.scrapMade || 0), 0), salvage: (S.salvage || []).map(c => c.stock0 - c.stock).reduce((a, b) => a + b, 0) * CFG.salvage.perStrip, scrapEnd: g.scrap, simSecs: Math.round(g.time) };
-  out.SUCCESS = !out.error && !!g._won && out.steps.every(s => s.done && s.save.ok) && (out.edge.powerLoss?.bled ?? false) && (out.edge.relapse?.bled ?? false) && !!out.edge.death?.over;
+  out.SUCCESS = !out.error && !!g._won && out.steps.every(s => s.done && s.save.ok) && (out.edge.powerLoss?.bled ?? false) && (out.edge.relapse?.bled ?? false) && !!out.edge.death?.over && !!out.edge.saveMidFireReg?.ok;
   const el = document.createElement('div'); el.id = 'selftest'; el.style.display = 'none'; el.textContent = JSON.stringify(out); document.body.appendChild(el);
 }
 if (location.search.includes('pwrlog')) setInterval(() => { document.title = 'PDBG ' + JSON.stringify({ cables: [...game.power.cables.values()].map(c => [c.key, c.live, c.lit?.[0]?.material === powerMats().live]), circuits: game.power.circuits.map(c => c.stats && { ...c.stats, live: c.live }), pump: [slice.pump.power, slice.pump.powered] }); }, 300);
@@ -14717,6 +14968,24 @@ function runShot(name){
       setTimeout(() => (via === 'orb' ? ui.openCompanion() : ui.openControlRoom(cons)), 150); break;
     }
     // ---- slice 25: polish shots (1280×800) ----
+    // ---- v0.3.6/7: rich air, fire, regulator, salvage caches ----
+    case 's38_reg': case 's38_gauge': case 's38_fire': case 's38_rich': case 's38_cache': case 's38_scan': case 's38_loot': case 's38_stripped': {
+      P.suit = 100; P.breath = 100; const r = game.room, setO2 = f => { r.gases.o2 = f * Math.max(r.volume, r.total()); };
+      if (name === 's38_reg' || name === 's38_gauge' || name === 's38_rich' || name === 's38_fire'){
+        pump.power = true; quickGrid(game, slice);
+        setO2(.335); game._o2RichT = 400;
+        if (name !== 's38_fire'){ game.freeBuild = true; look(-1.6, 1.4, -1.6, 0, -.2); const rg = tryPlaceRegulatorInFront(game); game.freeBuild = false; ui.toast?.('', 1); if (rg) rg.setIdx = 1; pre(2);
+          const q = rg ? rg.pos : new THREE.Vector3(-1.6, 0, .2); look(q.x + 1.05, q.z + 1.25, q.x, .75, q.z); if (name === 's38_gauge') look(q.x + .1, q.z + .55, q.x, .42, q.z + .17); if (name === 's38_rich') { r.gases.o2 = .335 * Math.max(r.volume, r.total()); game._o2Warned = false; game._o2Smell = false; game._o2RichT = 300; pre(.2); look(q.x + 2.4, q.z + 2.6, q.x - .2, 1.2, q.z - 1.5); } break; }
+        const fp = new THREE.Vector3(-1.3, 0, -1.0), f = game.add(new SmallFire(game, fp, .7, null, 'an overloaded cable')); (game.fires ||= []).push(f); f.burned = 25;
+        pre(1.5); look(fp.x + .95, fp.z + 1.35, fp.x, .3, fp.z); break;
+      }
+      const al = slice.airlock; al.innerOpen = 0; al.outerOpen = 1; al.state = 'surface'; al.syncColliders(); game._surfacedOnce = true; game.omni = true;
+      const c = slice.salvage[0], cp = c.pos;
+      if (name === 's38_scan'){ c.progress = c.need(game) * .62; c.decay = () => {}; }
+      if (name === 's38_loot'){ c.scanned = true; c.refresh(); }
+      if (name === 's38_stripped'){ c.scanned = true; c.stock = 0; c.refresh(); }
+      pre(.3); look(cp.x + 1.0, cp.z + .95, cp.x + .05, .12, cp.z); break;
+    }
     case 's25_panel': case 's25_monitor': case 's25_companion': case 's25_build': case 's25_help': case 's25_craft': case 's25_start': case 's25_paused': case 's34_win': case 's35_settings': {
       if (name === 's25_build'){ game.unlocks.craftTable = 3; build.toggle(true); build.select('craft'); build.setCraftTier(2); look(-2.0, 3.2, -1.5, 0, 1.5); break; }
       if (name === 's25_craft'){ slice.table.setTier(3); game.unlocks.craftTable = 3; game.scrap = 14; look(3.5, 3.2, 4.8, .9, 4.3); setTimeout(() => ui.openCraft(slice.table), 200); break; }
@@ -14724,7 +14993,7 @@ function runShot(name){
       if (name === 's34_win'){ playedOnce = true; look(-1.5, .5, 2, 1.4, -2); setTimeout(() => { locked = false; autorun = false; showWin({ secs: 7260, crew: 2, arks: 3, crises: 4, relapses: 1 }); }, 100); break; }
       if (name === 's35_settings'){ playedOnce = true; look(-1.5, .5, 2, 1.4, -2); setTimeout(() => { locked = false; autorun = false; settingsUI.open(); }, 100); break; }
       if (name === 's25_paused'){ playedOnce = true; look(-1.5, .5, 2, 1.4, -2); setTimeout(() => { locked = false; autorun = false; $('resume').style.display = 'block'; }, 100); break; }
-      if (name === 's25_help'){ look(-1.5, .5, 2, 1.4, -2); $('help').style.display = 'block'; break; }
+      if (name === 's25_help'){ look(-1.5, .5, 2, 1.4, -2); refreshHelp(game); $('help').style.display = 'block'; break; }
       game.unlockRecipe('control_room', 'shot'); game.unlockRecipe('control_chip', 'shot'); game.unlockRecipe('control_link', 'shot');
       game.activateOrb(); game.lucid.online = true; P.suit = 100; P.breath = 100;
       game.freeBuild = true; const cons = placeControlRoom(game, new THREE.Vector3(-1.2, 0, 1.6)); game.freeBuild = false;
@@ -19110,7 +19379,7 @@ if (location.search.includes('selftest')){
       for (let t = 0; t < 400; t += 1) chainTick(g, 1); chainTick(g, 1);
       s34.C_hold = { atHold, h1, h2, step: g._objStep, won, _won: g._won, ok: atHold === 'hold' && h1 === 0 && h2 === 0 && won === 1 && g._won === true };
       const H = mkG(); H._objStep = 9; H._arkFeedLive = true; H.imps.push(crew(), crew()); for (let t = 0; t < 100; t++) chainTick(H, 1); const k1 = H._holdT; H.imps[1].collar.dead = true; for (let t = 0; t < 20; t++) chainTick(H, 1); const k2 = H._holdT;
-      H.imps[1].collar.dead = false; for (let t = 0; t < 10; t++) chainTick(H, 1); const k3 = H._holdT; const n0 = H.toasts.length; H.ark3Turbine.running = false; for (let t = 0; t < 10; t++) chainTick(H, 1); const k4 = H._holdT, hint = H.toasts.slice(n0);
+      H.imps[1].collar.dead = false; for (let t = 0; t < 10; t++) chainTick(H, 1); const k3 = H._holdT; const n0 = H.toasts.length; H.ark3Turbine.running = false; for (let t = 0; t < 10; t++){ H.time = (H.time || 0) + 1; chainTick(H, 1); }   /* v0.3.7: hints are spaced in real time */ const k4 = H._holdT, hint = H.toasts.slice(n0);
       s34.D_bleed = { k1, k2, k3, k4, hint, ok: k1 === 100 && k2 === 60 && k3 === 70 && k4 === 50 && hint.length === 1 && /feed dropped/.test(hint[0]) };   // v0.3.5: a dead feed bleeds the hold too, with one quiet hint
       s34.SUCCESS = !!(s34.A_advance.ok && s34.B_legacySilent.ok && s34.C_hold.ok && s34.D_bleed.ok);
     } catch (err){ s34.error = String(err?.stack || err).slice(0, 600); s34.SUCCESS = false; }
@@ -19202,7 +19471,7 @@ if (location.search.includes('selftest')){
         const T = saveStaticTable().find(x => x[0] === SalvageCache), c1 = g2.add(new SalvageCache(g2, new THREE.Vector3(3, 0, 3))); c1.scanned = true; c1.stock = 1; const v = JSON.parse(JSON.stringify(T[1](c1)));
         const c2 = g2.add(new SalvageCache(g2, new THREE.Vector3(3, 0, 3))); T[2](c2, v, g2);
         s38.F_save = { proto: snap.proto, regs: (g2.regs || []).map(x => [x.setIdx, x.vented]), fires: (g2.fires || []).map(x => r3(x.I)), richT: g2._o2RichT, hinted: g2._laborHinted, cache: [c2.scanned, c2.stock, c2.caseG.visible, c2.ring.visible],
-          ok: snap.proto === '0.3.6' && g2.regs?.length === 1 && g2.regs[0].setIdx === 2 && Math.abs(g2.regs[0].vented - 12.3) < .11 && g2.fires?.length === 1 && Math.abs(g2.fires[0].I - .42) < .002 && g2._o2RichT === 321 && g2._laborHinted === true && c2.scanned && c2.stock === 1 && c2.caseG.visible && !c2.ring.visible };
+          ok: snap.proto === '0.3.7' && g2.regs?.length === 1 && g2.regs[0].setIdx === 2 && Math.abs(g2.regs[0].vented - 12.3) < .11 && g2.fires?.length === 1 && Math.abs(g2.fires[0].I - .42) < .002 && g2._o2RichT === 321 && g2._laborHinted === true && c2.scanned && c2.stock === 1 && c2.caseG.visible && !c2.ring.visible };
         SV.saveApply(g2, snap, s2); s38.F_save.reloadNoDup = g2.regs.length === 1 && g2.fires.length === 1; s38.F_save.ok = s38.F_save.ok && s38.F_save.reloadNoDup; }
       // G: salvage caches in the world — 3 surface + 1 per ARK, clear of colliders / other things; scan → strip
       { const C = slice.salvage || [], bad = [];
@@ -19223,6 +19492,44 @@ if (location.search.includes('selftest')){
       // I: gating + recipe — rich-air ignition only runs in real play; regulator is a tier-1 starter recipe
       { const rec = CFG.craft.recipes.find(r => r.id === 'o2_regulator'); s38.I_gate = { riskOnInTest: !!game.o2RiskOn, recipe: rec ? [rec.tier, rec.scrap, !!rec.startUnlocked] : null, label: CFG.invLabels.o2_regulator,
           ok: !game.o2RiskOn && !!rec && rec.tier === 1 && rec.scrap <= 6 && rec.startUnlocked && !!CFG.invLabels.o2_regulator }; }
+      // ---- slice39 (v0.3.7): hint gate, fire cable link in saves, flight log pages, LUCID one-liners, new sounds, help ----
+      const s39 = out.slice39 = {}; try {
+        { const [g] = mk38(); const so = SETTINGS.objStrip; SETTINGS.objStrip = true; g.time = 100; g._hintT = -1e9; g.ui.toastBusy = () => false;
+          const a = hint(g, 'tA', 'one', 3000), a2 = hint(g, 'tA', 'one', 3000), busy = hint(g, 'tB', 'two', 3000), dup = hint(g, 'tB', 'two', 3000, { once: false }), qn = g._hintQ.length;
+          hintTick(g); const early = g.ui.toasts; g.time += CFG.ui.hintGap + .1; hintTick(g); const after = g.ui.toasts;
+          SETTINGS.objStrip = false; g.time += 30; const objOff = hint(g, 'tC', 'obj', 3000, { obj: true }), plain = hint(g, 'tD', 'plain', 3000);
+          g.time += 1; hint(g, 'tE', 'stale', 3000); g.time += CFG.ui.hintStale + 1; const pre = g.ui.toasts; hintTick(g); const staleShown = g.ui.toasts - pre, refire = !g._hint_tE;
+          SETTINGS.objStrip = true; const lab = { v: 0 }; g._laborHinted = true; g._hintQ = [{ key: 'labor', msg: 'x', ms: 1, o: { obj: true, onDrop: g => { g._laborHinted = false; } }, t: g.time }]; SETTINGS.objStrip = false; g.time += CFG.ui.hintGap + 1; hintTick(g); lab.v = g._laborHinted;
+          SETTINGS.objStrip = so;
+          s39.A_hint = { a, a2, busy, dup, qn, early, after, objOff, plain, staleShown, refire, laborReset: !lab.v,
+            ok: a === 'shown' && a2 === false && busy === 'queued' && dup === 'queued' && qn === 1 && early === 1 && after === 2 && objOff === false && plain === 'shown' && staleShown === 0 && refire && !lab.v }; }
+        { const [g, sl] = mk38(); const SV = window.__breathless.save; if (!g.power.cables.size) g.power.addCable(new CableSegment(g, 0, 1, 0, 1)); const C = [...g.power.cables.entries()][0];
+          const f = C ? g.add(new SmallFire(g, new THREE.Vector3(1, 0, 1), .5, C[1], 'a strained cable')) : null; if (f){ f.burned = 7.5; g.fires = [f]; }
+          const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))); const [g2, s2] = mk38(); SV.saveApply(g2, snap, s2); const f2 = g2.fires?.[0];
+          s39.B_fireSave = { haveCable: !!C, n: g2.fires?.length, I: f2 && Math.round(f2.I * 100) / 100, src: !!f2?.src, srcSame: !!(f2?.src && g2.power.cables.get(C[0]) === f2.src), why: f2?.why, burned: f2?.burned,
+            ok: !!C && g2.fires?.length === 1 && Math.abs(f2.I - .5) < .002 && !!f2.src && g2.power.cables.get(C[0]) === f2.src && f2.why === 'a strained cable' && Math.abs(f2.burned - 7.5) < .11 }; }
+        { const [g] = mk38(); const pod = g.add(new EscapePod(g, 20, 20)); const t0 = pod.prompt(g, 'log'); pod.interact(0, g, 'log', true); const n1 = g._log_pod, p1 = pod.prompt(g, 'log');
+          pod.interact(0, g, 'log', true); const l2 = g.ui.last; pod.interact(0, g, 'log', true); const l3 = g.ui.last, n3 = g._log_pod, p3 = pod.prompt(g, 'log'); pod.interact(0, g, 'log', true); const n4 = g._log_pod;
+          const SV = window.__breathless.save, snap = JSON.parse(JSON.stringify(SV.saveCapture(g))), [g2, s2] = mk38(); SV.saveApply(g2, snap, s2);
+          const old = { read: true }; const gO = mk38()[0]; const legacyN = logCount(gO, 'ark1', true);
+          const totals = Object.values(FLIGHT_LOG).map(L => L.e.length); refreshHelp(g); const helpRows = ($('helpLog')?.innerHTML.match(/<b>/g) || []).length;
+          s39.C_log = { t0: t0.slice(0, 40), n1, p1: p1.slice(-30), l2: (l2 || '').slice(0, 24), l3: (l3 || '').slice(0, 24), n3, p3: p3.slice(-30), n4, saved: g2._log_pod, legacyN, totals, helpRows,
+            ok: n1 === 1 && /next log entry \(2\/3\)/.test(p1) && /POD 7 LOG 2\/3/.test(l2) && /POD 7 LOG 3\/3/.test(l3) && n3 === 3 && /all 3 entries/.test(p3) && n4 === 3 && g2._log_pod === 3 && legacyN === 1 && totals.every(n => n >= 3) && helpRows === 3 }; }
+        { const [g] = mk38(); const said = []; g.lucidLine = m => said.push(m); const C = [...g.power.cables.values()][0];
+          o2Ignite(g, { p: new THREE.Vector3(1, 0, 1), src: C || null, why: 'an overloaded cable' }); const f = g.fires?.[0]; if (f) f.extinguish(g, 'doused');
+          s39.D_lucid = { said: said.length, fire: said.some(m => /Fire/.test(m)), out: said.some(m => /Out\.|choked/.test(m)), flags: [g._lucidFireSaid, g._lucidFireOutSaid],
+            ok: said.some(m => /Fire/.test(m)) && said.some(m => /Out\.|choked/.test(m)) && g._lucidFireSaid === true && g._lucidFireOutSaid === true }; }
+        { const fns = ['setFire', 'douse', 'valve', 'unlock', 'clank']; s39.E_sound = { have: fns.filter(k => typeof AUDIO[k] === 'function'), ok: fns.every(k => typeof AUDIO[k] === 'function') }; }
+        { const h = $('help')?.textContent || ''; s39.F_help = { ver: /v0\.3\.7/.test(h), sec: /AIR SAFETY/.test(h), reg: /regulator/i.test(h), fire: /douse/i.test(h), cache: /Salvage caches/i.test(h), hose: /hose reel/i.test(h), noOne: !/v1\.0/.test(h),
+            ok: /v0\.3\.7/.test(h) && /AIR SAFETY/.test(h) && /regulator/i.test(h) && /douse/i.test(h) && /Salvage caches/i.test(h) && /hose reel/i.test(h) && !/v1\.0/.test(h) }; }
+        // G: a save made during the crash walk resumes FIND SHELTER (was: always loaded as done); a done objective stays done
+        { const SV = window.__breathless.save; const [g] = mk38(); g.time = 50; g.objective = { id: 'shelter', label: 'FIND SHELTER', t0: 20, done: false, doneT: null };
+          const snap = JSON.parse(JSON.stringify(SV.saveCapture(g))); const [g2, s2] = mk38(); g2.time = 50; SV.saveApply(g2, snap, s2);
+          const G = s39.G_crashSave = { open: !!g2.objective && !g2.objective.done, elapsed: Math.round(g2.time - (g2.objective?.t0 ?? 0)) };
+          g.objective = { id: 'shelter', label: 'FIND SHELTER', t0: 0, done: true, secs: 33 }; const snap2 = JSON.parse(JSON.stringify(SV.saveCapture(g))); const [g3, s3] = mk38(); SV.saveApply(g3, snap2, s3);
+          G.doneKept = !!g3.objective?.done && g3.objective.secs === 33; G.ok = G.open && Math.abs(G.elapsed - 30) <= 1 && G.doneKept; }
+        s39.SUCCESS = !!(s39.A_hint.ok && s39.B_fireSave.ok && s39.C_log.ok && s39.D_lucid.ok && s39.E_sound.ok && s39.F_help.ok && s39.G_crashSave.ok);
+      } catch (err){ s39.error = String(err?.stack || err).slice(0, 600); s39.SUCCESS = false; }
       s38.SUCCESS = !!(s38.A_hose.ok && s38.B_rich.ok && s38.C_ignite.ok && s38.D_fire.ok && s38.E_reg.ok && s38.F_save.ok && s38.G_salvage.ok && s38.H_labor.ok && s38.I_gate.ok);
     } catch (err){ s38.error = String(err?.stack || err).slice(0, 600); s38.SUCCESS = false; }
   }
