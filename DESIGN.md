@@ -1,6 +1,6 @@
 # BREATHLESS - Game Design Brief (from the user, verbatim intent)
 
-**Current version: v0.3.8** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
+**Current version: v0.3.9** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
 
 ## Version history (old labels → v0.x)
 Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those old labels as **v0.X.Y**. The build-log entries below keep their original labels as **history**.
@@ -12,7 +12,7 @@ Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those ol
 | prototype 2.0 - 2.9.1 | v0.2.0 - v0.2.9.1 | 20-31 |
 | v3.0 / v3.1 / v3.1.1 | v0.3.0 / v0.3.1 / v0.3.1.1 | 32-33 + hotfix |
 | v3.2 / v3.3 | v0.3.2 / v0.3.3 | 34 / 35 |
-| (new numbering) | v0.3.4, v0.3.5, v0.3.6, v0.3.7, **v0.3.8 (current)** | 36, 37, 38, 39, 40 |
+| (new numbering) | v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8, **v0.3.9 (current)** | 36, 37, 38, 39, 40, 41 |
 
 Old saves (any proto string) still load, because loading is gated by `schema` (1).
 
@@ -699,7 +699,7 @@ User decisions on the five v0.3.5 open questions:
   - Without a regulator, base O2 sits around 38% during the hold.
   - The "New seedling planted" toast can repeat.
 
-## v0.3.8 (slice 40, 2026-10-27): Cell 4 landfill gas (current)
+## v0.3.8 (slice 40, 2026-10-27): Cell 4 landfill gas
 - **Site**: Northfield Landfill Cell 4 sits on the surface north of ARK-03 (outdoor area 50→66 m deep). It is a capped mound (rx 7.2, rz 5.5, h 3) with gas vents, debris, a leachate pond and a hazard sign. It is an optional side job (+8 scrap the first time it pays off).
 - **Methane (CH4)** is a real gas in the room model. It is light, so it pools at the ceiling (the roof intake reads about 4× the floor). It burns only between 5 and 15 % (LEL/UEL); a rich mix above 15 % does not ignite. It is not breathable: it displaces O2 and asphyxiates above about 30 %. The monitor shows CH4, and LUCID gives one quiet warning line. The warning is missable.
 - **Scan to unlock**: scanning a vent unlocks the gas family. Wellhead tiers have visible add-ons: T1 wellhead 0.5 L/s, T2 + blower 0.9 L/s, T3 + laterals 1.4 L/s. The flare stack burns off excess gas. The gas filter/trap catches condensate. Without a flare, a pressed main weeps back.
@@ -709,3 +709,26 @@ User decisions on the five v0.3.5 open questions:
 - **Save**: row `d.lf` holds the well tier, add-ons, field remaining, main pressure, flare and inlet, plus the CH4 event log.
 - **Tests (selftest slice40)**: A_gas, B_extract, C_gen, D_risk, E_save, F_scan, G_dig, H_help. Selftest 3×: 183 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
 - **Screenshots**: `play/v038_s40_landfill.png`, `play/v038_s40_well.png`, `play/v038_s40_gen.png`.
+
+## v0.3.9 (slice 41, 2026-10-27): crew-labour pacing (current)
+- **Goal**: less dead waiting at the bench when crew labour pays for crafting, without making scrap free.
+- **Labour rate** (`CFG.labor`): each worker on LABOR makes 1 scrap per 20 s at T1. Each bench tier above T1 adds +10 %. Each extra worker adds +25 % to the team, capped at 4 workers (×1.75). Examples: 1 worker at T1 = 1 scrap / 20 s; 2 workers at T3 = 1 scrap / ~7 s; 3 workers at T1 make 45 scrap in 200 s (vs 10 for one).
+- **Bench queue** (up to 4 items): "+ queue" on any unlocked recipe. Crew labour pays into the head of the queue and finishes the item while you are away (toast plus delivery; overflow goes to the pocket). Cancel refunds everything paid in. A locked recipe cannot be queued.
+- **Readout**: a small job board on the bench shows LABOR ×N, the rate, the current item with a progress bar and ETA, and the next item. The craft window header shows the same line, and the craft window has a QUEUE section.
+- **Workers spread out**: each worker takes its own spot along the bench side nearest to it (0, ±0.55, ±1.05 m), so they no longer stack on one spot or get stuck behind the table.
+- **Fixes**:
+  - The "New seedling planted" toast now goes through `hint()` and shows once per save.
+  - Cell 4's +8 scrap landfill payoff is guarded by `_lfPaid` and pays only once, even if the side job is re-scanned or reset.
+  - A fled feral that is left alone calms back to skittish. Before this, a relapsed feral could refuse bait forever and soft-lock the hold.
+- **Gas route discoverable**: 25 s after ARK-03, if the landfill side job has not started, LUCID gives one quiet line pointing at the Cell 4 vents. It fires once and is missable. H-help has a "Bench labour" line, and its LANDFILL GAS entry mentions the tip.
+- **Save**: row `d.cq` holds the queue (items and scrap paid in). `_lfPaid` and the replant hint flag round-trip. Proto 0.3.9 (0.3.8 saves still load).
+- **Judgement calls**:
+  - Pocket scrap is paid into a queued item as a deposit when you queue it, and any ore is taken at queue time. Crew labour funds the queue head before anything reaches the pocket.
+  - **The bench generator keeps its 200 W cap.** Gas T2 (225 W) and T3 (350 W) still need the 400 W manifold. The cap keeps the landfill tiers a real power upgrade and not just a free fuel swap.
+  - Fled ferals calm down when left alone (see Fixes).
+  - The LUCID gas tip waits 25 s after ARK-03 and does not repeat, so the warning stays missable.
+- **Numbers**:
+  - `?playthrough&labor`: won at sim **1050 s** (v0.3.7: 2438 s) with **0 scrap top-ups**. 57 scrap came from labour and 8 were left over at the end. Bench waiting was 327 s in total (v0.3.7: about 1480 s, with 30-254 s per item). The longest waits were sleeves 46 + 86 s, mood collar 86 s and O2 planter 37 s. 3 items were queued before the pylon trip and all 3 were collected from the queue.
+  - Normal `?playthrough`: won at sim 823 s with 47 top-ups (v0.3.7: 789 s, 47).
+- **Tests (selftest slice41)**: A_rate, B_queue, C_toast, D_save, E_lf, F_help. Selftest 3×: 190 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
+- **Screenshots**: `play/v039_s41_bench.png` (two crew on LABOR, the job board filling the reinforced cage) and `play/v039_s41_ui.png` (the craft window with its QUEUE section).

@@ -15788,6 +15788,18 @@ function runShot(name){
     }
     // ---- slice 25: polish shots (1280×800) ----
     // ---- v0.3.6/7: rich air, fire, regulator, salvage caches ----
+    case 's41_bench': case 's41_ui': {   // v0.3.9: two crew on LABOR at the bench, a queued item filling on the job board
+      try {
+      P.suit = 100; P.breath = 100; game.room.gases.o2 = Math.max(game.room.gases.o2, 300 * GASV); const t = slice.table; t.setTier(3); game.unlocks.craftTable = 3;
+      for (const id of ['snare_cage_t2', 'mood_collar', 'o2_planter']) game.unlockRecipe(id, 'shot');
+      const a = spawnImp(game, new THREE.Vector3(t.cx - .5, 0, t.cz - 1.4)); a.wake(game, true); a.setJob('labor');
+      const b = spawnImp(game, new THREE.Vector3(t.cx + .6, 0, t.cz - 1.5)); b.wake(game, true); b.setJob('labor');
+      game.scrap = 3; benchQueue(game, t, 'mood_collar'); benchQueue(game, t, 'snare_cage_t2'); benchQueue(game, t, 'o2_planter');
+      P.pos.set(1.5, 0, 1.5); for (let i = 0; i < 700; i++){ pre(.05); game.room.gases.o2 = Math.max(game.room.gases.o2, 300 * GASV); }
+      if (name === 's41_ui'){ look(t.cx - 1.6, t.cz - 1.9, t.cx, 1.0, t.cz); setTimeout(() => ui.openCraft(t), 200); } else {
+      const bw = t.board.g.getWorldPosition(new THREE.Vector3()), fx = bw.x - t.cx, fz = bw.z - t.cz; t.boardT = 99; pre(.6); look(bw.x - .15, bw.z - 1.8, bw.x - .55, 1.2, bw.z - .1); }
+      } catch (e){ setTimeout(() => ui.toast('SHOTERR ' + String(e?.stack || e).slice(0, 300), 60000), 300); } break;
+    }
     case 's40_landfill': case 's40_well': case 's40_gen': case 's40_flash': {   // v0.3.8: Cell 4 landfill, the wellhead, a generator on methane
       P.suit = 100; P.breath = 100; game.omni = true; const lf = game.landfill, w = lf.well, inl = lf.inlet, z0 = lf.z0;
       if (name === 's40_gen' || name === 's40_flash'){
