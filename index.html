@@ -142,7 +142,7 @@
   /* v0.4.2: in-engine cutscenes — letterbox, subtitles, fade, title, skip hint */
   #cine{position:fixed;inset:0;z-index:8;pointer-events:none;visibility:hidden}
   #cine.on{visibility:visible}
-  #cine .bar{position:absolute;left:0;right:0;height:0;background:#000;transition:height .7s cubic-bezier(.2,.7,.2,1)}
+  #cine .bar{border:0;outline:0;box-shadow:none;position:absolute;left:0;right:0;height:0;background:#000;transition:height .7s cubic-bezier(.2,.7,.2,1)}
   #cine .bar.t{top:0} #cine .bar.b{bottom:0}
   #cine.on .bar{height:11.5vh}
   #cinefade{position:absolute;inset:0;background:#000;opacity:0}
@@ -13142,9 +13142,9 @@ const CINES = {
       let dust = null, dust2 = null, hit = false; const fallT = 2.6;
       return { dur: 13.6,
         keys: [
-          { t: 0, p: _cv(pp.x + 7, 2.2, pp.z - 9), l: sky.clone().lerp(pp, .1), fov: 62 },
-          { t: 2.4, p: _cv(pp.x + 6.4, 1.9, pp.z - 8.2), l: _cv(pp.x, 1.2, pp.z), fov: 58 },
-          { t: 5.4, p: _cv(pp.x + 4.4, 1.5, pp.z - 5.4), l: _cv(pp.x, .9, pp.z), fov: 50 },
+          { t: 0, p: _cv(pp.x + 7, 6.5, pp.z - 9), l: sky.clone().lerp(pp, .35), fov: 62 },
+          { t: 2.4, p: _cv(pp.x + 6.4, 4.6, pp.z - 8.2), l: _cv(pp.x, 1.2, pp.z), fov: 58 },
+          { t: 5.4, p: _cv(pp.x + 4.4, 2.6, pp.z - 5.4), l: _cv(pp.x, .9, pp.z), fov: 50 },
           { t: 7.8, p: _cv(pp.x + 2.8, 1.25, pp.z - 3.4), l: _cv(pp.x, .7, pp.z), fov: 48 },
           { t: 8.0, cut: true, p: _cv(P.pos.x, .35, P.pos.z), l: _cv(P.pos.x + .4, 2.8, P.pos.z + 1.2), fov: 70 },   // on your back in the dust
           { t: 10.6, p: _cv(P.pos.x, .9, P.pos.z), l: _cv(pp.x, .8, pp.z), fov: 72 },
@@ -13173,9 +13173,9 @@ const CINES = {
   collar: {   // the first survivor collared: slow orbit round them as the collar locks and its ring lights
     build(g, c){
       const im = c.im, at = im?.pos ? im.pos.clone() : g.player.pos.clone(), eye = cineEyeKey(g, 0), P = g.player;
-      const a0 = Math.atan2(P.pos.x - at.x, P.pos.z - at.z), R = 1.55, k = (a, y, l, t, fov) => ({ t, p: _cv(at.x + Math.sin(a) * R, y, at.z + Math.cos(a) * R), l: _cv(at.x, l, at.z), fov });
-      const ring = new THREE.PointLight(0x5ad8ff, 0, 3.2, 1.6); ring.position.copy(at).add(_cv(0, .75, 0)); g.scene.add(ring);
-      return { dur: 7.4, keys: [eye, k(a0 + .15, 1.35, .7, 1.4, 52), k(a0 + .9, .95, .6, 3.8, 42), k(a0 + 1.5, .85, .62, 5.6, 40), { ...cineEyeKey(g, 7.4) }],
+      const a0 = Math.atan2(P.pos.x - at.x, P.pos.z - at.z), R = 2.5, k = (a, y, l, t, fov) => ({ t, p: _cv(at.x + Math.sin(a) * R, y, at.z + Math.cos(a) * R), l: _cv(at.x, l, at.z), fov });
+      const ring = new THREE.PointLight(0x5ad8ff, 0, 3.2, 1.6); ring.position.copy(at).add(_cv(0, 1.45, 0)); g.scene.add(ring);
+      return { dur: 7.4, keys: [eye, k(a0 + .15, 1.7, 1.25, 1.4, 52), k(a0 + .9, 1.55, 1.3, 3.8, 44), k(a0 + 1.5, 1.45, 1.3, 5.6, 42), { ...cineEyeKey(g, 7.4) }],
         subs: [{ t: .6, d: 2.6, who: 'LUCID', txt: 'Collar seated. Sedative holding.' },
                { t: 3.4, d: 3.6, who: 'LUCID', txt: `${im?.tag || 'They'} will breathe your air and work your base. Keep the collar charged — or they remember what they were.` }],
         sfx: [[.3, () => AUDIO.unlock?.()], [1.6, () => AUDIO.beep?.(660, .08, .04)], [1.8, () => AUDIO.beep?.(990, .1, .04)]],
@@ -13217,6 +13217,7 @@ const CINES = {
         sfx: [[.3, () => AUDIO.chord?.()]],
         tick(t){ sun.intensity = Math.min(220, t * 30); }, cleanup(){ g.scene.remove(sun); } };
     },
+    always: true,
     done(g, c){ if (c.st) showWin(c.st); }
   },
 };
@@ -13228,7 +13229,7 @@ class CineDirector {
     if (g._loading && !opts.force) return { ok: false, why: 'loading' };   // a save re-collaring its crew must not replay anything
     if (this.active){ if (!opts.force && !this.seen.has(id)) this.queue.push([id, ctx]); return { ok: false, why: 'busy' }; }
     const why = opts.force ? null : this.seen.has(id) ? 'seen' : !SETTINGS.cutscenes ? 'off' : this.auto ? 'auto' : null;
-    if (why){ this.seen.add(id); this.log.push({ id, why }); def.done?.(g, ctx, true); return { ok: false, why }; }
+    if (why){ this.seen.add(id); this.log.push({ id, why }); if (def.always) def.done?.(g, ctx, true); return { ok: false, why }; }   // only the ending hand-off must run when skipped unseen
     const sh = def.build(g, ctx); this.seen.add(id);
     this.active = { id, def, ctx, sh, fired: new Set(), yaw: g.player.yaw, pitch: g.player.pitch }; this.t = 0; this.shake = 0;
     document.body.classList.add('cine'); $('cine').classList.add('on'); $('cinetitle').textContent = ''; $('cinetitle').classList.remove('on');
@@ -16850,6 +16851,14 @@ function runShot(name){
     }
     // ---- slice 25: polish shots (1280×800) ----
     // ---- v0.3.6/7: rich air, fire, regulator, salvage caches ----
+    case 's44_opening': case 's44_collar': case 's44_feed': case 's44_ending': {   // v0.4.2: a frame from the middle of each in-engine cutscene
+      try {
+        P.suit = 100; P.breath = 100; const id = name.slice(4), T = { opening: 2.2, collar: 4.6, feed: 6.2, ending: 8.6 }[id];
+        const im = (game.imps || [])[0] || { pos: new THREE.Vector3(P.pos.x + 1.4, 0, P.pos.z + 1.1), tag: 'CREW-01' };
+        cine.play(id, id === 'collar' ? { im } : id === 'ending' ? { st: null } : {}, { force: true });
+        for (let k = 0; k < T / .05; k++) cine.update(.05); cine.hold = true;
+      } catch (e){ setTimeout(() => ui.toast('SHOTERR ' + String(e?.stack || e).slice(0, 300), 60000), 300); } break;
+    }
     case 's43_cavein': case 's43_prop': case 's43_breach': {   // v0.4.1: a fallen roof with rubble + creaking span, a T2 shoring prop, an open hissing hull breach
       try {
       P.suit = 100; P.breath = 100; const V = game.voxels, Rk = game.rock, c = GRID.c;

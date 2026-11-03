@@ -1,6 +1,6 @@
 # BREATHLESS - Game Design Brief (from the user, verbatim intent)
 
-**Current version: v0.4.0** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
+**Current version: v0.4.2** (pre-release; v1.0 is reserved for the official release). See *Version history* just below.
 
 ## Version history (old labels → v0.x)
 Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those old labels as **v0.X.Y**. The build-log entries below keep their original labels as **history**.
@@ -12,7 +12,7 @@ Everything before v0.3.3 was labelled "prototype X.Y" (or "vX.Y"). Read those ol
 | prototype 2.0 - 2.9.1 | v0.2.0 - v0.2.9.1 | 20-31 |
 | v3.0 / v3.1 / v3.1.1 | v0.3.0 / v0.3.1 / v0.3.1.1 | 32-33 + hotfix |
 | v3.2 / v3.3 | v0.3.2 / v0.3.3 | 34 / 35 |
-| (new numbering) | v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8, v0.3.9, **v0.4.0 (current)** | 36, 37, 38, 39, 40, 41, 42 |
+| (new numbering) | v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8, v0.3.9, v0.4.0, v0.4.1, **v0.4.2 (current)** | 36, 37, 38, 39, 40, 41, 42, 43, 44 |
 
 Old saves (any proto string) still load, because loading is gated by `schema` (1).
 
@@ -766,7 +766,7 @@ User decisions on the five v0.3.5 open questions:
   - Selftest 3×: 196 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
 - **Screenshots**: `play/v040_s42_airlock.png` and `play/v040_s42_route.png`.
 
-## v0.4.1 (slice 43, 2026-10-28): rock stress, cave-ins, shoring and dig breaches (current)
+## v0.4.1 (slice 43, 2026-10-28): rock stress, cave-ins, shoring and dig breaches
 - **Goal**: digging now has structural consequences that come from neglect and never from chance. A tunnel roof spanning too wide builds stress quietly, gives a missable tell, and then falls. Digging into a sealed hull opens a breach that equalises air until you patch it.
 - **Rock stress** (`RockNet`, `CFG.rock`): every roofed, dug soil cell has a span, meaning its distance in cells to the nearest wall, support or prop. A span of `safeSpan` 2 or less never moves, so 2-wide tunnels are always safe. Each cell past that adds `rate` 0.02/s of stress, capped at `maxEx` 3. Supported cells relax at 0.05/s. **Rock roofs and open sky never fall.**
 - **Tells, quiet by design**: at stress 0.3 (about 15 s at span 3) dust sifts from the roof. At 0.6 (about 30 s) there are creaks, pebbles and **one** LUCID/monitor line. The roof falls at 1.0 (about 50 s at span 3, about 25 s at span 4). There is no toast or beep before the fall.
@@ -799,3 +799,16 @@ User decisions on the five v0.3.5 open questions:
   - H_help: v0.4.1 lines present, no v1.0.
   - Full selftest 3×: 206 true / 1 false (the expected `slice8.A_noLink.remoteOk`).
 - **Screenshots**: `play/v041_s43_cavein.png` (roof cutaway over a fallen span), `play/v041_s43_prop.png` (a T2 prop holding a 7-wide drift) and `play/v041_s43_breach.png` (an open hull breach from inside ARK-01 with the patch prompt).
+
+## v0.4.2 (slice 44, 2026-11-03): in-engine cutscenes (current)
+
+Four short scripted scenes, rendered in the live engine (camera paths with Catmull-Rom easing and hard cuts, letterbox bars, subtitles, fades, title cards, one-shot sfx):
+
+- **Opening** — the escape pod falls burning from the sky, impact (bang, shake, dust), blackout, waking on your back, one heavy blink, a pan to the bunker strobe, title *FIND SHELTER*. The bottle clock (objective `t0`) starts only when you get the controls. Plays after the slice-19 lore intro on a fresh crash start.
+- **First collar** — a slow orbit around the first collared survivor as the collar ring lights; LUCID lays out the deal (keep the collar charged).
+- **First feed** — the ARK-03 turbine, then a cut down the pylon line as each pylon lights toward the bunker.
+- **Ending** — a crane up from the airlock, title *BREATHING ROOM*, fade to black, then the win card.
+
+Rules: each plays **once per save** (save row `cs`; proto 0.4.2; legacy saves count any scene whose event already happened as seen). [Space]/[Esc] skips; Settings → Cutscenes turns them off; `?selftest/?playthrough/?preview/?shot` auto-skip. The sim is frozen while a scene runs (nothing drains while you watch); every scene ends on the player's own eye so the hand-back is seamless. Scenes triggered while another is running queue. Skipped/disabled scenes still mark seen; only the ending runs its hand-off (the win card) when skipped.
+
+Tests: selftest slice44 (auto-skip, forced play/letterbox/subtitles/frozen sim, skip restores view, full runs clean up lights and land on the eye, once-per-save/off/queue, save round-trip + legacy, settings toggle, help/version). Shots `play/v042_s44_*.png`.

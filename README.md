@@ -1,6 +1,6 @@
 # Breathless
 
-**Current version: v0.4.1** (pre-release; builds stay on v0.x and v1.0 is reserved for the official release).
+**Current version: v0.4.2** (pre-release; builds stay on v0.x and v1.0 is reserved for the official release).
 
 First-person survival game (Subnautica-style view, Oxygen Not Included-style systems). Oxygen management is the core. A new game starts at a crashed escape pod with the objective FIND SHELTER, and the objective chain ends at BREATHING ROOM.
 
@@ -40,3 +40,6 @@ Older builds were labelled "prototype X.Y" or "vX.Y". Read them as **v0.X.Y**: p
   - Same-room moves keep the old steering.
   - Nothing became free.
 - **Tests**: selftest slice42 (door cycling, airlock safety, cross-zone order, save mid-path). Full selftest 3×: 196/1 (the expected `slice8.A_noLink.remoteOk`). Playthroughs won: normal at 827 s and `&labor` at 1118 s. Screenshots: `play/v040_s42_airlock.png` and `play/v040_s42_route.png`.
+
+### v0.4.2 — cutscenes
+Four skippable in-engine cutscenes (pod crash + wake-up, first collar, first ARK-03 feed, BREATHING ROOM ending). Once per save, [Space]/[Esc] to skip, Settings → Cutscenes to turn off; auto-skipped in selftest/playthrough. See DESIGN.md › v0.4.2.
