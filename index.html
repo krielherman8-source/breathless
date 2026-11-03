@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>BREATHLESS - v0.4.1 (cave-ins &amp; breaches)</title>
+<title>BREATHLESS - v0.4.2 (cutscenes)</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   /* slice 25: shared UI tokens — every panel / HUD box / button pulls from these */
@@ -139,6 +139,20 @@
   #orbsub.on{opacity:.88}
   /* slice 19: opening cutscene overlay */
   #intro{position:fixed;inset:0;z-index:8;display:none;pointer-events:none;background:transparent}
+  /* v0.4.2: in-engine cutscenes — letterbox, subtitles, fade, title, skip hint */
+  #cine{position:fixed;inset:0;z-index:8;pointer-events:none;visibility:hidden}
+  #cine.on{visibility:visible}
+  #cine .bar{position:absolute;left:0;right:0;height:0;background:#000;transition:height .7s cubic-bezier(.2,.7,.2,1)}
+  #cine .bar.t{top:0} #cine .bar.b{bottom:0}
+  #cine.on .bar{height:11.5vh}
+  #cinefade{position:absolute;inset:0;background:#000;opacity:0}
+  #cinesub{position:absolute;left:50%;bottom:14.5vh;transform:translateX(-50%);max-width:820px;width:84%;text-align:center;font-size:19px;line-height:1.5;color:#eef6f8;text-shadow:0 0 6px #000,0 2px 10px #000c;letter-spacing:.3px;opacity:0;transition:opacity .35s}
+  #cinesub.on{opacity:1}
+  #cinesub .who{display:inline-block;margin-right:10px;font-size:12px;letter-spacing:4px;color:#7fd8ff;vertical-align:2px}
+  #cinetitle{position:absolute;left:0;right:0;top:40%;text-align:center;font-weight:200;font-size:46px;letter-spacing:14px;color:#e6f8ff;text-shadow:0 0 30px #2aa6d4aa;opacity:0;transition:opacity 1.2s,letter-spacing 2.4s}
+  #cinetitle.on{opacity:.95;letter-spacing:18px}
+  #cineskip{position:absolute;right:26px;bottom:calc(11.5vh + 12px);font-size:12px;opacity:.5;letter-spacing:1px;color:#cfe}
+  body.cine #hud,body.cine #objective,body.cine #msg{opacity:0!important;transition:opacity .4s}
   #intro.on{display:block}
   #introcard{position:absolute;left:50%;top:18%;transform:translateX(-50%);max-width:720px;width:88%;text-align:center;padding:18px 22px;background:#000c;border:1px solid #2aa6d488;border-radius:6px;box-shadow:0 0 40px #001820aa}
   #introcard .beat{font-size:11px;letter-spacing:4px;opacity:.55;margin-bottom:8px;color:#7fb3c8}
@@ -167,7 +181,7 @@
   <div id="lucidui" class="panel"><span class="close">[Esc] close</span><h2 id="lucidtitle">LUCID LINK</h2><div class="meta" id="lucidmeta"></div><div class="ctrlcmds" id="ctrlcmds" style="display:none"></div><div id="lucidlist"></div><div class="crew sect" id="crewlist" style="display:none"></div><div class="orbcmds" id="orbcmds" style="display:none"></div><div class="last" id="lucidlast"></div></div>
   <div id="hint"><kbd>H</kbd> controls &nbsp; <kbd>B</kbd> build &nbsp; <kbd>Esc</kbd> pause</div>
   <div id="help">
-    <div class="ttl">CONTROLS<span>[H] close · v0.4.1</span></div>
+    <div class="ttl">CONTROLS<span>[H] close · v0.4.2</span></div>
     <div class="hcols">
     <div class="sec"><h4>MOVE &amp; ACT</h4>
       <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>Esc</kbd> pause<br>
@@ -215,6 +229,8 @@
     <div class="sec"><h4>ARKS &amp; DIGGING</h4>
       ARK-01: hatch → restore power junction → close gate breaker → bulkhead. Claim the omni-tool (faster <kbd>F</kbd>, enables <kbd>V</kbd>).<br>
       ARK-02 (west, further out): dig the soil-packed rails with <kbd>V</kbd>. ARK-03 (furthest, past ARK-01): seat 2 batteries, sleeve the ram feeder to T3, cycle the blast door. Clear the dig-laser cave-in → scan the drill head → craft a mining drill (T5) → <kbd>E</kbd> place; cable 150 W; faces ore/berm. Scan the briquette die → table press (2→3) or craft ore refinery (2→4, 100 W). Restart the hall turbine (repair kit, control chip, T3 export, briquettes) and repair/sleeve the outdoor pylons to T3 — station feed gains bulk watts when the line holds. Dug pockets hold their own (bad) air: <kbd>E</kbd> on the pocket floor hangs a seal hatch / curtain, scrubbers clean it.</div>
+    <div class="sec"><h4>CUTSCENES (v0.4.2)</h4>
+      Four short in-engine scenes: the pod crash and wake-up, your first collared survivor, the ARK-03 feed going live, and the BREATHING ROOM ending. Each plays <b>once per save</b>; the world is paused while it runs. <kbd>Space</kbd> / <kbd>Esc</kbd> skips. Turn them off in Settings → Cutscenes.</div>
     <div class="sec"><h4>ROCK, CAVE-INS &amp; BREACHES (v0.4.1)</h4>
       <b>Rock stress</b>: a soft (soil) roof more than 2 cells from a wall or support slowly loads up. It tells you quietly — dust sifting, then creaks and pebbles — never randomly. Rock roofs and open sky never move.<br>
       <b>Cave-in</b>: an overloaded span drops 3×3 cells of rubble. Under it: −30 suit and you are knocked flat; crew go DOWN (rouse them). Pipes, hoses and cables under the fall are pinched — dig the rubble clear (<kbd>V</kbd>, faster than virgin ground; yields scrap or ore); a crushed cable then needs repairing. Crew routes through a fall re-plan or refuse.<br>
@@ -242,6 +258,7 @@
   </div>
 </div>
 <div id="resume"><div class="card"><b>PAUSED</b><div class="cta">Click to resume</div><small>pointer released &nbsp;·&nbsp; <kbd>H</kbd> controls</small><div style="margin-top:10px"><button id="btnSetP" class="sbtn small">Settings</button></div></div></div>
+<div id="cine"><div class="bar t"></div><div class="bar b"></div><div id="cinefade"></div><div id="cinetitle"></div><div id="cinesub"></div><div id="cineskip"><kbd>Space</kbd> / <kbd>Esc</kbd> skip</div></div>
 <div id="intro">
   <div id="introglitch"></div>
   <div id="introcard"><div class="beat" id="introbeat">01 / 08</div><h2 id="introtitle">BREATHLESS</h2><p id="introbody">…</p></div>
@@ -258,7 +275,7 @@
   <p id="starthint"><b>Click to begin</b> &nbsp; <span style="opacity:.6">(<kbd>Shift</kbd>+click replays the intro · <kbd>Space</kbd> skips it)</span></p>
   <div id="savebox" style="display:none"><div class="row"><button id="btnContinue" class="sbtn main">Continue</button><button id="btnNew" class="sbtn">New game</button></div><div class="row"><button id="btnSetT" class="sbtn small">Settings</button></div><div id="saveinfo"></div></div>
   <div id="savenote" style="display:none"></div>
-  <div class="ver">v0.4.1 · BREATHING ROOM</div>
+  <div class="ver">v0.4.2 · BREATHING ROOM</div>
 </div>
 <div id="settings"><div class="card"><h3>SETTINGS</h3>
 <label>Mouse sensitivity <input id="setSens" type="range" min="0.25" max="3" step="0.05"></label>
@@ -268,6 +285,7 @@
 <label>Effects volume <input id="setSfx" type="range" min="0" max="1" step="0.05"></label>
 <label>Ambience volume <input id="setAmb" type="range" min="0" max="1" step="0.05"></label>
 <label>Objective strip <input id="setObj" type="checkbox"></label>
+<label>Cutscenes <input id="setCine" type="checkbox"></label>
 <label>Graphics quality <select id="setQ"><option value="high">High</option><option value="ultra">Ultra</option><option value="ultraplus">Ultra+</option></select></label>
 <label>Save file <span><button id="btnExport" class="sbtn small">Export</button> <button id="btnImport" class="sbtn small">Import</button><input id="setFile" type="file" accept=".json,.txt" style="display:none"></span></label>
 <div style="text-align:right;margin-top:12px"><button id="btnSetClose" class="sbtn small">Close</button></div></div></div>
@@ -277,7 +295,7 @@
 import * as THREE from './lib/three.module.js';
 
 /* =====================================================================
-   BREATHLESS v0.4.1  (v0.4.1: rock stress + cave-ins from unsupported soft spans (quiet dust/creak tells, 3x3 rubble falls that hurt you/crew and pinch
+   BREATHLESS v0.4.2  (v0.4.2: skippable in-engine cutscenes — pod crash + wake-up, first collar, ARK-03 feed, BREATHING ROOM ending; once per save, Settings toggle; v0.4.1: rock stress + cave-ins from unsupported soft spans (quiet dust/creak tells, 3x3 rubble falls that hurt you/crew and pinch
    pipes/hoses/cables, rubble re-dig, tiered shoring props), dig breaches through ARK-01's east hull (gas/liquid equalise, hiss, weld patch);
    HISTORY — v0.4.0: crew routes — a zone + door graph over the base, airlock, surface lanes and ARK-01/02/03 with waypoint paths; crew on FOLLOW walk through doors with you, cycle the airlock and hatches themselves safely, refuse crossings their air won't cover, take orders for another zone ([Z] site), and resume a trip after save/load.  v0.3.9: crew-labour pacing — 1 scrap / 20 s per LABOR worker, +10 % per bench tier, +25 % per extra worker (max 4), a 4-slot bench craft queue crew labour funds while you are away, a lit job board on the bench, one-time replant toast, landfill payoff once + LUCID gas tip after ARK-03, fled ferals calm when left alone; v0.3.8: Cell 4 landfill — methane wellhead T1-T3 + flare, gas burner on generators, CH4 ceiling layer / flash / blast, refuse dig with gas pockets; v0.3.7: visible fire FX, readable regulator gauge, flight-log continuity, hint gate, crash-walk saves; versions renumbered: old 2.x/3.x prototypes = v0.2.x/v0.3.x, 1.0 reserved for the official release; v0.3.6: rich air is a
    fire risk (O2 > 30 %: quiet RICH tell, sparks from strained cables / burst pipes / generators can start a small fire; O2 regulator bleeds
@@ -12223,7 +12241,7 @@ function priorityBrownoutGrid(g, s){
 
 // ---------- v0.3.3: player settings (localStorage). Graphics quality only goes UP from the authored look, never down. ----------
 const SETTINGS_KEY = 'breathless_settings_v1';
-const SETTINGS_DEF = { sens: 1, invertY: false, fov: 75, master: .8, sfx: 1, amb: 1, objStrip: true, quality: 'high' };
+const SETTINGS_DEF = { sens: 1, invertY: false, fov: 75, master: .8, sfx: 1, amb: 1, objStrip: true, quality: 'high', cutscenes: true };
 const SETTINGS = (() => { let o = {}; try { o = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}; } catch (e){} return { ...SETTINGS_DEF, ...o }; })();
 function settingsSave(){ try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(SETTINGS)); } catch (e){} }
 // ---------- 8. Build scene ----------
@@ -13095,6 +13113,169 @@ class Particles {
 }
 const particles = new Particles(scene);
 const intro = new OpeningCutscene(scene, camera, game);
+// ---------- v0.4.2 (slice 44): scripted in-engine cutscenes (camera paths, letterbox, subtitles, sound) ----------
+// Four one-shot scenes, each stored in the save (d.cs): opening (pod crash + wake-up → FIND SHELTER), first collar,
+// first ARK-03 feed, BREATHING ROOM ending. [Esc]/[Space] skips; Settings → Cutscenes off; ?playthrough / selftest / shots auto-skip.
+// The sim is frozen while one plays (nothing ticks, nothing drains) and the player's view is handed back exactly.
+const CINE_AUTO = /[?&](selftest|playthrough|preview|shot)\b/.test(location.search);
+const CINE_IDS = ['opening', 'collar', 'feed', 'ending'];
+const _cv = (x, y, z) => new THREE.Vector3(x, y, z);
+function cineEyeKey(g, t){   // a key that sits exactly on the player's own eye (hand-off / hand-back)
+  const P = g.player, e = CFG.player.eye, d = _cv(-Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), -Math.cos(P.yaw) * Math.cos(P.pitch));
+  return { t, p: _cv(P.pos.x, e, P.pos.z), l: _cv(P.pos.x + d.x * 6, e + d.y * 6, P.pos.z + d.z * 6), fov: SETTINGS.fov };
+}
+function cineDust(g, at, n = 26, col = 0x8a7a66){   // a short-lived additive dust / smoke burst (shared material, disposed on cleanup)
+  const grp = new THREE.Group(), M = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .5, depthWrite: false }), geo = new THREE.SphereGeometry(.5, 8, 6), parts = [];
+  for (let i = 0; i < n; i++){ const m = new THREE.Mesh(geo, M.clone()), a = i / n * Math.PI * 2 + Math.random() * .3;
+    m.position.copy(at); m.userData.v = _cv(Math.sin(a) * (2 + Math.random() * 3), .6 + Math.random() * 2.2, Math.cos(a) * (2 + Math.random() * 3)); grp.add(m); parts.push(m); }
+  g.scene.add(grp);
+  return { grp, tick(dt){ for (const m of parts){ m.position.addScaledVector(m.userData.v, dt); m.userData.v.multiplyScalar(1 - 1.4 * dt); m.scale.multiplyScalar(1 + .9 * dt); m.material.opacity = Math.max(0, m.material.opacity - .16 * dt); } },
+    dispose(){ g.scene.remove(grp); geo.dispose(); for (const m of parts) m.material.dispose(); M.dispose(); } };
+}
+const CINES = {
+  opening: {   // the pod screams in, hits, the dust settles; you come to in the wreck and the camera lands on your own eyes → FIND SHELTER
+    build(g){
+      const pod = g._slice?.pod, al = g.airlock, z0 = al.zOuter, P = g.player, pp = pod ? pod.pos.clone() : _cv(P.pos.x, 0, P.pos.z + 3);
+      const rest = pod?.mesh.position.clone(), sky = pp.clone().add(_cv(-26, 34, 30)), eye = cineEyeKey(g, 13.2);
+      const trail = new THREE.PointLight(0xff7a2a, 0, 26, 1.4); g.scene.add(trail);
+      const flame = new THREE.Mesh(new THREE.ConeGeometry(.55, 5, 14, 1, true), new THREE.MeshBasicMaterial({ color: 0xffa050, transparent: true, opacity: .0, blending: THREE.AdditiveBlending, depthWrite: false })); g.scene.add(flame);
+      let dust = null, dust2 = null, hit = false; const fallT = 2.6;
+      return { dur: 13.6,
+        keys: [
+          { t: 0, p: _cv(pp.x + 7, 2.2, pp.z - 9), l: sky.clone().lerp(pp, .1), fov: 62 },
+          { t: 2.4, p: _cv(pp.x + 6.4, 1.9, pp.z - 8.2), l: _cv(pp.x, 1.2, pp.z), fov: 58 },
+          { t: 5.4, p: _cv(pp.x + 4.4, 1.5, pp.z - 5.4), l: _cv(pp.x, .9, pp.z), fov: 50 },
+          { t: 7.8, p: _cv(pp.x + 2.8, 1.25, pp.z - 3.4), l: _cv(pp.x, .7, pp.z), fov: 48 },
+          { t: 8.0, cut: true, p: _cv(P.pos.x, .35, P.pos.z), l: _cv(P.pos.x + .4, 2.8, P.pos.z + 1.2), fov: 70 },   // on your back in the dust
+          { t: 10.6, p: _cv(P.pos.x, .9, P.pos.z), l: _cv(pp.x, .8, pp.z), fov: 72 },
+          { t: 12.2, p: _cv(P.pos.x, CFG.player.eye, P.pos.z), l: _cv(0, CFG.airlock.doorH, z0), fov: SETTINGS.fov },   // the green strobe on the bunker
+          eye ],
+        subs: [
+          { t: .4, d: 2.2, who: '', txt: 'Re-entry. Shield cracked. No chute.' },
+          { t: 3.4, d: 3.4, who: 'LUCID', txt: '…impact logged. One heartbeat in the pod. Hold on.' },
+          { t: 8.3, d: 2.6, who: 'LUCID', txt: 'Awake? Good. Your suit is on a short bottle.' },
+          { t: 10.9, d: 2.4, who: 'LUCID', txt: 'Bunker airlock, thirty metres. Follow the green strobe.' } ],
+        fades: [[7.65, 8.0, 0, 1], [8.0, 9.2, 1, 0], [9.6, 9.8, 0, .7], [9.8, 10.2, .7, 0]],   // the impact blackout + one heavy blink
+        sfx: [[.1, () => AUDIO.set?.(.6, .1)], [fallT, () => { AUDIO.bang?.(1); AUDIO.whoomp?.(1); }], [fallT + .5, () => AUDIO.creak?.(.8)], [8.1, () => AUDIO.set?.(.25, .05)], [12.3, () => AUDIO.beep?.(880, .1, .05)]],
+        title: [12.4, 'FIND SHELTER'],
+        tick(t, dt, D){
+          if (pod && t < fallT){ const u = t / fallT, e = u * u; pod.mesh.position.lerpVectors(sky, rest, e); pod.mesh.rotation.x = (1 - e) * 1.6;
+            const dir = sky.clone().sub(rest).normalize(); flame.position.copy(pod.mesh.position).addScaledVector(dir, 2.6); flame.lookAt(sky); flame.rotateX(Math.PI / 2); flame.material.opacity = .85; trail.position.copy(pod.mesh.position); trail.intensity = 60; }
+          else if (!hit){ hit = true; if (pod){ pod.mesh.position.copy(rest); pod.mesh.rotation.x = 0; } flame.visible = false; trail.position.copy(pp).add(_cv(0, 1.2, 0)); trail.intensity = 260; D.shake = 1.2;
+            dust = cineDust(g, pp.clone().add(_cv(0, .4, 0)), 30); dust2 = cineDust(g, pp.clone().add(_cv(0, .2, 0)), 18, 0x3a2e24); }
+          else trail.intensity = Math.max(18, trail.intensity * (1 - 2.2 * dt));
+          dust?.tick(dt); dust2?.tick(dt);
+        },
+        cleanup(){ if (pod){ pod.mesh.position.copy(rest); pod.mesh.rotation.x = 0; } g.scene.remove(trail); g.scene.remove(flame); flame.geometry.dispose(); flame.material.dispose(); dust?.dispose(); dust2?.dispose(); } };
+    },
+    done(g){ if (g.objective && !g.objective.done) g.objective.t0 = g.time; }   // the bottle clock starts when you have the controls
+  },
+  collar: {   // the first survivor collared: slow orbit round them as the collar locks and its ring lights
+    build(g, c){
+      const im = c.im, at = im?.pos ? im.pos.clone() : g.player.pos.clone(), eye = cineEyeKey(g, 0), P = g.player;
+      const a0 = Math.atan2(P.pos.x - at.x, P.pos.z - at.z), R = 1.55, k = (a, y, l, t, fov) => ({ t, p: _cv(at.x + Math.sin(a) * R, y, at.z + Math.cos(a) * R), l: _cv(at.x, l, at.z), fov });
+      const ring = new THREE.PointLight(0x5ad8ff, 0, 3.2, 1.6); ring.position.copy(at).add(_cv(0, .75, 0)); g.scene.add(ring);
+      return { dur: 7.4, keys: [eye, k(a0 + .15, 1.35, .7, 1.4, 52), k(a0 + .9, .95, .6, 3.8, 42), k(a0 + 1.5, .85, .62, 5.6, 40), { ...cineEyeKey(g, 7.4) }],
+        subs: [{ t: .6, d: 2.6, who: 'LUCID', txt: 'Collar seated. Sedative holding.' },
+               { t: 3.4, d: 3.6, who: 'LUCID', txt: `${im?.tag || 'They'} will breathe your air and work your base. Keep the collar charged — or they remember what they were.` }],
+        sfx: [[.3, () => AUDIO.unlock?.()], [1.6, () => AUDIO.beep?.(660, .08, .04)], [1.8, () => AUDIO.beep?.(990, .1, .04)]],
+        tick(t){ ring.intensity = t < 1.6 ? 0 : Math.min(3, (t - 1.6) * 4) * (.8 + .2 * Math.sin(t * 6)); },
+        cleanup(){ g.scene.remove(ring); } };
+    }
+  },
+  feed: {   // the ARK-03 feed goes live: the turbine spins up, then the pylon line lights one by one back toward the bunker
+    build(g){
+      const T = g.ark3Turbine, tp = (T?.pos || T?.mesh?.position || _cv(0, 0, 60)).clone(), pyl = (g.ark3Pylons || []).slice(), z0 = g.airlock.zOuter;
+      const lights = pyl.map(p => { const L = new THREE.PointLight(0x9fe8ff, 0, 7, 1.5); L.position.set(p.x, 4.2, p.z); g.scene.add(L); return L; });
+      const far = pyl.length ? pyl.reduce((a, b) => (b.z > a.z ? b : a)) : { x: 2, z: z0 + 30 }, near = pyl.length ? pyl.reduce((a, b) => (b.z < a.z ? b : a)) : { x: 2, z: z0 + 8 };
+      const dur = 9.6;
+      return { dur, keys: [cineEyeKey(g, 0),
+          { t: .9, p: _cv(tp.x - 2.2, 1.5, tp.z - 2.4), l: _cv(tp.x, 1.2, tp.z), fov: 55 },
+          { t: 3.2, p: _cv(tp.x - 1.4, 2.1, tp.z - 1.7), l: _cv(tp.x, 1.3, tp.z), fov: 46 },
+          { t: 3.4, cut: true, p: _cv(far.x - 5, 3.2, far.z + 4), l: _cv(far.x, 3, far.z), fov: 58 },
+          { t: 7.4, p: _cv(near.x - 4.5, 4.4, near.z + 6), l: _cv(0, 1.5, z0), fov: 54 },
+          { t: 7.6, cut: true, ...(({ p, l }) => ({ p, l }))(cineEyeKey(g, 0)), fov: SETTINGS.fov }, cineEyeKey(g, dur)],
+        subs: [{ t: .5, d: 2.6, who: 'LUCID', txt: 'Turbine at speed. Export breaker closing…' },
+               { t: 3.6, d: 3.6, who: 'LUCID', txt: 'The line holds. ARK-03 is on the wire — bulk power for the bunker.' }],
+        fades: [[3.2, 3.4, 0, .9], [3.4, 3.7, .9, 0], [7.4, 7.6, 0, .9], [7.6, 7.9, .9, 0]],
+        sfx: [[.2, () => AUDIO.whoomp?.(.7)], [1.0, () => AUDIO.set?.(.15, .5)], [3.5, () => AUDIO.unlock?.()]],
+        tick(t, dt, D){ if (t > .4 && t < 3.3) D.shake = Math.max(D.shake, .12);
+          const n = lights.length; lights.forEach((L, i) => { const order = n - 1 - pyl.indexOf(pyl.slice().sort((a, b) => b.z - a.z)[i]); const on = 3.6 + order * (3.4 / Math.max(1, n)); L.intensity = t > on ? Math.min(6, (t - on) * 14) : 0; }); },
+        cleanup(){ for (const L of lights) g.scene.remove(L); AUDIO.set?.(.05, .05); } };
+    }
+  },
+  ending: {   // BREATHING ROOM: from the bunker door, a slow crane up and back over the pad, the ARK line and the dust
+    build(g){
+      const z0 = g.airlock.zOuter, sun = new THREE.PointLight(0xffd6a0, 0, 80, 1.1); sun.position.set(-20, 30, z0 + 40); g.scene.add(sun);
+      return { dur: 14,
+        keys: [{ t: 0, p: _cv(1.4, 1.6, z0 + 3.2), l: _cv(0, 1.5, z0), fov: 55 }, { t: 4, p: _cv(3.5, 3.4, z0 + 9), l: _cv(0, 1.2, z0), fov: 55 },
+               { t: 9, p: _cv(9, 11, z0 + 22), l: _cv(0, 1, z0 + 8), fov: 58 }, { t: 14, p: _cv(14, 22, z0 + 36), l: _cv(0, 4, z0 + 12), fov: 60 }],
+        subs: [{ t: .8, d: 3.6, who: 'LUCID', txt: 'Base air steady. Five minutes without a top-up.' },
+               { t: 4.8, d: 4, who: '', txt: 'The turbine in ARK-03 turns. The line home holds. The people you pulled out of the dust sleep under their collars.' },
+               { t: 9.4, d: 3.6, who: '', txt: 'You are still on a dead world. But the air does not run out today.' }],
+        fades: [[12.6, 14, 0, 1]], title: [10.2, 'BREATHING ROOM'],
+        sfx: [[.3, () => AUDIO.chord?.()]],
+        tick(t){ sun.intensity = Math.min(220, t * 30); }, cleanup(){ g.scene.remove(sun); } };
+    },
+    done(g, c){ if (c.st) showWin(c.st); }
+  },
+};
+class CineDirector {
+  constructor(game){ this.game = game; this.active = null; this.t = 0; this.hold = false; this.queue = []; this.log = []; this.shake = 0; this._l = _cv(0, 0, 0); this._p = _cv(0, 0, 0); this.auto = CINE_AUTO; }
+  get seen(){ return this.game._cineSeen || (this.game._cineSeen = new Set()); }
+  play(id, ctx = {}, opts = {}){
+    const g = this.game, def = CINES[id]; if (!def) return { ok: false, why: 'unknown' };
+    if (g._loading && !opts.force) return { ok: false, why: 'loading' };   // a save re-collaring its crew must not replay anything
+    if (this.active){ if (!opts.force && !this.seen.has(id)) this.queue.push([id, ctx]); return { ok: false, why: 'busy' }; }
+    const why = opts.force ? null : this.seen.has(id) ? 'seen' : !SETTINGS.cutscenes ? 'off' : this.auto ? 'auto' : null;
+    if (why){ this.seen.add(id); this.log.push({ id, why }); def.done?.(g, ctx, true); return { ok: false, why }; }
+    const sh = def.build(g, ctx); this.seen.add(id);
+    this.active = { id, def, ctx, sh, fired: new Set(), yaw: g.player.yaw, pitch: g.player.pitch }; this.t = 0; this.shake = 0;
+    document.body.classList.add('cine'); $('cine').classList.add('on'); $('cinetitle').textContent = ''; $('cinetitle').classList.remove('on');
+    input.keys = {}; input.hold = false; input.ePress = false;
+    this.pose(0); return { ok: true };
+  }
+  _seg(keys, t){ let i = 0; while (i < keys.length - 2 && keys[i + 1].t <= t) i++; return i; }
+  pose(t){
+    const k = this.active.sh.keys, i = this._seg(k, t), a = k[i], b = k[i + 1] || a, u0 = b.t > a.t ? Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t))) : 1;
+    const u = b.cut ? (u0 >= 1 ? 1 : 0) : u0 * u0 * (3 - 2 * u0);   // a cut key jumps; everything else eases
+    if (b.cut){ const s = u0 >= 1 ? b : a; this._p.copy(s.p); this._l.copy(s.l); }
+    else { const a0 = k[i - 1] && !a.cut ? k[i - 1] : a, b1 = k[i + 2] && !k[i + 2].cut ? k[i + 2] : b;   // Catmull-Rom through the neighbours for a smooth dolly
+      const cr = (p0, p1, p2, p3, out) => out.set(0, 0, 0).addScaledVector(p0, -.5 * u + u * u - .5 * u * u * u).addScaledVector(p1, 1 - 2.5 * u * u + 1.5 * u * u * u).addScaledVector(p2, .5 * u + 2 * u * u - 1.5 * u * u * u).addScaledVector(p3, -.5 * u * u + .5 * u * u * u);
+      cr(a0.p, a.p, b.p, b1.p, this._p); this._l.lerpVectors(a.l, b.l, u); }
+    const fov = (a.fov ?? SETTINGS.fov) + ((b.fov ?? SETTINGS.fov) - (a.fov ?? SETTINGS.fov)) * u;
+    camera.position.copy(this._p);
+    if (this.shake > .001){ const s = this.shake * .12; camera.position.add(_cv((Math.random() - .5) * s, (Math.random() - .5) * s, (Math.random() - .5) * s)); }
+    camera.lookAt(this._l); if (Math.abs(camera.fov - fov) > .01){ camera.fov = fov; camera.updateProjectionMatrix(); }
+  }
+  update(dt){
+    const A = this.active; if (!A) return; if (!this.hold) this.t += dt; const t = this.t, s = A.sh;
+    this.shake = Math.max(0, this.shake - 1.6 * dt);
+    s.tick?.(t, this.hold ? 0 : dt, this); this.pose(t);
+    let sub = null; for (const x of s.subs || []) if (t >= x.t && t < x.t + x.d) sub = x;
+    const el = $('cinesub'), key = sub ? sub.txt : '';
+    if (el.dataset.k !== key){ el.dataset.k = key; el.innerHTML = sub ? (sub.who ? `<span class="who">${sub.who}</span>` : '') + sub.txt : ''; el.classList.toggle('on', !!sub); }
+    let fa = 0; for (const [t0, t1, f0, f1] of s.fades || []) if (t >= t0 && t < t1) fa = f0 + (f1 - f0) * (t - t0) / (t1 - t0); $('cinefade').style.opacity = fa.toFixed(3);
+    if (s.title && t >= s.title[0] && !$('cinetitle').classList.contains('on')){ $('cinetitle').textContent = s.title[1]; $('cinetitle').classList.add('on'); }
+    for (const [ft, fn] of s.sfx || []) if (t >= ft && !A.fired.has(ft)){ A.fired.add(ft); try { fn(); } catch (e){} }
+    if (t >= s.dur) this.end(false);
+  }
+  skip(){ if (this.active) this.end(true); }
+  end(skipped){
+    const A = this.active, g = this.game; if (!A) return; this.active = null; this.hold = false;
+    try { A.sh.cleanup?.(); } catch (e){}
+    document.body.classList.remove('cine'); $('cine').classList.remove('on'); $('cinesub').classList.remove('on'); $('cinesub').dataset.k = ''; $('cinesub').innerHTML = ''; $('cinefade').style.opacity = 0; $('cinetitle').classList.remove('on');
+    g.player.yaw = A.yaw; g.player.pitch = A.pitch; camera.fov = SETTINGS.fov; camera.updateProjectionMatrix();
+    camera.position.set(g.player.pos.x, CFG.player.eye, g.player.pos.z); camera.rotation.set(g.player.pitch, g.player.yaw, 0, 'YXZ');
+    input.keys = {}; input.hold = false; input.ePress = false;
+    this.log.push({ id: A.id, why: skipped ? 'skipped' : 'played', t: Math.round(this.t * 10) / 10 });
+    A.def.done?.(g, A.ctx, skipped);
+    if (this.queue.length){ const [id, c] = this.queue.shift(); this.play(id, c); }
+  }
+}
+// pre-v0.4.2 saves have no cutscene row: whatever already happened in that run counts as seen (no flashbacks on Continue)
+function cineLegacySeen(g){ const s = new Set(['opening']); if ((g.imps || []).some(m => m.recruited || m.collar)) s.add('collar'); if (g._arkFeedLive) s.add('feed'); if (g._won) s.add('ending'); return s; }
+const cine = new CineDirector(game);
 
 
 // ---------- Audio (procedural: hiss, pump hum, creaks, bang, beeps) ----------
@@ -13880,7 +14061,7 @@ function lockPointer(){
   } catch (e){ lockPointer.denied = (lockPointer.denied || 0) + 1; showPaused(); }
 }
 function showPaused(){
-  const busy = locked || game.over || $('win')?.style.display === 'flex' || $('settings')?.style.display === 'flex' || ui.craftTable || ui.lucidOpen || intro.active || SHOT;
+  const busy = locked || game.over || $('win')?.style.display === 'flex' || $('settings')?.style.display === 'flex' || ui.craftTable || ui.lucidOpen || intro.active || cine.active || SHOT;
   $('resume').style.display = (!busy && playedOnce) ? 'block' : 'none';
   $('start').style.display = (!busy && !playedOnce) ? 'flex' : 'none';
 }
@@ -14195,6 +14376,7 @@ function enterGameplay(){
   AUDIO.init(); playedOnce = true; document.body.classList.remove('pregame');   // slice 31: HUD appears only once play starts
   $('start').style.display = 'none';   // slice 29: never leave the title up behind a failed / slow pointer lock
   lockPointer();
+  if (game.objective && !game.objective.done && (game.time - (game.objective.t0 || 0)) < 5) cine.play('opening');   // v0.4.2: a fresh crash start (once per save)
 }
 function start(ev){
   if (game.over){ location.reload(); return; }
@@ -14235,6 +14417,7 @@ document.addEventListener('keydown', e => {
   input.keys[e.code] = true;
   if (e.code === 'KeyE'){ input.hold = true; if (!e.repeat) input.ePress = true; }
   // slice 19: intro skip / debug replay (before craft/lucid gates)
+  if (cine.active){ e.preventDefault?.(); if (!e.repeat && (e.code === 'Space' || e.code === 'Escape')) cine.skip(); input.keys = {}; input.hold = false; input.ePress = false; return; }   // v0.4.2
   if (intro.active && !e.repeat && (e.code === 'Space' || e.code === 'Escape')){
     e.preventDefault(); intro.skip(); return;
   }
@@ -14629,6 +14812,9 @@ function tick(dt, t){
     return;
   }
   if (intro.visorT > 0) intro.update(dt);   // post-drop visor glitch fade
+  if (cine.active){   // v0.4.2: a cutscene owns the camera; the sim is frozen (nothing drains while you watch)
+    input.ePress = false; cine.update(dt); camera.updateMatrixWorld(); scene.updateMatrixWorld(); updateHud(); return;
+  }
   if ((locked || autorun || ui.lucidOpen) && !game.over){
     game.step(dt, ui.lucidOpen && !locked ? { keys: {} } : input);   // world keeps running behind the LUCID panel
     saveTick(dt);   // slice 29 autosave
@@ -14911,11 +15097,12 @@ function saveCapture(g){
   d.pod = g._slice?.pod ? [g._slice.pod.salvage, g._slice.pod.logRead ? 1 : 0] : null;
   d.piles = (g.piles || []).map(p => ({ p: [sR(p.pos.x), sR(p.pos.z)], n: p.n, l: p.label }));
   d.cave = g.rock ? g.rock.save() : null;   // v0.4.1: stress, rubble, shoring props, hull breaches
+  d.cs = [...(g._cineSeen || [])];   // v0.4.2: cutscenes already shown in this run
   // summary for the title card
   const placedN = pl.pumps.length + pl.gens.length + pl.bats.length + pl.brks.length + pl.tables.length + pl.belts.length + pl.drills.length + pl.refs.length + pl.torsos.length + pl.consoles.length;
   const sum = { zone: P.zone, scrap: g.scrap, items: Object.values(g.inv).reduce((a, b) => a + (+b || 0), 0), placed: placedN, pipes: pl.pipes.length + pl.lpipes.length, cables: pl.cables.length,
     recipes: d.unlocks.recipes.length, tier: g.unlocks.craftTable, imps: d.imps.filter(i => i.r).length, t: d.time };
-  return { schema: SAVE_SCHEMA, proto: '0.4.1', saved: Date.now(), t: d.time, sum, d };
+  return { schema: SAVE_SCHEMA, proto: '0.4.2', saved: Date.now(), t: d.time, sum, d };
 }
 
 // remove every placed thing (free build: no refunds) so the saved layout can be rebuilt on top of the static world
@@ -15041,6 +15228,7 @@ function saveApply(g, snap, sl = (typeof slice !== 'undefined' ? slice : null)){
     });
     // 4. static world (finds, crates, pickups, lore, orb cradle, flora tanks…)
     step('cave', () => { warn.push(...(g.rock?.load(d.cave) || [])); });   // v0.4.1: missing row (older save) = all stable
+    step('cine', () => { g._cineSeen = Array.isArray(d.cs) ? new Set(d.cs.filter(x => CINE_IDS.includes(x))) : cineLegacySeen(g); });   // v0.4.2
     step('static', () => {
       const seen = new Map(), T = saveStaticTable(), st = d.st || {};
       for (const e of [...g.entities]){ const row = T.find(r => e.constructor === r[0]); if (!row) continue; const key = saveStaticKey(e, seen); if (key && st[key] !== undefined) row[2](e, st[key], g); }
@@ -15197,10 +15385,10 @@ window.addEventListener('pagehide', () => { if (!SAVE_RT.off && playedOnce && !g
 document.addEventListener('visibilitychange', () => { if (document.hidden && !SAVE_RT.off && playedOnce && !game.over && !SAVE_RT.dead) saveNow('hidden'); });   // v0.3.3: tab switch / phone lock
 // ---------- v0.3.3: settings card (title + pause) ----------
 const settingsUI = {
-  open(){ const S = SETTINGS; $('setSens').value = S.sens; $('setInv').checked = S.invertY; $('setFov').value = S.fov; $('setMaster').value = S.master; $('setSfx').value = S.sfx; $('setAmb').value = S.amb; $('setObj').checked = S.objStrip; $('setQ').value = S.quality; $('settings').style.display = 'flex'; $('resume').style.display = 'none'; },
+  open(){ const S = SETTINGS; $('setSens').value = S.sens; $('setInv').checked = S.invertY; $('setFov').value = S.fov; $('setMaster').value = S.master; $('setSfx').value = S.sfx; $('setAmb').value = S.amb; $('setObj').checked = S.objStrip; $('setCine').checked = S.cutscenes !== false; $('setQ').value = S.quality; $('settings').style.display = 'flex'; $('resume').style.display = 'none'; },
   close(){ $('settings').style.display = 'none'; if (playedOnce && !locked && $('start').style.display === 'none') showPaused(); },
   apply(){
-    const S = SETTINGS; S.sens = +$('setSens').value; S.invertY = $('setInv').checked; S.fov = +$('setFov').value; S.master = +$('setMaster').value; S.sfx = +$('setSfx').value; S.amb = +$('setAmb').value; S.objStrip = $('setObj').checked; S.quality = $('setQ').value;
+    const S = SETTINGS; S.sens = +$('setSens').value; S.invertY = $('setInv').checked; S.fov = +$('setFov').value; S.master = +$('setMaster').value; S.sfx = +$('setSfx').value; S.amb = +$('setAmb').value; S.objStrip = $('setObj').checked; S.cutscenes = $('setCine').checked; S.quality = $('setQ').value;
     camera.fov = S.fov; camera.updateProjectionMatrix(); renderer.setPixelRatio(qualityPR(S.quality)); renderer.setSize(innerWidth, innerHeight); AUDIO.applyVol(); settingsSave();
   }
 };
@@ -15260,7 +15448,9 @@ function showWin(st){
   $('win').style.display = 'flex'; if (document.pointerLockElement) document.exitPointerLock(); if (typeof AUDIO !== 'undefined') AUDIO.chord?.();
   try { saveNow?.('auto'); } catch (e){}
 }
-game.bus.on('game:won', st => showWin(st));
+game.bus.on('game:won', st => cine.play('ending', { st }));   // v0.4.2: the ending scene hands over to the win card (auto-skip = straight to the card)
+game.bus.on('survivor:collared', im => { if (!cine.seen.has('collar')) cine.play('collar', { im }); });
+game.bus.on('ark3:feed', () => cine.play('feed'));
 $('btnKeep').addEventListener('click', ev => { ev.stopPropagation(); $('win').style.display = 'none'; lockPointer(); });
 $('btnWinNew').addEventListener('click', ev => { ev.stopPropagation(); saveClear(); location.reload(); });
 if (SHOT) runShot(SHOT);
@@ -21603,12 +21793,65 @@ if (location.search.includes('selftest')){
       s43.G_save = { proto: snap.proto, row: !!cv, want, got, stOld, gf, oldFalls: R.st.collapses - nOld,
         ok: /^0\.4\.\d$/.test(snap.proto) && !!cv && want.rub === got.rub && want.rub > 0 && want.props === got.props && want.props === '2' && want.br === got.br && got.st === .42 && got.rubLook
           && stOld === 0 && gf >= 1 && R.st.collapses === nOld };
-      { const h = $('help')?.textContent || ''; s43.H_help = { ver: /v0\.4\.1/.test(h), cave: /Cave-in/.test(h), prop: /Shoring prop/.test(h), breach: /Dig breach/.test(h), noOne: !/v1\.0/.test(h) && !/v1\.0/.test(document.title) };
+      { const h = $('help')?.textContent || ''; s43.H_help = { ver: /v0\.4\.\d/.test(h), cave: /Cave-in/.test(h), prop: /Shoring prop/.test(h), breach: /Dig breach/.test(h), noOne: !/v1\.0/.test(h) && !/v1\.0/.test(document.title) };
         s43.H_help.ok = s43.H_help.ver && s43.H_help.cave && s43.H_help.prop && s43.H_help.breach && s43.H_help.noOne; }
       g.bus.off?.('rock:collapse', onFall);
       SV.saveApply(g, orig); g.scrap = scrap0;
       s43.SUCCESS = !!(s43.A_stress.ok && s43.B_hurt.ok && s43.C_prop.ok && s43.D_rubble.ok && s43.E_crew.ok && s43.F_breach.ok && s43.G_save.ok && s43.H_help.ok);
     } catch (err){ out.slice43.error = String(err?.stack || err).slice(0, 600); out.slice43.SUCCESS = false; } }
+    // ---- slice44 (v0.4.2): scripted in-engine cutscenes — once per save, skippable, settings toggle, auto-skip in test modes ----
+    { const s44 = out.slice44 = {}; try {
+      const g = game, P = g.player, SV = window.__breathless.save, r3 = v => Math.round(v * 1000) / 1000;
+      const seen0 = new Set(g._cineSeen || []), yaw0 = P.yaw, pitch0 = P.pitch, cineOn0 = SETTINGS.cutscenes, kids0 = scene.children.length, time0 = g.time;
+      const eyeD = () => Math.hypot(camera.position.x - P.pos.x, camera.position.y - CFG.player.eye, camera.position.z - P.pos.z);
+      // A: test modes auto-skip, but still mark the scene seen (and run its hand-off)
+      g._cineSeen = new Set(); const ra = cine.play('feed');
+      s44.A_auto = { auto: CINE_AUTO, why: ra.why, seen: g._cineSeen.has('feed'), active: !!cine.active, ok: CINE_AUTO && ra.why === 'auto' && g._cineSeen.has('feed') && !cine.active };
+      // B: a forced collar scene owns the camera, letterboxes, subtitles, freezes the sim
+      const im = { pos: new THREE.Vector3(P.pos.x + 1.2, 0, P.pos.z + .8), tag: 'CREW-T' };
+      const rb = cine.play('collar', { im }, { force: true }), lb = document.body.classList.contains('cine') && $('cine').classList.contains('on');
+      for (let i = 0; i < 40; i++) cine.update(.05);
+      const tg0 = g.time; for (let i = 0; i < 10; i++) tick(.05, 0); const frozen = g.time === tg0;
+      const sub = $('cinesub').textContent, away = eyeD();
+      s44.B_play = { ok0: rb.ok, lb, t: r3(cine.t), sub: sub.slice(0, 40), away: r3(away), frozen, hud: getComputedStyle($('hud')).opacity,
+        ok: rb.ok && lb && cine.t > 2.2 && /Collar seated|breathe your air/.test(sub) && away > .4 && frozen };
+      // C: [Space] skips; the view goes back to your eyes with your yaw/pitch
+      document.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', key: ' ' })); document.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', key: ' ' }));
+      s44.C_skip = { active: !!cine.active, lb: document.body.classList.contains('cine'), eye: r3(eyeD()), yaw: P.yaw === yaw0 && P.pitch === pitch0, log: cine.log.at(-1)?.why, lights: scene.children.length - kids0, fov: camera.fov === SETTINGS.fov,
+        ok: !cine.active && !document.body.classList.contains('cine') && eyeD() < .01 && P.yaw === yaw0 && P.pitch === pitch0 && cine.log.at(-1)?.why === 'skipped' && scene.children.length === kids0 && camera.fov === SETTINGS.fov };
+      // D: each scene plays to the end, cleans up, and lands on the player's own eye (opening) / hands to the win card (ending)
+      const D = s44.D_full = {}; let allOk = true;
+      const pod = g._slice?.pod, podP = pod?.mesh.position.clone();
+      const obj0 = g.objective; g.objective = { id: 'shelter', label: 'FIND SHELTER', t0: -99, done: false, doneT: null };
+      for (const id of ['opening', 'collar', 'feed', 'ending']){
+        let wonCard = false; const st = id === 'ending' ? { secs: 1, crew: 2, arks: 3, crises: 0, relapses: 0 } : null;
+        const oldWin = $('win').style.display;
+        const r = cine.play(id, id === 'collar' ? { im } : id === 'ending' ? { st } : {}, { force: true }); const dur = cine.active?.sh.dur || 0; let lastEye = 9, n = 0, subs = 0;
+        while (cine.active && n < 2000){ if (dur - cine.t < .06 && dur - cine.t > 0) lastEye = eyeD(); cine.update(.05); if ($('cinesub').classList.contains('on')) subs++; n++; }
+        wonCard = $('win').style.display === 'flex'; $('win').style.display = oldWin;
+        D[id] = { ok0: r.ok, dur, steps: n, why: cine.log.at(-1)?.why, subs, lastEye: r3(lastEye), clean: scene.children.length === kids0, won: wonCard };
+        const okOne = r.ok && dur > 5 && dur < 16 && cine.log.at(-1)?.why === 'played' && subs > 10 && scene.children.length === kids0 && (id !== 'opening' || lastEye < .35) && (id !== 'ending' || wonCard);
+        D[id].ok = okOne; allOk = allOk && okOne;
+      }
+      D.podBack = !pod || pod.mesh.position.distanceTo(podP) < 1e-6; D.t0 = g.objective.t0 === g.time; g.objective = obj0;
+      D.ok = allOk && D.podBack && D.t0;
+      // E: once per save, settings off, busy queue
+      g._cineSeen = new Set(['collar']); const e1 = cine.play('collar', { im });
+      SETTINGS.cutscenes = false; const e2 = cine.play('feed'); SETTINGS.cutscenes = cineOn0;
+      cine.auto = false; g._cineSeen = new Set(); const e3 = cine.play('feed'), e4 = cine.play('collar', { im }), q = cine.queue.length; cine.skip(); const e5 = cine.active?.id; cine.skip(); cine.auto = CINE_AUTO;
+      s44.E_once = { seen: e1.why, off: e2.why, played: e3.ok, busy: e4.why, queued: q, next: e5, ok: e1.why === 'seen' && e2.why === 'off' && e3.ok && e4.why === 'busy' && q === 1 && e5 === 'collar' && !cine.active };
+      // F: save row + legacy saves count what already happened as seen
+      g._cineSeen = new Set(['opening', 'collar']); const snap = JSON.parse(JSON.stringify(SV.saveCapture(g)));
+      g._cineSeen = new Set(); SV.saveApply(g, JSON.parse(JSON.stringify(snap))); const got = [...(g._cineSeen || [])].sort().join(',');
+      const old = JSON.parse(JSON.stringify(snap)); delete old.d.cs; old.proto = '0.4.1'; SV.saveApply(g, old); const leg = g._cineSeen?.has('opening');
+      s44.F_save = { proto: snap.proto, row: snap.d.cs, got, legacy: leg, ok: /^0\.4\.\d$/.test(snap.proto) && got === 'collar,opening' && leg };
+      // G: Settings card carries the toggle
+      s44.G_settings = { box: !!$('setCine'), def: SETTINGS_DEF.cutscenes === true, ok: !!$('setCine') && SETTINGS_DEF.cutscenes === true };
+      { const h = $('help')?.textContent || ''; s44.H_help = { ver: /v0\.4\.2/.test(h), sec: /CUTSCENES/.test(h), skip: /once per save/.test(h), noOne: !/v1\.0/.test(h) && !/v1\.0/.test(document.title) && !/v1\.0/.test(document.querySelector('.ver')?.textContent || '') };
+        s44.H_help.ok = s44.H_help.ver && s44.H_help.sec && s44.H_help.skip && s44.H_help.noOne; }
+      SV.saveApply(g, snap); g._cineSeen = seen0; P.yaw = yaw0; P.pitch = pitch0; void time0;
+      s44.SUCCESS = !!(s44.A_auto.ok && s44.B_play.ok && s44.C_skip.ok && s44.D_full.ok && s44.E_once.ok && s44.F_save.ok && s44.G_settings.ok && s44.H_help.ok);
+    } catch (err){ out.slice44.error = String(err?.stack || err).slice(0, 600); out.slice44.SUCCESS = false; } }
     document.title = 'SELFTEST'; const pre = document.createElement('pre'); pre.id = 'selftest'; pre.textContent = JSON.stringify(out); pre.style.cssText = 'position:fixed;z-index:99;background:#000;color:#0f0;top:0;white-space:pre-wrap;max-width:100%'; document.body.append(pre);
 }
 </script>
